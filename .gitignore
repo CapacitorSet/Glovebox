@@ -17,4 +17,6 @@ secret.key
 libfhetools.a
 
 # Binaries
-example_fibonacci
+keygen
+example_fibonacci_client
+example_fibonacci_server

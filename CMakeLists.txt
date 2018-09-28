@@ -3,18 +3,20 @@ cmake_minimum_required(VERSION 3.5)
 project(fhetools)
 
 # Needed to deal with const stuff
-set(CMAKE_CXX_FLAGS -fpermissive)
+set(CMAKE_CXX_FLAGS "-fpermissive -fno-PIC -no-pie")
+
+add_compile_definitions(PROTOCOL_VERSION=1)
 
 # Create a library
 
 # Generate the static library from the library sources
 add_library(fhetools STATIC
-        src/compile_time_settings.h
+        include/compile_time_settings.h
         src/debug.h
         src/debug.cpp
-        src/tfhe.h
+        include/tfhe.h
         src/tfhe.cpp
-        src/types.h
+        include/types.h
         src/types.cpp
         )
 
@@ -23,16 +25,32 @@ target_include_directories(fhetools
         ${PROJECT_SOURCE_DIR}/include
         )
 
+# Create executables
 
-# Create an executable
-
-# Add an executable with the above sources
-add_executable(example_fibonacci
-        examples/fibonacci/main.cpp
+add_executable(keygen
+        examples/keygen/main.cpp
+        )
+target_link_libraries(keygen
+        PRIVATE
+        fhetools
+        tfhe-spqlios-fma
         )
 
-# link the new hello_library target with the hello_binary target
-target_link_libraries(example_fibonacci
+# Fibonacci
+add_executable(example_fibonacci_client
+        examples/fibonacci/client.cpp
+        src/dyad.c
+        )
+target_link_libraries(example_fibonacci_client
+        PRIVATE
+        fhetools
+        tfhe-spqlios-fma
+        )
+add_executable(example_fibonacci_server
+        examples/fibonacci/server.cpp
+        src/dyad.c
+        )
+target_link_libraries(example_fibonacci_server
         PRIVATE
         fhetools
         tfhe-spqlios-fma
