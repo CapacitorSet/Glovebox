@@ -1,13 +1,15 @@
-#include "types.h"
 #include <assert.h>
 #include <cstdio>
 #include <tfhe.h>
 #include <cstring>
+#include "types.h"
+#include "server_parser.h"
 
 #include "dyad.h"
 
 ClientInt* a;
 ClientInt* b;
+TFHEClientParams_t p;
 
 dyad_Stream *s;
 
@@ -23,8 +25,12 @@ void onConnect(dyad_Event *e) {
 	send(b->exportToChar());
 }
 
-void onData(dyad_Event *e) {
-	printf("%s", e->data);
+void onPacket(dyad_Stream *stream, char *packet, size_t pktsize) {
+	puts("New packet.");
+	printf("Received new packet, with %zu bytes\n", pktsize);
+	auto i = new ClientInt(packet, pktsize, p);
+	printf("Size: %d\n", i->getSize());
+	printf("Value: %d\n", i->toU8());
 }
 
 int main(int argc, char *argv[]) {
@@ -33,7 +39,7 @@ int main(int argc, char *argv[]) {
 		puts("secret.key not found: run ./keygen first.");
 		return 1;
 	}
-	auto p = makeTFHEClientParams(secret_key);
+	p = makeTFHEClientParams(secret_key);
 	fclose(secret_key);
 
 	a = ClientInt::newU8(1, p);

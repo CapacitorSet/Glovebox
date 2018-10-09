@@ -5,12 +5,6 @@
 #include <cstdint>
 #include <cstdio>
 
-#if IS_PLAINTEXT
-typedef char *bits_t;
-
-typedef struct {
-} TFHEParams;
-#else
 #include <tfhe/tfhe.h>
 typedef LweSample *bits_t;
 typedef struct {
@@ -24,7 +18,6 @@ typedef struct {
 	TFheGateBootstrappingSecretKeySet* key;
 	const TFheGateBootstrappingParameterSet* params;
 } TFHEClientParams_t;
-#endif
 
 TFHEServerParams_t makeTFHEServerParams(FILE *cloud_key);
 TFHEClientParams_t makeTFHEClientParams(FILE *secret_key);
@@ -33,6 +26,8 @@ void freeTFHEServerParams(TFHEServerParams_t p);
 bits_t make_bits(int N, TFHEServerParams_t p);
 bits_t make_bits(int N, TFHEClientParams_t p);
 void free_bits(bits_t item);
+
+int decrypt(bits_t dst, TFHEClientParams_t p);
 
 void constant(bits_t dst, char src, TFHEServerParams_t p);
 void constant(bits_t dst, char src, TFHEClientParams_t p);

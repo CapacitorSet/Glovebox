@@ -1,5 +1,3 @@
-#include "types.h"
-#include "debug.h"
 #include <cassert>
 #include <types.h>
 #include <unistd.h>
@@ -8,7 +6,8 @@
 #include <glob.h>
 
 FILE* charptr_to_file(char* src, size_t len) {
-	char filename[] = "/tmp/fhetools_charptr_to_file.dat";
+	char *filename = std::tmpnam(nullptr);
+	printf("charptr_to_file: %s\n", filename);
 	FILE *wptr = fopen(filename, "wb");
 	assert(wptr);
 	fwrite(src, len, 1, wptr);
@@ -20,11 +19,15 @@ FILE* charptr_to_file(char* src, size_t len) {
 }
 
 ptr_with_length_t Int::exportToChar() {
+	// Todo: header should have >1 byte for size
 	char header[2];
 	memcpy(header, &isSigned, 1);
 	memcpy(header + 1, &size, 1);
-	printf("Header: %#04x %#04x\n", header[0], header[1]);
-	char filename[] = "/tmp/fhetools_exportToChar.dat";
+	printf("Header:\n");
+	printf("\tSigned: %d\n", header[0]);
+	printf("\tSize: %d\n", header[1]);
+	char *filename = std::tmpnam(nullptr);
+	printf("exportToChar: %s\n", filename);
 	FILE *wptr = fopen(filename, "wb");
 	assert(wptr);
 	exportToFile(wptr);
@@ -43,127 +46,33 @@ ptr_with_length_t Int::exportToChar() {
 	fread(out + sizeof(header), 1, size, rptr);
 	fclose(rptr);
 	// unlink(filename);
-	printf("Out: %#04x %#04x\n", out[0], out[1]);
 	return ptr_with_length_t{out, size};
 }
 
-ClientInt::ClientInt(uint8_t _size, bool _isSigned, TFHEClientParams_t _p) : p(_p) {
-	size = _size;
-	isSigned = _isSigned;
-	data = make_bits(_size, p);
-}
-
-void ClientInt::writeU8(uint8_t val) {
-	assert(size == 8);
-	assert(!isSigned);
-	for (int i = 0; i < 8; i++) {
-		constant(&data[i], (val >> i) & 1, p);
-	}
-}
-
-// todo: document that it doesn't export a header
-void ClientInt::exportToFile(FILE *out) {
-	for (int i = 0; i < size; i++)
-		export_gate_bootstrapping_ciphertext_toFile(out, &data[i], p.params);
-}
-
-ServerInt::ServerInt(char *packet, size_t pktsize, TFHEServerParams_t p) {
+void Int::parse(char *packet, size_t pktsize, const TFheGateBootstrappingParameterSet *params) {
 	memcpy(&isSigned, packet, 1);
 	memcpy(&size, packet + 1, 1);
 	// Skip header
 	packet += 2; pktsize -= 2;
+	printf("Header:\n");
+	printf("\tSigned: %d\n", isSigned);
+	printf("\tSize: %d\n", size);
 	FILE* f = charptr_to_file(packet, pktsize);
 	if (f == nullptr) {
-		printf("Value of errno: %d\n", errno);
-		perror("Error printed by perror");
-		printf("Error opening file: %s\n", strerror( errno ));
+		printf("errno: %d\n", errno);
+		printf("Error opening file: %s\n", strerror(errno));
 		exit(-1);
 	}
 	assert(f);
-	data = make_bits(size, p);
+	data = new_gate_bootstrapping_ciphertext_array(size, params);
 	for (int i = 0; i < size; i++)
-		import_gate_bootstrapping_ciphertext_fromFile(f, &data[i], p.params);
+		import_gate_bootstrapping_ciphertext_fromFile(f, &data[i], params);
 }
-
-ServerInt::ServerInt(uint8_t _size, bool _isSigned, TFHEServerParams_t _p) : p(_p) {
-	size = _size;
-	isSigned = _isSigned;
-	data = make_bits(_size, p);
-}
-
-void ServerInt::add(ServerInt a, ServerInt b) {
-  assert(size == a.size);
-  assert(isSigned == a.isSigned);
-  assert(a.size == b.size);
-  assert(a.isSigned == b.isSigned);
-
-  // Inputs
-  bits_t A, B;
-  bits_t CIn = make_bits(1, p);
-  constant(CIn, 0, p);
-
-  // Intermediate variables
-  bits_t AxorB = make_bits(1, p);
-  bits_t AxorBandCIn = make_bits(1, p);
-  bits_t AandB = make_bits(1, p);
-
-  // Output variables
-  bits_t COut = make_bits(1, p);
-  bits_t S;
-  for (int i = 0; i < size; i++) {
-    A = &a.data[i];
-    B = &b.data[i];
-    S = &data[i]; // Write to self
-
-    _xor(AxorB, A, B, p);
-    _and(AxorBandCIn, AxorB, CIn, p);
-    _and(AandB, A, B, p);
-
-    _or(COut, AxorBandCIn, AandB, p); // COut = ((A XOR B) AND CIn) OR (A AND B)
-    _xor(S, AxorB, CIn, p);           // S = (A XOR B) XOR CIn
-
-    // The current COut will be used as CIn.
-    _copy(CIn, COut, p);
-    /* For some reason this hack doesn't work.
-    free_bits(CIn);
-    CIn = COut;
-    */
-  }
-}
-
-void ServerInt::copy(ServerInt src) {
-  assert(size == src.size);
-  assert(isSigned == src.isSigned);
-  for (int i = 0; i < size; i++) {
-    _copy(&data[i], &src.data[i], p);
-  }
-}
-
-void ServerInt::writeU8(uint8_t val) {
-	assert(size == 8);
-	assert(!isSigned);
-	for (int i = 0; i < 8; i++) {
-		constant(&data[i], (val >> i) & 1, p);
-	}
-}
-
-void ServerInt::exportToFile(FILE *out) {
-	export_gate_bootstrapping_ciphertext_toFile(out, data, p.params);
-}
-
-#if DEBUG
-void ServerInt::print() {
-  for (int i = 8; i-- > 0;) {
-    printf("%d", decrypt(&data[i], p));
-  }
-  putchar('\n');
-}
-#endif
 
 Array::Array(uint64_t _length, uint16_t _wordSize, TFHEServerParams_t _p) {
-  length = _length;
-  wordSize = _wordSize;
-  data = make_bits(_length * _wordSize, _p);
+	length = _length;
+	wordSize = _wordSize;
+	data = make_bits(_length * _wordSize, _p);
 }
 
 void Array::getN_thInt(ServerInt ret, const bits_t address, uint8_t bitsInAddress) {
@@ -184,15 +93,15 @@ void Array::putN_thInt(ServerInt src, const bits_t address, uint8_t bitsInAddres
  */
 void Array::getN_thBit(bits_t ret, uint8_t N, uint8_t wordsize, const bits_t address, uint8_t bitsInAddress,
                        const bits_t staticOffset, size_t dynamicOffset, TFHEServerParams_t p) {
-  if (bitsInAddress == 1) {
-    _mux(ret, &address[0],
-		&staticOffset[wordsize * (dynamicOffset + 1) + N],
-		&staticOffset[wordsize * (dynamicOffset    ) + N],
-		 p);
-    return;
-  }
+	if (bitsInAddress == 1) {
+		_mux(ret, &address[0],
+		     &staticOffset[wordsize * (dynamicOffset + 1) + N],
+		     &staticOffset[wordsize * (dynamicOffset    ) + N],
+		     p);
+		return;
+	}
 #if TRIVIAL_getNth_bit
-  // Avoids branching, doing simple recursion instead
+	// Avoids branching, doing simple recursion instead
 	int bit = decrypt(&address[bitsInAddress - 1]);
 	if (bit) {
 		getN_thBit(ret, N, wordsize, address, bitsInAddress - 1, staticOffset, dynamicOffset + (1 << (bitsInAddress - 1)));
@@ -215,13 +124,13 @@ void Array::getN_thBit(bits_t ret, uint8_t N, uint8_t wordsize, const bits_t add
     return;
   }
 	*/
-  bits_t a = make_bits(1, p);
-  getN_thBit(a, N, wordsize, address, bitsInAddress - 1, staticOffset, dynamicOffset + (1 << (bitsInAddress - 1)), p);
-  bits_t b = make_bits(1, p);
-  getN_thBit(b, N, wordsize, address, bitsInAddress - 1, staticOffset, dynamicOffset, p);
-  _mux(ret, &address[bitsInAddress - 1], a, b, p);
-  free_bits(a);
-  free_bits(b);
+	bits_t a = make_bits(1, p);
+	getN_thBit(a, N, wordsize, address, bitsInAddress - 1, staticOffset, dynamicOffset + (1 << (bitsInAddress - 1)), p);
+	bits_t b = make_bits(1, p);
+	getN_thBit(b, N, wordsize, address, bitsInAddress - 1, staticOffset, dynamicOffset, p);
+	_mux(ret, &address[bitsInAddress - 1], a, b, p);
+	free_bits(a);
+	free_bits(b);
 #endif
 }
 

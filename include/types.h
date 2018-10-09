@@ -20,14 +20,21 @@ public:
 	virtual void exportToFile(FILE *out) = 0;
 	ptr_with_length_t exportToChar();
 
-	uint8_t size; // todo: move back to protected when i'm done debugging
+	const int& getSize() const { return size; }
+	const bool& getSigned() const { return isSigned; }
 protected:
+	void parse(char *packet, size_t pktsize, const TFheGateBootstrappingParameterSet *params);
+
+	uint8_t size;
 	bool isSigned;
 	bits_t data;
 };
 
 class ClientInt : public Int {
 public:
+	ClientInt(char *packet, size_t pktsize, TFHEClientParams_t _p) : p(_p) {
+		parse(packet, pktsize, _p.params);
+	};
 	static ClientInt* newU8(TFHEClientParams_t p) {
 		return new ClientInt(8, false, p);
 	}
@@ -38,6 +45,7 @@ public:
 	}
 	void writeU8(uint8_t) final override;
 	void exportToFile(FILE *out) final override;
+	uint8_t toU8();
 	ClientInt(uint8_t size, bool isSigned, TFHEClientParams_t p);
 private:
 	TFHEClientParams_t p;
@@ -48,13 +56,15 @@ class ServerInt : public Int {
 	friend class Array;
 
   public:
-	ServerInt(char *packet, size_t pktsize, TFHEServerParams_t p);
-	static ServerInt newU8(TFHEServerParams_t p) {
-		return {8, false, p};
+	ServerInt(char *packet, size_t pktsize, TFHEServerParams_t _p) : p(_p) {
+		parse(packet, pktsize, _p.params);
+	};
+	static ServerInt* newU8(TFHEServerParams_t p) {
+		return new ServerInt(8, false, p);
 	}
-	static ServerInt newU8(uint8_t n, TFHEServerParams_t p) {
+	static ServerInt* newU8(uint8_t n, TFHEServerParams_t p) {
 		auto ret = ServerInt::newU8(p);
-		ret.writeU8(n);
+		ret->writeU8(n);
 		return ret;
 	}
 	void writeU8(uint8_t) final override;

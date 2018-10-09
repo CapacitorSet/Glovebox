@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.5)
 
 project(fhetools)
 
-# Needed to deal with const stuff
-set(CMAKE_CXX_FLAGS "-fpermissive -fno-PIC -no-pie")
+# -fpermissive: needed to deal with const stuff
+set(CMAKE_CXX_FLAGS "-fpermissive -fno-PIC -no-pie -g")
 
 add_compile_definitions(PROTOCOL_VERSION=1)
 
@@ -12,12 +12,12 @@ add_compile_definitions(PROTOCOL_VERSION=1)
 # Generate the static library from the library sources
 add_library(fhetools STATIC
         include/compile_time_settings.h
-        src/debug.h
-        src/debug.cpp
         include/tfhe.h
         src/tfhe.cpp
         include/types.h
-        src/types.cpp
+        src/server.cpp
+        src/client.cpp
+        src/universal.cpp
         )
 
 target_include_directories(fhetools
@@ -39,6 +39,8 @@ target_link_libraries(keygen
 # Fibonacci
 add_executable(example_fibonacci_client
         examples/fibonacci/client.cpp
+        examples/fibonacci/server_parser.cpp
+        examples/fibonacci/server_parser.h
         src/dyad.c
         )
 target_link_libraries(example_fibonacci_client
@@ -48,8 +50,9 @@ target_link_libraries(example_fibonacci_client
         )
 add_executable(example_fibonacci_server
         examples/fibonacci/server.cpp
-        src/dyad.c
-        )
+        examples/fibonacci/server_parser.cpp
+        examples/fibonacci/server_parser.h
+        src/dyad.c)
 target_link_libraries(example_fibonacci_server
         PRIVATE
         fhetools
