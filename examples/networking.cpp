@@ -1,8 +1,10 @@
-#include "server_parser.h"
 #include <cassert>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
+#include "networking.h"
+
+#define PROTOCOL_VERSION 1
 
 // Global, so they can be preserved across onData calls
 size_t network_bytes_left;
@@ -70,3 +72,10 @@ void onAccept(dyad_Event *e) {
 	dyad_addListener(e->remote, DYAD_EVENT_DATA, onData, nullptr);
 }
 
+void sendWithFree(dyad_Stream *s, ptr_with_length_t data) {
+	char header[5] = {PROTOCOL_VERSION};
+	memcpy(header + 1, &data.len, 4);
+	dyad_write(s, header, 5);
+	dyad_write(s, data.ptr, data.len);
+	free(data.ptr);
+}

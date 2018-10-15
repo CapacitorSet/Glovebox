@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <tfhe.h>
 #include "types.h"
-#include "server_parser.h"
+#include "../networking.h"
 
 #include "dyad.h"
 
@@ -12,14 +12,6 @@ TFHEServerParams_t params;
 
 ServerInt* first;
 ServerInt* second;
-
-void send(dyad_Stream *stream, ptr_with_length_t data) {
-	char header[5] = {PROTOCOL_VERSION};
-	memcpy(header + 1, &data.len, 4);
-	dyad_write(stream, header, 5);
-	printf("Sending %zu bytes.\n", data.len);
-	dyad_write(stream, data.ptr, data.len);
-}
 
 void onPacket(dyad_Stream *stream, char *packet, size_t pktsize) {
 	puts("New packet.");
@@ -39,7 +31,7 @@ void onPacket(dyad_Stream *stream, char *packet, size_t pktsize) {
 			first->copy(*second);
 			second->copy(*x);
 		}
-		send(stream, x->exportToChar());
+		sendWithFree(stream, x->exportToChar());
 	}
 }
 

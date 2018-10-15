@@ -3,7 +3,7 @@
 #include <tfhe.h>
 #include <cstring>
 #include "types.h"
-#include "server_parser.h"
+#include "../networking.h"
 
 #include "dyad.h"
 
@@ -13,17 +13,9 @@ TFHEClientParams_t p;
 
 dyad_Stream *s;
 
-void sendFree(ptr_with_length_t data) {
-	char header[5] = {PROTOCOL_VERSION};
-	memcpy(header + 1, &data.len, 4);
-	dyad_write(s, header, 5);
-	dyad_write(s, data.ptr, data.len);
-	free(data.ptr);
-}
-
 void onConnect(dyad_Event *e) {
-	sendFree(a->exportToChar());
-	sendFree(b->exportToChar());
+	sendWithFree(s, a->exportToChar());
+	sendWithFree(s, b->exportToChar());
 }
 
 void onPacket(dyad_Stream *stream, char *packet, size_t pktsize) {

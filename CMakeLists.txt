@@ -5,8 +5,6 @@ project(fhetools)
 # -fpermissive: needed to deal with const stuff
 set(CMAKE_CXX_FLAGS "-fpermissive -fno-PIC -no-pie -g -fsanitize=address")
 
-add_compile_definitions(PROTOCOL_VERSION=1)
-
 # Create a library
 
 # Generate the static library from the library sources
@@ -39,8 +37,8 @@ target_link_libraries(keygen
 # Fibonacci
 add_executable(example_fibonacci_client
         examples/fibonacci/client.cpp
-        examples/fibonacci/server_parser.cpp
-        examples/fibonacci/server_parser.h
+        examples/networking.cpp
+        examples/networking.h
         src/dyad.c
         )
 target_link_libraries(example_fibonacci_client
@@ -50,8 +48,8 @@ target_link_libraries(example_fibonacci_client
         )
 add_executable(example_fibonacci_server
         examples/fibonacci/server.cpp
-        examples/fibonacci/server_parser.cpp
-        examples/fibonacci/server_parser.h
+        examples/networking.cpp
+        examples/networking.h
         src/dyad.c)
 target_link_libraries(example_fibonacci_server
         PRIVATE
