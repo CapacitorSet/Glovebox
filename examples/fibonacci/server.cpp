@@ -13,8 +13,9 @@ TFHEServerParams_t params;
 ServerInt* first;
 ServerInt* second;
 
-void onPacket(dyad_Stream *stream, char *packet, size_t pktsize) {
+void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) {
 	puts("New packet.");
+	assert(dataType == Int::typeID);
 	auto tmp = new ServerInt(packet, pktsize, params);
 	if (first == nullptr) {
 		first = tmp;
@@ -31,7 +32,7 @@ void onPacket(dyad_Stream *stream, char *packet, size_t pktsize) {
 			first->copy(*second);
 			second->copy(*x);
 		}
-		sendWithFree(stream, x->exportToChar());
+		send(stream, x);
 	}
 }
 

@@ -14,12 +14,13 @@ TFHEClientParams_t p;
 dyad_Stream *s;
 
 void onConnect(dyad_Event *e) {
-	sendWithFree(s, a->exportToChar());
-	sendWithFree(s, b->exportToChar());
+	send(s, a);
+	send(s, b);
 }
 
-void onPacket(dyad_Stream *stream, char *packet, size_t pktsize) {
+void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) {
 	puts("New packet.");
+	assert(dataType == Int::typeID);
 	auto i = new ClientInt(packet, pktsize, p);
 	printf("Size: %d\n", i->getSize());
 	printf("Value: %d\n", i->toU8());

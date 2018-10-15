@@ -5,6 +5,12 @@
 #include <cstdint>
 #include <glob.h>
 
+// The enum is not actually used, it just ensures that type IDs do not overlap
+enum {
+	UNINITIALIZED_TYPE_ID = 0,
+	INT_TYPE_ID,
+};
+
 bits_t bits_merge(bits_t, bits_t);
 
 class Array;
@@ -16,6 +22,7 @@ typedef struct {
 
 class Int {
 public:
+	static char typeID;
 	virtual void writeU8(uint8_t) = 0;
 
 	ptr_with_length_t exportToChar();

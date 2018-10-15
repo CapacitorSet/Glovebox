@@ -50,6 +50,8 @@ ptr_with_length_t Int::exportToChar() {
 	return ptr_with_length_t{out, size};
 }
 
+char Int::typeID = INT_TYPE_ID;
+
 void Int::parse(char *packet, size_t pktsize,
                 const TFheGateBootstrappingParameterSet *params) {
 	memcpy(&isSigned, packet, 1);
