@@ -41,10 +41,6 @@ void ServerInt::add(ServerInt a, ServerInt b) {
 
 		// The current COut will be used as CIn.
 		_copy(CIn, COut, p);
-		/* For some reason this hack doesn't work.
-		free_bits(CIn);
-		CIn = COut;
-		*/
 	}
 }
 

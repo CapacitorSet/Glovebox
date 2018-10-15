@@ -22,6 +22,13 @@ public:
 	void exportToFile(FILE *out);
 	void print(TFHEClientParams_t p);
 	void sprint(char *out, TFHEClientParams_t p);
+	void free() {
+		// it only actually works if the free is commented out.
+		// todo: figure out wtf is up
+
+		// printf("Freeing %d items.\n", size);
+		// free_LweSample_array(size, data);
+	}
 
 	const int& getSize() const { return size; }
 	const bool& getSigned() const { return isSigned; }
@@ -57,6 +64,10 @@ public:
 	void writeU8(uint8_t) final override;
 	uint8_t toU8();
 	ClientInt(uint8_t _size, bool _isSigned, TFHEClientParams_t _p) : p(_p), Int(_size, _isSigned, _p.params) {}
+	void operator delete(void *_ptr) {
+		auto ptr = static_cast<ClientInt*>(_ptr);
+		ptr->free();
+	}
 private:
 	TFHEClientParams_t p;
 };
@@ -99,12 +110,6 @@ class ServerInt : public Int {
 		_not(ret, ret, n.p);
 		return ret;
 	}
-
-	bits_t bits() { return data; }
-
-#if DEBUG
-	void print();
-#endif
   private:
 	TFHEServerParams_t p;
 };

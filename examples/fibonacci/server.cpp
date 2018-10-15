@@ -30,7 +30,7 @@ void onPacket(dyad_Stream *stream, char *packet, size_t pktsize) {
 		second = tmp;
 
 		auto x = ServerInt::newU8(params);
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 3; i++) {
 			printf("Iteration %d\n", i);
 			x->add(*first, *second);
 			// todo: document that this is buggy af because it will result in ptrs being reused

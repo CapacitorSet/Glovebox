@@ -13,16 +13,17 @@ TFHEClientParams_t p;
 
 dyad_Stream *s;
 
-void send(ptr_with_length_t data) {
+void sendFree(ptr_with_length_t data) {
 	char header[5] = {PROTOCOL_VERSION};
 	memcpy(header + 1, &data.len, 4);
 	dyad_write(s, header, 5);
 	dyad_write(s, data.ptr, data.len);
+	free(data.ptr);
 }
 
 void onConnect(dyad_Event *e) {
-	send(a->exportToChar());
-	send(b->exportToChar());
+	sendFree(a->exportToChar());
+	sendFree(b->exportToChar());
 }
 
 void onPacket(dyad_Stream *stream, char *packet, size_t pktsize) {
@@ -32,6 +33,7 @@ void onPacket(dyad_Stream *stream, char *packet, size_t pktsize) {
 	printf("Value: %d\n", i->toU8());
 	i->print(p);
 	putchar('\n');
+	delete i;
 }
 
 int main(int argc, char *argv[]) {
@@ -60,5 +62,8 @@ int main(int argc, char *argv[]) {
 	puts("No more connections, closing.");
 
 	dyad_shutdown();
+	freeTFHEClientParams(p);
+	delete a;
+	delete b;
 	return 0;
 }

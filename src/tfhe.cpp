@@ -17,8 +17,9 @@ TFHEClientParams_t makeTFHEClientParams(FILE *secret_key) {
 
 void freeTFHEServerParams(TFHEServerParams_t p) {
 	delete_gate_bootstrapping_cloud_keyset(p.bk);
-	// Seems to be not needed
-	// delete_gate_bootstrapping_parameters(p.params);
+}
+void freeTFHEClientParams(TFHEClientParams_t p) {
+	delete_gate_bootstrapping_secret_keyset(p.key);
 }
 
 int decrypt(bits_t dst, TFHEClientParams_t p) {
