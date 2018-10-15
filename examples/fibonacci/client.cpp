@@ -27,10 +27,11 @@ void onConnect(dyad_Event *e) {
 
 void onPacket(dyad_Stream *stream, char *packet, size_t pktsize) {
 	puts("New packet.");
-	printf("Received new packet, with %zu bytes\n", pktsize);
 	auto i = new ClientInt(packet, pktsize, p);
 	printf("Size: %d\n", i->getSize());
 	printf("Value: %d\n", i->toU8());
+	i->print(p);
+	putchar('\n');
 }
 
 int main(int argc, char *argv[]) {

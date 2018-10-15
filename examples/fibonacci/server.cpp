@@ -25,21 +25,20 @@ void onPacket(dyad_Stream *stream, char *packet, size_t pktsize) {
 	puts("New packet.");
 	auto tmp = new ServerInt(packet, pktsize, params);
 	if (first == nullptr) {
-		puts("Assigning to first");
 		first = tmp;
 	} else if (second == nullptr) {
-		puts("Assigning to second");
 		second = tmp;
 
 		auto x = ServerInt::newU8(params);
-		for (int i = 0; i < 3; i++) {
-			printf("Sum %d\n", i);
+		for (int i = 0; i < 5; i++) {
+			printf("Iteration %d\n", i);
 			x->add(*first, *second);
-			break;
-			first = second;
-			second = x;
+			// todo: document that this is buggy af because it will result in ptrs being reused
+			// first = second;
+			// second = x;
+			first->copy(*second);
+			second->copy(*x);
 		}
-		puts("Send");
 		send(stream, x->exportToChar());
 	}
 }

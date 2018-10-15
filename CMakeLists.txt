@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.5)
 project(fhetools)
 
 # -fpermissive: needed to deal with const stuff
-set(CMAKE_CXX_FLAGS "-fpermissive -fno-PIC -no-pie -g")
+set(CMAKE_CXX_FLAGS "-fpermissive -fno-PIC -no-pie -g -fsanitize=address")
 
 add_compile_definitions(PROTOCOL_VERSION=1)
 
