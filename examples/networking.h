@@ -2,7 +2,7 @@
 #define FHETOOLS_SERVER_PARSER_H
 
 #include <cstddef>
-#include <dyad.h>
+#include "dyad.h"
 #include <types.h>
 
 void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType);

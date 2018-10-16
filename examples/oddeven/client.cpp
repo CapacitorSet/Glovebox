@@ -5,7 +5,7 @@
 #include "types.h"
 #include "../networking.h"
 
-#include "dyad.h"
+#include "../dyad.h"
 
 ClientInt* a;
 ClientInt* b;

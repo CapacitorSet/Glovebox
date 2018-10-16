@@ -6,7 +6,7 @@
 #include "types.h"
 #include "../networking.h"
 
-#include "dyad.h"
+#include "../dyad.h"
 
 TFHEServerParams_t params;
 

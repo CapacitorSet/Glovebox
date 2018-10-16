@@ -34,48 +34,54 @@ target_link_libraries(keygen
         tfhe-spqlios-fma
         )
 
+add_library(examples_networking OBJECT
+        examples/dyad.c
+        examples/dyad.h
+        examples/networking.cpp
+        examples/networking.h
+        )
+
+target_include_directories(examples_networking
+        PUBLIC
+        ${PROJECT_SOURCE_DIR}/include
+        )
+
 # Fibonacci
 add_executable(example_fibonacci_client
         examples/fibonacci/client.cpp
-        examples/networking.cpp
-        examples/networking.h
-        src/dyad.c
         )
 target_link_libraries(example_fibonacci_client
         PRIVATE
         fhetools
         tfhe-spqlios-fma
+        examples_networking
         )
 add_executable(example_fibonacci_server
         examples/fibonacci/server.cpp
-        examples/networking.cpp
-        examples/networking.h
-        src/dyad.c)
+        )
 target_link_libraries(example_fibonacci_server
         PRIVATE
         fhetools
         tfhe-spqlios-fma
+        examples_networking
         )
 
 # Odd/even
 add_executable(example_oddeven_client
         examples/oddeven/client.cpp
-        examples/networking.cpp
-        examples/networking.h
-        src/dyad.c
         )
 target_link_libraries(example_oddeven_client
         PRIVATE
         fhetools
         tfhe-spqlios-fma
+        examples_networking
         )
 add_executable(example_oddeven_server
         examples/oddeven/server.cpp
-        examples/networking.cpp
-        examples/networking.h
-        src/dyad.c)
+        )
 target_link_libraries(example_oddeven_server
         PRIVATE
         fhetools
         tfhe-spqlios-fma
+        examples_networking
         )
