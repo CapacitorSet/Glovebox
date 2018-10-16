@@ -26,6 +26,10 @@ int decrypt(bits_t dst, TFHEClientParams_t p) {
 	return bootsSymDecrypt(dst, p.key);
 }
 
+bits_t make_bits(int N, const TFheGateBootstrappingParameterSet *params) {
+	return new_gate_bootstrapping_ciphertext_array(N, params);
+}
+
 bits_t make_bits(int N, TFHEClientParams_t p) {
 	return new_gate_bootstrapping_ciphertext_array(N, p.params);
 }

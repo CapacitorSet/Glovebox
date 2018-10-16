@@ -1,9 +1,10 @@
 #ifndef FHE_TOOLS_TYPES_H
 #define FHE_TOOLS_TYPES_H
 
-#include "tfhe.h"
+#include <cassert>
 #include <cstdint>
 #include <glob.h>
+#include "tfhe.h"
 
 // The enum is not actually used, it just ensures that type IDs do not overlap
 enum {
@@ -12,20 +13,19 @@ enum {
 	ARRAY_TYPE_ID,
 };
 
-template <class T>
-class Array;
+template <class T> class Array;
 
 bits_t bits_merge(bits_t, bits_t);
 
 typedef struct {
-	char* ptr;
+	char *ptr;
 	size_t len;
 } ptr_with_length_t;
 
 class Int {
-	template <class T>
-	friend class Array;
-public:
+	template <class T> friend class Array;
+
+  public:
 	virtual void writeU8(uint8_t) = 0;
 
 	ptr_with_length_t exportToChar();
@@ -40,63 +40,73 @@ public:
 		// free_LweSample_array(size, data);
 	}
 
-	const int& getSize() const { return size; }
-	const bool& getSigned() const { return isSigned; }
-protected:
-	Int(uint8_t _size, bool _isSigned, const TFheGateBootstrappingParameterSet* _params, bool initialize = true)
-		: size(_size), isSigned(_isSigned), params(_params) {
-		if (initialize)
-			data = new_gate_bootstrapping_ciphertext_array(_size, _params);
-	}
-	explicit Int(const TFheGateBootstrappingParameterSet* _params) : params(_params) {}
+	const int &getSize() const { return size; }
+	const bool &getSigned() const { return isSigned; }
 
-	void parse(char *packet, size_t pktsize, const TFheGateBootstrappingParameterSet *params);
+  protected:
+	Int(uint8_t _size, bool _isSigned,
+	    const TFheGateBootstrappingParameterSet *_params,
+	    bool initialize = true)
+	    : size(_size), isSigned(_isSigned), params(_params) {
+		if (initialize)
+			data = make_bits(_size, _params);
+	}
+	explicit Int(const TFheGateBootstrappingParameterSet *_params)
+	    : params(_params) {}
+
+	void parse(char *packet, size_t pktsize,
+	           const TFheGateBootstrappingParameterSet *params);
 
 	uint8_t size;
 	bool isSigned;
 	bits_t data;
-	const TFheGateBootstrappingParameterSet* params;
+	const TFheGateBootstrappingParameterSet *params;
 };
 
 class ClientInt : public Int {
-public:
-	ClientInt(char *packet, size_t pktsize, TFHEClientParams_t _p) : p(_p), Int(_p.params) {
+  public:
+	ClientInt(char *packet, size_t pktsize, TFHEClientParams_t _p)
+	    : p(_p), Int(_p.params) {
 		parse(packet, pktsize, _p.params);
 	};
-	static ClientInt* newU8(TFHEClientParams_t _p) {
+	static ClientInt *newU8(TFHEClientParams_t _p) {
 		return new ClientInt(8, false, _p);
 	}
-	static ClientInt* newU8(uint8_t n, TFHEClientParams_t p) {
+	static ClientInt *newU8(uint8_t n, TFHEClientParams_t p) {
 		auto ret = ClientInt::newU8(p);
 		ret->writeU8(n);
 		return ret;
 	}
 	void writeU8(uint8_t) final override;
 	uint8_t toU8();
-	ClientInt(uint8_t _size, bool _isSigned, TFHEClientParams_t _p) : p(_p), Int(_size, _isSigned, _p.params) {}
+	ClientInt(uint8_t _size, bool _isSigned, TFHEClientParams_t _p)
+	    : p(_p), Int(_size, _isSigned, _p.params) {}
 	void operator delete(void *_ptr) {
-		auto ptr = static_cast<ClientInt*>(_ptr);
+		auto ptr = static_cast<ClientInt *>(_ptr);
 		ptr->free();
 	}
-private:
+
+  private:
 	TFHEClientParams_t p;
 };
 
 class ServerInt : public Int {
   public:
-	ServerInt(char *packet, size_t pktsize, TFHEServerParams_t _p) : p(_p), Int(_p.params) {
+	ServerInt(char *packet, size_t pktsize, TFHEServerParams_t _p)
+	    : p(_p), Int(_p.params) {
 		parse(packet, pktsize, _p.params);
 	};
-	static ServerInt* newU8(TFHEServerParams_t p) {
+	static ServerInt *newU8(TFHEServerParams_t p) {
 		return new ServerInt(8, false, p);
 	}
-	static ServerInt* newU8(uint8_t n, TFHEServerParams_t p) {
+	static ServerInt *newU8(uint8_t n, TFHEServerParams_t p) {
 		auto ret = ServerInt::newU8(p);
 		ret->writeU8(n);
 		return ret;
 	}
 	void writeU8(uint8_t) final override;
-	ServerInt(uint8_t _size, bool _isSigned, TFHEServerParams_t _p) : p(_p), Int(_size, _isSigned, _p.params) {}
+	ServerInt(uint8_t _size, bool _isSigned, TFHEServerParams_t _p)
+	    : p(_p), Int(_size, _isSigned, _p.params) {}
 
 	void add(ServerInt, ServerInt);
 	void copy(ServerInt);
@@ -117,39 +127,137 @@ class ServerInt : public Int {
 		_not(ret, ret, n.p);
 		return ret;
 	}
+
   private:
 	TFHEServerParams_t p;
 };
 
-template <class T>
-class Array {
-  public:
-	Array(uint64_t _length, uint16_t _wordSize, TFHEServerParams_t p) : length(_length), wordSize(_wordSize) {
-		data = make_bits(_length * _wordSize, p);
+template <class T> class Array {
+  protected:
+	Array(uint64_t _length, uint16_t _wordSize,
+	      const TFheGateBootstrappingParameterSet *_params)
+	    : length(_length), wordSize(_wordSize), params(_params) {
+		data = make_bits(_length * _wordSize, _params);
 	};
-	void getN_th(T ret, const bits_t address, uint8_t bitsInAddress);
-	void putN_th(T src, const bits_t address, uint8_t bitsInAddress);
 
-  private:
 	uint64_t length;
 	uint16_t wordSize;
 	bits_t data;
-	TFHEServerParams_t p;
-	const TFheGateBootstrappingParameterSet* params;
+	const TFheGateBootstrappingParameterSet *params;
 
 	static void getN_thBit(bits_t ret, uint8_t N, uint8_t wordsize,
-	                       const bits_t address, uint8_t bitsInAddress,
-	                       const bits_t staticOffset, size_t dynamicOffset,
+	                       bits_t address, uint8_t bitsInAddress,
+	                       bits_t staticOffset, size_t dynamicOffset,
 	                       TFHEServerParams_t p);
-	static void putN_thBit(bits_t src, uint8_t N, uint8_t wordsize,
-	                       const bits_t address, uint8_t bitsInAddress,
-	                       const bits_t staticOffset, size_t dynamicOffset,
-	                       bits_t mask, TFHEServerParams_t p);
 };
 
-template <typename T>
-class ClientArray : Array<T> {
+template <typename T> class ClientArray : Array<T> {
+  public:
+	ClientArray(uint64_t _length, uint16_t _wordSize, TFHEClientParams_t _p)
+	    : Array<T>(_length, _wordSize, _p.params), p(_p) {}
 
+	// Copies n bytes from src to the given address (with the address given in bytes).
+	void put(char *src, uint64_t address, size_t n) {
+		assert((address * 8 + n) < this->length * this->wordSize);
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < 8; j++) {
+				char bit = (src[i] >> j) & 1;
+				printf("data[%#016x] = %d\n", (address + i) * 8 + j, bit);
+				constant(&this->data[(address + i) * 8 + j], bit, p);
+			}
+		}
+	}
+
+	// Reads one word at the given address (given in words) and puts it into dst.
+	// Note that the pointers are copied, so changes made to dst will be reflected in the array.
+	void peek(bits_t dst, uint64_t address) {
+		assert((address * this->wordSize) < this->length * this->wordSize);
+		memcpy(dst, &this->data, this->wordSize);
+	}
+
+	// Decrypts one word at the given address (given in words) and puts it into dst.
+	void get(char *dst, uint64_t address) {
+		assert((address * this->wordSize) < this->length * this->wordSize);
+		char byte; char bytepos = 0; size_t dstpos = 0;
+		for (int i = 0; i < this->wordSize; i++) {
+			printf("Accessing %#016x.\n", address * this->wordSize + i);
+			char bit = decrypt(&this->data[address * this->wordSize + i], p);
+			byte |= bit << bytepos++;
+			if (bytepos == 8) {
+				bytepos = 0;
+				dst[dstpos++] = byte;
+				byte = 0;
+			}
+		}
+	}
+
+  private:
+	TFHEClientParams_t p;
+};
+
+template <typename T> class ServerArray : Array<T> {
+  public:
+	ServerArray(uint64_t _length, uint16_t _wordSize, TFHEServerParams_t _p)
+	    : p(_p) {}
+
+	void put(T src, bits_t address, uint8_t bitsInAddress) {
+		bits_t mask = make_bits(1, p);
+		constant(mask, 1, p);
+		for (int i = 0; i < src.size; i++) {
+			putBit(&src.data[i], i, src.size, address, bitsInAddress,
+			              this->data, 0, mask, p);
+		}
+	}
+private:
+	TFHEServerParams_t p;
+
+	void putBit(bits_t src, uint8_t N, uint8_t wordsize,
+	            const bits_t address, uint8_t bitsInAddress,
+	            const bits_t staticOffset, size_t dynamicOffset,
+	            bits_t mask, TFHEServerParams_t p) {
+		assert(N < wordsize);
+		if (bitsInAddress == 1) {
+			bits_t bit;
+			bit = &staticOffset[wordsize * (dynamicOffset) + N];
+			bits_t lowerMask = make_bits(1, p);
+			_andyn(lowerMask, mask, &address[0], p);
+			_mux(bit, lowerMask, src, bit, p);
+			free_bits(lowerMask);
+
+			bit = &staticOffset[wordsize * (dynamicOffset + 1) + N];
+			bits_t upperMask = make_bits(1, p);
+			_and(upperMask, mask, &address[0], p);
+			_mux(bit, upperMask, src, bit, p);
+			free_bits(lowerMask);
+			return;
+		}
+		/* Would branching result in an offset so high it will read out of bounds?
+		 * This can naturally happen if an instruction is reading one word ahead (eg.
+		 * to read the argument). getN_thbit will scan the entire memory, and when
+		 * it scans the last word, the branch "read one word ahead" will overflow.
+		 * As a consequence of this, if the machine intentionally reads out of bounds
+		 * it will read zeros rather than segfaulting - but you would never want to
+		 * read past the memory size, right?
+		int willBranchOverflow = (N + 8 * (1 + dynamicOffset + (1 <<
+		(bitsInAddress
+		- 1)))) >= MEMSIZE; if (willBranchOverflow) {
+		    // If yes, force the result to stay in bounds: return the lower
+		branch only. putN_thBit(src, N, wordsize, address, bitsInAddress - 1,
+		staticOffset, dynamicOffset, mask, p); return;
+		}
+		 */
+		bits_t upperMask = make_bits(1, p);
+		_and(upperMask, mask, &address[bitsInAddress - 1], p);
+		putBit(src, N, wordsize, address, bitsInAddress - 1, staticOffset,
+		       dynamicOffset + (1 << (bitsInAddress - 1)), upperMask, p);
+		free_bits(upperMask);
+
+		bits_t lowerMask = make_bits(1, p);
+		_andyn(lowerMask, mask, &address[bitsInAddress - 1], p);
+		putBit(src, N, wordsize, address, bitsInAddress - 1, staticOffset,
+		       dynamicOffset, lowerMask, p);
+		free_bits(lowerMask);
+	}
 };
 
 #endif // FHE_TOOLS_TYPES_H

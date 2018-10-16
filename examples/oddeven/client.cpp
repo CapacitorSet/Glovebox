@@ -7,6 +7,7 @@
 
 #include "../dyad.h"
 
+ClientArray<ClientInt>* arr;
 ClientInt* a;
 ClientInt* b;
 TFHEClientParams_t p;
@@ -40,6 +41,14 @@ int main(int argc, char *argv[]) {
 
 	a = ClientInt::newU8(1, p);
 	b = ClientInt::newU8(1, p);
+	arr = new ClientArray<ClientInt>(2, 8, p);
+	// arr->put(*a, (uint64_t) 0, 1);
+	char data[2] = {(char) 0xde, (char) 0xad};
+	arr->put(data, 0, 2);
+	char out[2];
+	arr->get(out, 0);
+	arr->get(out + 1, 1);
+	printf("%#02x %#02x\n", out[0], out[1]);
 
 	dyad_init();
 

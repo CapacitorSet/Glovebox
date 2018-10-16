@@ -21,6 +21,7 @@ TFHEClientParams_t makeTFHEClientParams(FILE *secret_key);
 void freeTFHEServerParams(TFHEServerParams_t p);
 void freeTFHEClientParams(TFHEClientParams_t p);
 
+bits_t make_bits(int N, const TFheGateBootstrappingParameterSet *params);
 bits_t make_bits(int N, TFHEServerParams_t p);
 bits_t make_bits(int N, TFHEClientParams_t p);
 void free_bits(bits_t item);
