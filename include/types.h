@@ -9,11 +9,13 @@
 enum {
 	UNINITIALIZED_TYPE_ID = 0,
 	INT_TYPE_ID,
+	ARRAY_TYPE_ID,
 };
 
-bits_t bits_merge(bits_t, bits_t);
-
+template <class T>
 class Array;
+
+bits_t bits_merge(bits_t, bits_t);
 
 typedef struct {
 	char* ptr;
@@ -21,8 +23,9 @@ typedef struct {
 } ptr_with_length_t;
 
 class Int {
+	template <class T>
+	friend class Array;
 public:
-	static char typeID;
 	virtual void writeU8(uint8_t) = 0;
 
 	ptr_with_length_t exportToChar();
@@ -80,9 +83,6 @@ private:
 };
 
 class ServerInt : public Int {
-	// Required to access .size
-	friend class Array;
-
   public:
 	ServerInt(char *packet, size_t pktsize, TFHEServerParams_t _p) : p(_p), Int(_p.params) {
 		parse(packet, pktsize, _p.params);
@@ -121,17 +121,21 @@ class ServerInt : public Int {
 	TFHEServerParams_t p;
 };
 
+template <class T>
 class Array {
   public:
-	Array(uint64_t length, uint16_t wordSize, TFHEServerParams_t p);
-	void getN_thInt(ServerInt ret, const bits_t address, uint8_t bitsInAddress);
-	void putN_thInt(ServerInt src, const bits_t address, uint8_t bitsInAddress);
+	Array(uint64_t _length, uint16_t _wordSize, TFHEServerParams_t p) : length(_length), wordSize(_wordSize) {
+		data = make_bits(_length * _wordSize, p);
+	};
+	void getN_th(T ret, const bits_t address, uint8_t bitsInAddress);
+	void putN_th(T src, const bits_t address, uint8_t bitsInAddress);
 
   private:
 	uint64_t length;
 	uint16_t wordSize;
 	bits_t data;
 	TFHEServerParams_t p;
+	const TFheGateBootstrappingParameterSet* params;
 
 	static void getN_thBit(bits_t ret, uint8_t N, uint8_t wordsize,
 	                       const bits_t address, uint8_t bitsInAddress,
@@ -141,6 +145,11 @@ class Array {
 	                       const bits_t address, uint8_t bitsInAddress,
 	                       const bits_t staticOffset, size_t dynamicOffset,
 	                       bits_t mask, TFHEServerParams_t p);
+};
+
+template <typename T>
+class ClientArray : Array<T> {
+
 };
 
 #endif // FHE_TOOLS_TYPES_H

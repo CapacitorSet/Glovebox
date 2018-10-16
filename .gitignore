@@ -20,3 +20,5 @@ libfhetools.a
 keygen
 example_fibonacci_client
 example_fibonacci_server
+example_oddeven_client
+example_oddeven_server

@@ -56,3 +56,26 @@ target_link_libraries(example_fibonacci_server
         fhetools
         tfhe-spqlios-fma
         )
+
+# Odd/even
+add_executable(example_oddeven_client
+        examples/oddeven/client.cpp
+        examples/networking.cpp
+        examples/networking.h
+        src/dyad.c
+        )
+target_link_libraries(example_oddeven_client
+        PRIVATE
+        fhetools
+        tfhe-spqlios-fma
+        )
+add_executable(example_oddeven_server
+        examples/oddeven/server.cpp
+        examples/networking.cpp
+        examples/networking.h
+        src/dyad.c)
+target_link_libraries(example_oddeven_server
+        PRIVATE
+        fhetools
+        tfhe-spqlios-fma
+        )
