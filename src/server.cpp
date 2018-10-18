@@ -21,7 +21,7 @@ FILE *charptr_to_file(char *src, size_t len) {
 	return rptr;
 }
 
-ptr_with_length_t ServerInt::exportToChar() {
+ptr_with_length_t Int::exportToChar() {
 	// Todo: header should have >1 byte for size
 	char header[2];
 	memcpy(header, &isSigned, 1);
@@ -52,8 +52,7 @@ ptr_with_length_t ServerInt::exportToChar() {
 	return ptr_with_length_t{out, size};
 }
 
-void ServerInt::parse(char *packet, size_t pktsize,
-                      const TFheGateBootstrappingParameterSet *params) {
+Int::Int(char *packet, size_t pktsize, TFHEServerParams_t _p) : p(_p) {
 	memcpy(&isSigned, packet, 1);
 	memcpy(&size, packet + 1, 1);
 	// Skip header
@@ -69,30 +68,30 @@ void ServerInt::parse(char *packet, size_t pktsize,
 		exit(-1);
 	}
 	assert(f);
-	data = new_gate_bootstrapping_ciphertext_array(size, params);
+	data = new_gate_bootstrapping_ciphertext_array(size, p.params);
 	for (int i = 0; i < size; i++)
-		import_gate_bootstrapping_ciphertext_fromFile(f, &data[i], params);
+		import_gate_bootstrapping_ciphertext_fromFile(f, &data[i], p.params);
 }
 
 // todo: document that it doesn't export a header
-void ServerInt::exportToFile(FILE *out) {
+void Int::exportToFile(FILE *out) {
 	for (int i = 0; i < size; i++)
 		export_gate_bootstrapping_ciphertext_toFile(out, &data[i], p.params);
 }
 
-void ServerInt::print(TFHEClientParams_t p) {
+void Int::print(TFHEClientParams_t p) {
 	for (int i = size; i-- > 0;)
 		printf("%d", decrypt(&data[i], p));
 }
 
-void ServerInt::sprint(char *out, TFHEClientParams_t p) {
+void Int::sprint(char *out, TFHEClientParams_t p) {
 	for (int i = size; i-- > 0;)
 		sprintf(out++, "%d", decrypt(&data[i], p));
 }
 
 // ServerInt-specific code
 
-void ServerInt::add(ServerInt a, ServerInt b) {
+void Int::add(Int a, Int b) {
 	assert(size == a.size);
 	assert(isSigned == a.isSigned);
 	assert(a.size == b.size);
@@ -132,7 +131,7 @@ void ServerInt::add(ServerInt a, ServerInt b) {
 	}
 }
 
-void ServerInt::copy(ServerInt src) {
+void Int::copy(Int src) {
 	assert(size == src.size);
 	assert(isSigned == src.isSigned);
 	for (int i = 0; i < size; i++) {
@@ -140,7 +139,7 @@ void ServerInt::copy(ServerInt src) {
 	}
 }
 
-void ServerInt::writeU8(uint8_t val) {
+void Int::writeU8(uint8_t val) {
 	assert(size == 8);
 	assert(!isSigned);
 	for (int i = 0; i < 8; i++) {

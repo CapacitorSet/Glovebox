@@ -92,6 +92,6 @@ void sendWithFree(dyad_Stream *s, char dataType, ptr_with_length_t data) {
 void send(dyad_Stream *s, ClientInt *i) {
 	sendWithFree(s, INT_TYPE_ID, i->exportToChar());
 }
-void send(dyad_Stream *s, ServerInt *i) {
+void send(dyad_Stream *s, Int *i) {
 	sendWithFree(s, INT_TYPE_ID, i->exportToChar());
 }

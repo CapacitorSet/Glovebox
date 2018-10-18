@@ -10,19 +10,19 @@
 
 TFHEServerParams_t params;
 
-ServerInt* first;
-ServerInt* second;
+Int* first;
+Int* second;
 
 void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) {
 	puts("New packet.");
 	assert(dataType == INT_TYPE_ID);
-	auto tmp = new ServerInt(packet, pktsize, params);
+	auto tmp = new Int(packet, pktsize, params);
 	if (first == nullptr) {
 		first = tmp;
 	} else if (second == nullptr) {
 		second = tmp;
 
-		auto x = ServerInt::newU8(params);
+		auto x = Int::newU8(params);
 		for (int i = 0; i < 3; i++) {
 			printf("Iteration %d\n", i);
 			x->add(*first, *second);
