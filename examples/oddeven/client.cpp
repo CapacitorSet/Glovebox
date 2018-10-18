@@ -39,10 +39,11 @@ int main(int argc, char *argv[]) {
 	p = makeTFHEClientParams(secret_key);
 	fclose(secret_key);
 
-	a = ClientInt::newU8(1, p);
-	b = ClientInt::newU8(1, p);
+	a = ClientInt::newU8(0xde, p);
+	b = ClientInt::newU8(0xad, p);
 	arr = new ClientArray<ClientInt>(2, 8, p);
 	arr->put(*a, 0);
+	arr->put(*b, 1);
 	/*
 	char data[2] = {(char) 0xde, (char) 0xad};
 	arr->put(data, 0, 2);

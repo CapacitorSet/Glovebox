@@ -216,7 +216,7 @@ template <typename T> class ClientArray : Array<T> {
 
 	void put(T src, uint64_t address) {
 		for (int i = 0; i < this->wordSize; i++) {
-			src._writeTo(&this->data[address + i], i);
+			src._writeTo(&this->data[address * this->wordSize + i], i);
 		}
 	}
 
