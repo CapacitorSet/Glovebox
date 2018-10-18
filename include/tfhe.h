@@ -9,15 +9,19 @@
 typedef LweSample *bits_t;
 typedef struct {
 	const TFheGateBootstrappingParameterSet *params;
-	TFheGateBootstrappingCloudKeySet *bk;
+	/* Todo: remove the const qualifier, deal with the issue that TFHEServerParams_t can be created either from a file
+	 * (resulting in `TFHEGateBoostrappingCloudKeySet*`) or from TFHEClientParams_t (resulting in `const TFHEGate...Set*`).
+	 */
+	const TFheGateBootstrappingCloudKeySet *bk;
 } TFHEServerParams_t;
 typedef struct {
 	TFheGateBootstrappingSecretKeySet* key;
 	const TFheGateBootstrappingParameterSet* params;
 } TFHEClientParams_t;
 
-TFHEServerParams_t makeTFHEServerParams(FILE *cloud_key);
 TFHEClientParams_t makeTFHEClientParams(FILE *secret_key);
+TFHEServerParams_t makeTFHEServerParams(FILE *cloud_key);
+TFHEServerParams_t makeTFHEServerParams(TFHEClientParams_t p);
 void freeTFHEServerParams(TFHEServerParams_t p);
 void freeTFHEClientParams(TFHEClientParams_t p);
 

@@ -22,11 +22,11 @@ typedef struct {
 	size_t len;
 } ptr_with_length_t;
 
-class Int {
+class ServerInt {
 	template <class T> friend class Array;
 
   public:
-	virtual void writeU8(uint8_t) = 0;
+	// virtual void writeU8(uint8_t) = 0;
 
 	ptr_with_length_t exportToChar();
 	void exportToFile(FILE *out);
@@ -40,19 +40,21 @@ class Int {
 		// free_LweSample_array(size, data);
 	}
 
+	void _writeTo(bits_t dst, size_t i) {
+
+	}
+
 	const int &getSize() const { return size; }
 	const bool &getSigned() const { return isSigned; }
 
   protected:
-	Int(uint8_t _size, bool _isSigned,
-	    const TFheGateBootstrappingParameterSet *_params,
+	ServerInt(uint8_t _size, bool _isSigned,
+	    TFHEServerParams_t _p,
 	    bool initialize = true)
-	    : size(_size), isSigned(_isSigned), params(_params) {
+	    : size(_size), isSigned(_isSigned), p(_p) {
 		if (initialize)
-			data = make_bits(_size, _params);
+			data = make_bits(_size, p.params);
 	}
-	explicit Int(const TFheGateBootstrappingParameterSet *_params)
-	    : params(_params) {}
 
 	void parse(char *packet, size_t pktsize,
 	           const TFheGateBootstrappingParameterSet *params);
@@ -60,40 +62,10 @@ class Int {
 	uint8_t size;
 	bool isSigned;
 	bits_t data;
-	const TFheGateBootstrappingParameterSet *params;
-};
 
-class ClientInt : public Int {
-  public:
-	ClientInt(char *packet, size_t pktsize, TFHEClientParams_t _p)
-	    : p(_p), Int(_p.params) {
-		parse(packet, pktsize, _p.params);
-	};
-	static ClientInt *newU8(TFHEClientParams_t _p) {
-		return new ClientInt(8, false, _p);
-	}
-	static ClientInt *newU8(uint8_t n, TFHEClientParams_t p) {
-		auto ret = ClientInt::newU8(p);
-		ret->writeU8(n);
-		return ret;
-	}
-	void writeU8(uint8_t) final override;
-	uint8_t toU8();
-	ClientInt(uint8_t _size, bool _isSigned, TFHEClientParams_t _p)
-	    : p(_p), Int(_size, _isSigned, _p.params) {}
-	void operator delete(void *_ptr) {
-		auto ptr = static_cast<ClientInt *>(_ptr);
-		ptr->free();
-	}
-
-  private:
-	TFHEClientParams_t p;
-};
-
-class ServerInt : public Int {
   public:
 	ServerInt(char *packet, size_t pktsize, TFHEServerParams_t _p)
-	    : p(_p), Int(_p.params) {
+	    : ServerInt(0, false, _p, false) {
 		parse(packet, pktsize, _p.params);
 	};
 	static ServerInt *newU8(TFHEServerParams_t p) {
@@ -104,9 +76,7 @@ class ServerInt : public Int {
 		ret->writeU8(n);
 		return ret;
 	}
-	void writeU8(uint8_t) final override;
-	ServerInt(uint8_t _size, bool _isSigned, TFHEServerParams_t _p)
-	    : p(_p), Int(_size, _isSigned, _p.params) {}
+	void writeU8(uint8_t);
 
 	void add(ServerInt, ServerInt);
 	void copy(ServerInt);
@@ -130,6 +100,32 @@ class ServerInt : public Int {
 
   private:
 	TFHEServerParams_t p;
+};
+
+class ClientInt : public ServerInt {
+public:
+	ClientInt(char *packet, size_t pktsize, TFHEClientParams_t _p)
+			: p(_p), ServerInt(packet, pktsize, makeTFHEServerParams(_p)) {};
+	static ClientInt *newU8(TFHEClientParams_t _p) {
+		return new ClientInt(8, false, _p);
+	}
+	static ClientInt *newU8(uint8_t n, TFHEClientParams_t p) {
+		auto r = ServerInt::newU8(makeTFHEServerParams(p));
+		auto ret = ClientInt::newU8(p);
+		ret->writeU8(n);
+		return ret;
+	}
+	void writeU8(uint8_t);
+	uint8_t toU8();
+	ClientInt(uint8_t _size, bool _isSigned, TFHEClientParams_t _p)
+			: p(_p), ServerInt(_size, _isSigned, makeTFHEServerParams(_p)) {}
+	void operator delete(void *_ptr) {
+		auto ptr = static_cast<ClientInt *>(_ptr);
+		ptr->free();
+	}
+
+private:
+	TFHEClientParams_t p;
 };
 
 template <class T> class Array {
@@ -168,16 +164,22 @@ template <typename T> class ClientArray : Array<T> {
 		}
 	}
 
+	void put(T src, uint64_t address) {
+		for (int i = 0; i < this->wordSize; i++) {
+			src._writeTo(&this->data[address + i], i);
+		}
+	}
+
 	// Reads one word at the given address (given in words) and puts it into dst.
 	// Note that the pointers are copied, so changes made to dst will be reflected in the array.
 	void peek(bits_t dst, uint64_t address) {
-		assert((address * this->wordSize) < this->length * this->wordSize);
-		memcpy(dst, &this->data, this->wordSize);
+		assert(address < this->length);
+		memcpy(dst, &this->data[address], this->wordSize);
 	}
 
 	// Decrypts one word at the given address (given in words) and puts it into dst.
 	void get(char *dst, uint64_t address) {
-		assert((address * this->wordSize) < this->length * this->wordSize);
+		assert(address < this->length);
 		char byte; char bytepos = 0; size_t dstpos = 0;
 		for (int i = 0; i < this->wordSize; i++) {
 			printf("Accessing %#016x.\n", address * this->wordSize + i);
@@ -189,6 +191,11 @@ template <typename T> class ClientArray : Array<T> {
 				byte = 0;
 			}
 		}
+	}
+
+	void get(T dst, uint64_t address) {
+		assert(address < this->length);
+		dst.fromBytes(&this->data[address], this->wordSize);
 	}
 
   private:

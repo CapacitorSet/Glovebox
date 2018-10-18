@@ -42,9 +42,11 @@ int main(int argc, char *argv[]) {
 	a = ClientInt::newU8(1, p);
 	b = ClientInt::newU8(1, p);
 	arr = new ClientArray<ClientInt>(2, 8, p);
-	// arr->put(*a, (uint64_t) 0, 1);
+	arr->put(*a, 0);
+	/*
 	char data[2] = {(char) 0xde, (char) 0xad};
 	arr->put(data, 0, 2);
+	*/
 	char out[2];
 	arr->get(out, 0);
 	arr->get(out + 1, 1);

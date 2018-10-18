@@ -15,7 +15,6 @@ add_library(fhetools STATIC
         include/types.h
         src/server.cpp
         src/client.cpp
-        src/universal.cpp
         )
 
 target_include_directories(fhetools

@@ -2,12 +2,6 @@
 #include "compile_time_settings.h"
 #include <tfhe.h>
 
-TFHEServerParams_t makeTFHEServerParams(FILE *cloud_key) {
-	TFheGateBootstrappingCloudKeySet *bk =
-	    new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
-	const TFheGateBootstrappingParameterSet *params = bk->params;
-	return TFHEServerParams_t{params, bk};
-}
 TFHEClientParams_t makeTFHEClientParams(FILE *secret_key) {
 	TFheGateBootstrappingSecretKeySet *key =
 	    new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
@@ -15,8 +9,23 @@ TFHEClientParams_t makeTFHEClientParams(FILE *secret_key) {
 	return TFHEClientParams_t{key, params};
 }
 
+TFHEServerParams_t makeTFHEServerParams(FILE *cloud_key) {
+	TFheGateBootstrappingCloudKeySet *bk =
+			new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
+	const TFheGateBootstrappingParameterSet *params = bk->params;
+	return TFHEServerParams_t{params, bk};
+}
+
+TFHEServerParams_t makeTFHEServerParams(TFHEClientParams_t p) {
+	return TFHEServerParams_t{
+		p.key->cloud.params,
+		&(p.key->cloud)
+	};
+}
+
 void freeTFHEServerParams(TFHEServerParams_t p) {
-	delete_gate_bootstrapping_cloud_keyset(p.bk);
+	// Not implemented; see the comment about the const qualifier for bk
+	// delete_gate_bootstrapping_cloud_keyset(p.bk);
 }
 void freeTFHEClientParams(TFHEClientParams_t p) {
 	delete_gate_bootstrapping_secret_keyset(p.key);
