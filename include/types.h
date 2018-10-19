@@ -56,6 +56,7 @@ class Int {
 	bits_t data;
 
   public:
+	static const int typeID = INT_TYPE_ID;
 	Int(char *packet, size_t pktsize, TFHEServerParams_t _p);
 	static Int *newU8(TFHEServerParams_t p) {
 		return new Int(8, false, p);
@@ -129,6 +130,7 @@ template <class T> class Array {
 	                       TFHEServerParams_t p);
 
   public:
+	static const int typeID = ARRAY_TYPE_ID;
 	Array(uint64_t _length, uint16_t _wordSize, TFHEServerParams_t _p)
 	    : length(_length), wordSize(_wordSize), p(_p) {
 		data = make_bits(_length * _wordSize, p.params);
