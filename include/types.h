@@ -39,6 +39,7 @@ class Int {
 	}
 
 	void _writeTo(bits_t dst, size_t i) { _copy(dst, &this->data[i], p); }
+	void _fromBytes(bits_t dst, size_t i) { _copy(&this->data[i], dst, p); }
 
 	const int &getSize() const { return size; }
 	const bool &getSigned() const { return isSigned; }
@@ -238,7 +239,6 @@ template <typename T> class ClientArray : Array<T> {
 		char bytepos = 0;
 		size_t dstpos = 0;
 		for (int i = 0; i < this->wordSize; i++) {
-			printf("Accessing %#016x.\n", address * this->wordSize + i);
 			char bit = decrypt(&this->data[address * this->wordSize + i], p);
 			byte |= bit << bytepos++;
 			if (bytepos == 8) {
@@ -251,7 +251,8 @@ template <typename T> class ClientArray : Array<T> {
 
 	void get(T dst, uint64_t address) {
 		assert(address < this->length);
-		dst.fromBytes(&this->data[address], this->wordSize);
+		for (int i = 0; i < this->wordSize; i++)
+			dst._fromBytes(&this->data[address + i], i);
 	}
 
   private:

@@ -48,6 +48,10 @@ int main(int argc, char *argv[]) {
 	char data[2] = {(char) 0xde, (char) 0xad};
 	arr->put(data, 0, 2);
 	*/
+	arr->get(*b, 0);
+	printf("Printing b: ");
+	b->print(p);
+	printf("\n");
 	char out[2];
 	arr->get(out, 0);
 	arr->get(out + 1, 1);
