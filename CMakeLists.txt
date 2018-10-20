@@ -10,6 +10,7 @@ set(CMAKE_CXX_FLAGS "-fpermissive -fno-PIC -no-pie -g -fsanitize=address")
 # Generate the static library from the library sources
 add_library(fhetools STATIC
         include/compile_time_settings.h
+        include/gsl_span_custom.h
         include/tfhe.h
         src/tfhe.cpp
         include/types.h

@@ -23,7 +23,7 @@ void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) 
 	puts("New packet.");
 	assert(dataType == INT_TYPE_ID);
 	auto i = new ClientInt(packet, pktsize, p);
-	printf("Size: %d\n", i->getSize());
+	printf("Size: %d\n", i->size());
 	printf("Value: %d\n", i->toU8());
 	i->print(p);
 	putchar('\n');

@@ -25,7 +25,8 @@ ptr_with_length_t Int::exportToChar() {
 	// Todo: header should have >1 byte for size
 	char header[2];
 	memcpy(header, &isSigned, 1);
-	memcpy(header + 1, &size, 1);
+	char mysize = size();
+	memcpy(header + 1, &mysize, 1);
 	printf("Header:\n");
 	printf("\tSigned: %d\n", header[0]);
 	printf("\tSize: %d\n", header[1]);
@@ -54,6 +55,7 @@ ptr_with_length_t Int::exportToChar() {
 
 Int::Int(char *packet, size_t pktsize, TFHEServerParams_t _p) : p(_p) {
 	memcpy(&isSigned, packet, 1);
+	char size;
 	memcpy(&size, packet + 1, 1);
 	// Skip header
 	packet += 2;
@@ -68,55 +70,50 @@ Int::Int(char *packet, size_t pktsize, TFHEServerParams_t _p) : p(_p) {
 		exit(-1);
 	}
 	assert(f);
-	data = new_gate_bootstrapping_ciphertext_array(size, p.params);
+	data = make_bitspan(size, p);
 	for (int i = 0; i < size; i++)
-		import_gate_bootstrapping_ciphertext_fromFile(f, &data[i], p.params);
+		import_gate_bootstrapping_ciphertext_fromFile(f, &data.at(i), p.params);
 }
 
 // todo: document that it doesn't export a header
 void Int::exportToFile(FILE *out) {
-	for (int i = 0; i < size; i++)
-		export_gate_bootstrapping_ciphertext_toFile(out, &data[i], p.params);
+	for (auto &bit : data)
+		export_gate_bootstrapping_ciphertext_toFile(out, &bit, p.params);
 }
 
 void Int::print(TFHEClientParams_t p) {
-	for (int i = size; i-- > 0;)
-		printf("%d", decrypt(&data[i], p));
+	for (int i = size(); i-- > 0;)
+		printf("%d", decrypt(data.subspan(i, 1), p));
 }
 
 void Int::sprint(char *out, TFHEClientParams_t p) {
-	for (int i = size; i-- > 0;)
-		sprintf(out++, "%d", decrypt(&data[i], p));
+	for (int i = size(); i-- > 0;)
+		sprintf(out++, "%d", decrypt(data.subspan(i, 1), p));
 }
 
 // ServerInt-specific code
 
 void Int::add(Int a, Int b) {
-	assert(size == a.size);
+	assert(size() == a.size());
 	assert(isSigned == a.isSigned);
-	assert(a.size == b.size);
-	assert(a.isSigned == b.isSigned);
+	assert(size() == b.size());
+	assert(isSigned == b.isSigned);
 
 	// Inputs
-	bits_t A, B;
-	bits_t CIn = make_bits(1, p);
+	bit_t CIn = make_bit(p);
 	constant(CIn, 0, p);
 
 	// Intermediate variables
-	bits_t AxorB = make_bits(1, p);
-	bits_t AxorBandCIn = make_bits(1, p);
-	bits_t AandB = make_bits(1, p);
+	bit_t AxorB = make_bit(p);
+	bit_t AxorBandCIn = make_bit(p);
+	bit_t AandB = make_bit(p);
 
 	// Output variables
-	bits_t COut = make_bits(1, p);
-	bits_t S;
-	for (int i = 0; i < size; i++) {
-		A = &a.data[i];
-		B = &b.data[i];
-		S = &data[i]; // Write to self
-		// Todo: remove
-		assert(S != A);
-		assert(S != B);
+	bit_t COut = make_bit(p);
+	for (int i = 0; i < size(); i++) {
+		bit_t A = a.data[i];
+		bit_t B = b.data[i];
+		bit_t S = data[i]; // Write to self
 
 		_xor(AxorB, A, B, p);
 		_and(AxorBandCIn, AxorB, CIn, p);
@@ -132,17 +129,17 @@ void Int::add(Int a, Int b) {
 }
 
 void Int::copy(Int src) {
-	assert(size == src.size);
+	assert(size() == src.size());
 	assert(isSigned == src.isSigned);
-	for (int i = 0; i < size; i++) {
-		_copy(&data[i], &src.data[i], p);
+	for (int i = 0; i < size(); i++) {
+		_copy(data[i], src.data[i], p);
 	}
 }
 
 void Int::writeU8(uint8_t val) {
-	assert(size == 8);
+	assert(size() == 8);
 	assert(!isSigned);
 	for (int i = 0; i < 8; i++) {
-		constant(&data[i], (val >> i) & 1, p);
+		constant(data[i], (val >> i) & 1, p);
 	}
 }

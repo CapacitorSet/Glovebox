@@ -1,0 +1,14 @@
+495,497c495,500
+<     // [span.elem], span element access
+<     GSL_SUPPRESS(bounds.1) // NO-FORMAT: attribute
+<     constexpr reference operator[](index_type idx) const
+---
+>     constexpr span<ElementType, 1> operator[](index_type idx) const
+>     {
+>         return subspan(idx, 1);
+>     }
+> 
+>     constexpr reference at(index_type idx) const
+502,503d504
+< 
+<     constexpr reference at(index_type idx) const { return this->operator[](idx); }

@@ -13,8 +13,6 @@ enum {
 	ARRAY_TYPE_ID,
 };
 
-bits_t bits_merge(bits_t, bits_t);
-
 typedef struct {
 	char *ptr;
 	size_t len;
@@ -38,23 +36,27 @@ class Int {
 		// free_LweSample_array(size, data);
 	}
 
-	void _writeTo(bits_t dst, size_t i) { _copy(dst, &this->data[i], p); }
-	void _fromBytes(bits_t dst, size_t i) { _copy(&this->data[i], dst, p); }
+	// todo: rename, use spans
+	void _writeTo(bitspan_t dst) {
+		_copy(dst, this->data, p);
+	}
+	void _fromBytes(bitspan_t dst) {
+		_copy(this->data, dst, p);
+	}
 
-	const int &getSize() const { return size; }
+	const int &size() const { return data.size(); }
 	const bool &getSigned() const { return isSigned; }
 
   protected:
 	Int(uint8_t _size, bool _isSigned, TFHEServerParams_t _p,
 	          bool initialize = true)
-	    : size(_size), isSigned(_isSigned), p(_p) {
+	    : isSigned(_isSigned), p(_p) {
 		if (initialize)
-			data = make_bits(_size, p.params);
+			data = make_bitspan(_size, p);
 	}
 
-	uint8_t size;
 	bool isSigned;
-	bits_t data;
+	bitspan_t data;
 
   public:
 	static const int typeID = INT_TYPE_ID;
@@ -72,19 +74,20 @@ class Int {
 	void add(Int, Int);
 	void copy(Int);
 
-	static bits_t isZero(Int n) {
-		bits_t ret = make_bits(1, n.p);
+	static bit_t isZero(Int n) {
+		bit_t ret = make_bit(n.p);
 		constant(ret, 1, n.p);
-		for (int i = 0; i < n.size; i++)
-			_andyn(ret, ret, &n.data[i], n.p);
+		// Todo: write custom iterator
+		for (int i = 0; i < n.data.size(); i++)
+			_andyn(ret, ret, n.data[i], n.p);
 		return ret;
 	}
 
-	static bits_t isNonZero(Int n) {
-		bits_t ret = make_bits(1, n.p);
+	static bit_t isNonZero(Int n) {
+		bit_t ret = make_bit(n.p);
 		constant(ret, 1, n.p);
-		for (int i = 0; i < n.size; i++)
-			_and(ret, ret, &n.data[i], n.p);
+		for (int i = 0; i < n.data.size(); i++)
+			_and(ret, ret, n.data[i], n.p);
 		_not(ret, ret, n.p);
 		return ret;
 	}
@@ -121,27 +124,30 @@ class ClientInt : public Int {
 
 template <class T> class Array {
   protected:
-	uint64_t length;
 	uint16_t wordSize;
-	bits_t data;
+	bitspan_t data;
+	// Todo: figure out how to use `span<bitspan_t> words` to encode this information
+	uint64_t length;
 
+	/*
 	static void getN_thBit(bits_t ret, uint8_t N, uint8_t wordsize,
 	                       bits_t address, uint8_t bitsInAddress,
 	                       bits_t staticOffset, size_t dynamicOffset,
 	                       TFHEServerParams_t p);
+	                       */
 
   public:
 	static const int typeID = ARRAY_TYPE_ID;
 	Array(uint64_t _length, uint16_t _wordSize, TFHEServerParams_t _p)
-	    : length(_length), wordSize(_wordSize), p(_p) {
-		data = make_bits(_length * _wordSize, p.params);
+	    : wordSize(_wordSize), length(_length), p(_p) {
+		data = make_bitspan(_length * _wordSize, p);
 	}
 
-	void put(T src, bits_t address, uint8_t bitsInAddress) {
-		bits_t mask = make_bits(1, p);
+	void put(T src, bitspan_t address) {
+		bit_t mask = make_bit(p);
 		constant(mask, 1, p);
 		for (int i = 0; i < src.size; i++) {
-			putBit(&src.data[i], i, src.size, address, bitsInAddress,
+			putBit(&src.data[i], i, src.size, address,
 			       this->data, 0, mask, p);
 		}
 	}
@@ -149,23 +155,25 @@ template <class T> class Array {
   private:
 	TFHEServerParams_t p;
 
-	void putBit(bits_t src, uint8_t N, uint8_t wordsize, bits_t address,
-	            uint8_t bitsInAddress, bits_t staticOffset,
-	            size_t dynamicOffset, bits_t mask, TFHEServerParams_t p) {
+	// Todo: remove src
+	void putBit(bit_t src, uint8_t N, uint8_t wordsize, bitspan_t address,
+	            bitspan_t staticOffset,
+	            size_t dynamicOffset, bit_t mask, TFHEServerParams_t p) {
 		assert(N < wordsize);
-		if (bitsInAddress == 1) {
-			bits_t bit;
-			bit = &staticOffset[wordsize * (dynamicOffset) + N];
-			bits_t lowerMask = make_bits(1, p);
-			_andyn(lowerMask, mask, &address[0], p);
-			_mux(bit, lowerMask, src, bit, p);
-			free_bits(lowerMask);
+		if (address.size() == 1) {
+			bit_t bit1 = staticOffset[wordsize * (dynamicOffset) + N];
+			bit_t lowerMask = make_bit(p);
+			_andyn(lowerMask, mask, address[0], p);
+			_mux(bit1, lowerMask, src, bit1, p);
+			free_bitspan(lowerMask);
+			free_bitspan(bit1);
 
-			bit = &staticOffset[wordsize * (dynamicOffset + 1) + N];
-			bits_t upperMask = make_bits(1, p);
-			_and(upperMask, mask, &address[0], p);
-			_mux(bit, upperMask, src, bit, p);
-			free_bits(lowerMask);
+			bit_t bit2 = staticOffset[wordsize * (dynamicOffset + 1) + N];
+			bit_t upperMask = make_bit(p);
+			_and(upperMask, mask, address[0], p);
+			_mux(bit2, upperMask, src, bit2, p);
+			free_bitspan(lowerMask);
+			free_bitspan(bit2);
 			return;
 		}
 		/*
@@ -185,17 +193,19 @@ template <class T> class Array {
 		staticOffset, dynamicOffset, mask, p); return;
 		}
 		 */
-		bits_t upperMask = make_bits(1, p);
-		_and(upperMask, mask, &address[bitsInAddress - 1], p);
+		bit_t upperMask = make_bit(p);
+		// todo: remove
+#define bitsInAddress address.size()
+		_and(upperMask, mask, address[bitsInAddress - 1], p);
 		putBit(src, N, wordsize, address, bitsInAddress - 1, staticOffset,
 		       dynamicOffset + (1 << (bitsInAddress - 1)), upperMask, p);
-		free_bits(upperMask);
+		free_bitspan(upperMask);
 
-		bits_t lowerMask = make_bits(1, p);
-		_andyn(lowerMask, mask, &address[bitsInAddress - 1], p);
+		bit_t lowerMask = make_bit(p);
+		_andyn(lowerMask, mask, address[bitsInAddress - 1], p);
 		putBit(src, N, wordsize, address, bitsInAddress - 1, staticOffset,
 		       dynamicOffset, lowerMask, p);
-		free_bits(lowerMask);
+		free_bitspan(lowerMask);
 	}
 };
 
@@ -218,11 +228,10 @@ template <typename T> class ClientArray : Array<T> {
 	}
 
 	void put(T src, uint64_t address) {
-		for (int i = 0; i < this->wordSize; i++) {
-			src._writeTo(&this->data[address * this->wordSize + i], i);
-		}
+		src._writeTo(this->data.subspan(address * this->wordSize, this->wordSize));
 	}
 
+	/*
 	// Reads one word at the given address (given in words) and puts it into
 	// dst. Note that the pointers are copied, so changes made to dst will be
 	// reflected in the array.
@@ -230,6 +239,7 @@ template <typename T> class ClientArray : Array<T> {
 		assert(address < this->length);
 		memcpy(dst, &this->data[address], this->wordSize);
 	}
+	*/
 
 	// Decrypts one word at the given address (given in words) and puts it into
 	// dst.
@@ -239,7 +249,7 @@ template <typename T> class ClientArray : Array<T> {
 		char bytepos = 0;
 		size_t dstpos = 0;
 		for (int i = 0; i < this->wordSize; i++) {
-			char bit = decrypt(&this->data[address * this->wordSize + i], p);
+			char bit = decrypt(this->data[address * this->wordSize + i], p);
 			byte |= bit << bytepos++;
 			if (bytepos == 8) {
 				bytepos = 0;
@@ -251,8 +261,7 @@ template <typename T> class ClientArray : Array<T> {
 
 	void get(T dst, uint64_t address) {
 		assert(address < this->length);
-		for (int i = 0; i < this->wordSize; i++)
-			dst._fromBytes(&this->data[address + i], i);
+		dst._fromBytes(this->data.subspan(address * this->wordSize, this->wordSize));
 	}
 
   private:
