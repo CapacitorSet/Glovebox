@@ -83,12 +83,12 @@ void Int::exportToFile(FILE *out) {
 
 void Int::print(TFHEClientParams_t p) {
 	for (int i = size(); i-- > 0;)
-		printf("%d", decrypt(data.subspan(i, 1), p));
+		printf("%d", decrypt(data[i], p));
 }
 
 void Int::sprint(char *out, TFHEClientParams_t p) {
 	for (int i = size(); i-- > 0;)
-		sprintf(out++, "%d", decrypt(data.subspan(i, 1), p));
+		sprintf(out++, "%d", decrypt(data[i], p));
 }
 
 // ServerInt-specific code

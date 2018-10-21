@@ -431,9 +431,20 @@ public:
     template <
         class OtherElementType, std::ptrdiff_t OtherExtent,
         class = std::enable_if_t<
+            Extent == dynamic_extent && // Do not allow conversions from span<T> to span<T, n>
             details::is_allowed_extent_conversion<OtherExtent, Extent>::value &&
             details::is_allowed_element_type_conversion<OtherElementType, element_type>::value>>
     constexpr span(const span<OtherElementType, OtherExtent>& other)
+        : storage_(other.data(), details::extent_type<OtherExtent>(other.size()))
+    {}
+
+    // Actually, allow them just for internal usage, since we need them to return span<T, 1> for operator[].
+    template <
+        class OtherElementType, std::ptrdiff_t OtherExtent,
+        class = std::enable_if_t<
+            details::is_allowed_extent_conversion<OtherExtent, Extent>::value &&
+            details::is_allowed_element_type_conversion<OtherElementType, element_type>::value>>
+    constexpr span(const span<OtherElementType, OtherExtent>& other, char this_constructor_is_for_internal_usage)
         : storage_(other.data(), details::extent_type<OtherExtent>(other.size()))
     {}
 
@@ -448,7 +459,7 @@ public:
         return {data(), Count};
     }
 
-    template <std::ptrdiff_t Count>
+    template <std::ptrdiff_t Count = 1>
     GSL_SUPPRESS(bounds.1) // NO-FORMAT: attribute
     constexpr span<element_type, Count> last() const
     {
@@ -494,7 +505,7 @@ public:
 
     constexpr span<ElementType, 1> operator[](index_type idx) const
     {
-        return subspan(idx, 1);
+        return span<ElementType, 1>(subspan(idx, 1), 0);
     }
 
     constexpr reference at(index_type idx) const

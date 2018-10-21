@@ -83,7 +83,9 @@ void _or(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p) {
 	bootsOR(dst.data(), a.data(), b.data(), p.bk);
 }
 
-void free_bitspan(bitspan_t item) { free_LweSample(item.data()); }
+void free_bitspan(bitspan_t item) {
+	free_LweSample_array(item.size(), item.data());
+}
 
 void _mux(bit_t dst, bit_t cond, bit_t a, bit_t b, TFHEServerParams_t p) {
 	bootsMUX(dst.data(), cond.data(), a.data(), b.data(), p.bk);

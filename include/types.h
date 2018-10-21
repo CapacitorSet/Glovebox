@@ -42,9 +42,7 @@ class Int {
 	void free() {
 		// it only actually works if the free is commented out.
 		// todo: figure out wtf is up
-
-		// printf("Freeing %d items.\n", size);
-		// free_LweSample_array(size, data);
+		// free_bitspan(data);
 	}
 
 	// todo: rename
@@ -106,10 +104,6 @@ class ClientInt : public Int {
 	uint8_t toU8();
 	ClientInt(uint8_t _size, bool _isSigned, TFHEClientParams_t _p)
 	    : p(_p), Int(_size, _isSigned, makeTFHEServerParams(_p)) {}
-	void operator delete(void *_ptr) {
-		auto ptr = static_cast<ClientInt *>(_ptr);
-		ptr->free();
-	}
 
   private:
 	TFHEClientParams_t p;
@@ -144,38 +138,35 @@ template <class T> class Array {
 		bit_t mask = make_bit(p);
 		constant(mask, 1, p);
 
-		for (int i = 0; i < src.size(); i++) {
-			putBit(src.data[i], i, address.data, 0, mask);
-		}
+		putBits(src.data, address.data, 0, mask);
 	}
 
   private:
 	TFHEServerParams_t p;
 
-	// Todo: optimize. We don't need to branch $wordsize times; just do it once, and run a masked operation on the $wordsize bits that follow
-	void putBit(bit_t src, uint8_t N, bitspan_t address, size_t dynamicOffset,
-	            bit_t mask) {
-		assert(N < this->wordSize);
-		// Reads out of bounds will return 0. This is necessary for arrays to
+	void putBits(bitspan_t src, bitspan_t address, size_t dynamicOffset,
+	             bit_t mask) {
+		// Writes out of bounds are a no-op. This is necessary for arrays to
 		// work with sizes other than powers of two. Bound checks should be done
 		// at the caller.
 		if (dynamicOffset >= this->length) {
 			// printf("%zu out of bounds.\n", dynamicOffset);
-			constant(src, 0, p);
 			return;
 		}
 		if (address.size() == 1) {
 			// printf("Put: %zu out of %li\n", this->wordSize * dynamicOffset + N, this->length * wordSize);
-			bit_t bit1 = this->data[this->wordSize * dynamicOffset + N];
+			size_t offset = wordSize * dynamicOffset;
 			bit_t lowerMask = make_bit(p);
 			_andyn(lowerMask, mask, address[0], p);
-			_mux(bit1, lowerMask, src, bit1, p);
+			for (int i = 0; i < wordSize; i++)
+				_mux(data[offset + i], lowerMask, src[i], data[offset + i], p);
 			free_bitspan(lowerMask);
 
-			bit_t bit2 = this->data[this->wordSize * (dynamicOffset + 1) + N];
+			offset += wordSize;
 			bit_t upperMask = make_bit(p);
 			_and(upperMask, mask, address[0], p);
-			_mux(bit2, upperMask, src, bit2, p);
+			for (int i = 0; i < wordSize; i++)
+				_mux(data[offset + i], upperMask, src[i], data[offset + i], p);
 			free_bitspan(upperMask);
 			return;
 		}
@@ -199,15 +190,15 @@ template <class T> class Array {
 // todo: remove
 #define bitsInAddress address.size()
 		bit_t lowerMask = make_bit(p);
-		_andyn(lowerMask, mask, address.last(1), p);
-		putBit(src, N, address.subspan(0, address.size() - 1), dynamicOffset,
-		       lowerMask);
+		_andyn(lowerMask, mask, address.last(), p);
+		putBits(src, address.subspan(0, address.size() - 1), dynamicOffset,
+		        lowerMask);
 		free_bitspan(lowerMask);
 
 		bit_t upperMask = make_bit(p);
-		_and(upperMask, mask, address.last(1), p);
-		putBit(src, N, address.subspan(0, address.size() - 1),
-		       dynamicOffset + (1 << (bitsInAddress - 1)), upperMask);
+		_and(upperMask, mask, address.last(), p);
+		putBits(src, address.subspan(0, address.size() - 1),
+		        dynamicOffset + (1 << (bitsInAddress - 1)), upperMask);
 		free_bitspan(upperMask);
 	}
 };

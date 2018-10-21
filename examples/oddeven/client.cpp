@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
 
 	dyad_shutdown();
 	freeTFHEClientParams(p);
-	delete a;
-	delete b;
+	a->free();
+	b->free();
 	return 0;
 }
