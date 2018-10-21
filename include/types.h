@@ -21,6 +21,17 @@ typedef struct {
 class Int {
 	template <class T> friend class Array;
 
+  protected:
+	Int(uint8_t _size, bool _isSigned, TFHEServerParams_t _p,
+	    bool initialize = true)
+	    : isSigned(_isSigned), p(_p) {
+		if (initialize)
+			data = make_bitspan(_size, p);
+	}
+
+	bool isSigned;
+	bitspan_t data;
+
   public:
 	// virtual void writeU8(uint8_t) = 0;
 
@@ -36,34 +47,16 @@ class Int {
 		// free_LweSample_array(size, data);
 	}
 
-	// todo: rename, use spans
-	void _writeTo(bitspan_t dst) {
-		_copy(dst, this->data, p);
-	}
-	void _fromBytes(bitspan_t dst) {
-		_copy(this->data, dst, p);
-	}
+	// todo: rename
+	void _writeTo(bitspan_t dst) { _copy(dst, this->data, p); }
+	void _fromBytes(bitspan_t dst) { _copy(this->data, dst, p); }
 
-	const int &size() const { return data.size(); }
+	static const int typeID = INT_TYPE_ID;
+	const int size() const { return data.size(); }
 	const bool &getSigned() const { return isSigned; }
 
-  protected:
-	Int(uint8_t _size, bool _isSigned, TFHEServerParams_t _p,
-	          bool initialize = true)
-	    : isSigned(_isSigned), p(_p) {
-		if (initialize)
-			data = make_bitspan(_size, p);
-	}
-
-	bool isSigned;
-	bitspan_t data;
-
-  public:
-	static const int typeID = INT_TYPE_ID;
 	Int(char *packet, size_t pktsize, TFHEServerParams_t _p);
-	static Int *newU8(TFHEServerParams_t p) {
-		return new Int(8, false, p);
-	}
+	static Int *newU8(TFHEServerParams_t p) { return new Int(8, false, p); }
 	static Int *newU8(uint8_t n, TFHEServerParams_t p) {
 		auto ret = Int::newU8(p);
 		ret->writeU8(n);
@@ -126,7 +119,8 @@ template <class T> class Array {
   protected:
 	uint16_t wordSize;
 	bitspan_t data;
-	// Todo: figure out how to use `span<bitspan_t> words` to encode this information
+	// Todo: figure out how to use `span<bitspan_t> words` to encode this
+	// information
 	uint64_t length;
 
 	/*
@@ -143,37 +137,46 @@ template <class T> class Array {
 		data = make_bitspan(_length * _wordSize, p);
 	}
 
-	void put(T src, bitspan_t address) {
+	// void put(T src, bitspan_t address) {
+	void put(T src, ClientInt address) {
+		// Todo: check that there are enough address bits
+		assert(src.size() <= this->wordSize);
 		bit_t mask = make_bit(p);
 		constant(mask, 1, p);
-		for (int i = 0; i < src.size; i++) {
-			putBit(&src.data[i], i, src.size, address,
-			       this->data, 0, mask, p);
+
+		for (int i = 0; i < src.size(); i++) {
+			putBit(src.data[i], i, address.data, 0, mask);
 		}
 	}
 
   private:
 	TFHEServerParams_t p;
 
-	// Todo: remove src
-	void putBit(bit_t src, uint8_t N, uint8_t wordsize, bitspan_t address,
-	            bitspan_t staticOffset,
-	            size_t dynamicOffset, bit_t mask, TFHEServerParams_t p) {
-		assert(N < wordsize);
+	// Todo: optimize. We don't need to branch $wordsize times; just do it once, and run a masked operation on the $wordsize bits that follow
+	void putBit(bit_t src, uint8_t N, bitspan_t address, size_t dynamicOffset,
+	            bit_t mask) {
+		assert(N < this->wordSize);
+		// Reads out of bounds will return 0. This is necessary for arrays to
+		// work with sizes other than powers of two. Bound checks should be done
+		// at the caller.
+		if (dynamicOffset >= this->length) {
+			// printf("%zu out of bounds.\n", dynamicOffset);
+			constant(src, 0, p);
+			return;
+		}
 		if (address.size() == 1) {
-			bit_t bit1 = staticOffset[wordsize * (dynamicOffset) + N];
+			// printf("Put: %zu out of %li\n", this->wordSize * dynamicOffset + N, this->length * wordSize);
+			bit_t bit1 = this->data[this->wordSize * dynamicOffset + N];
 			bit_t lowerMask = make_bit(p);
 			_andyn(lowerMask, mask, address[0], p);
 			_mux(bit1, lowerMask, src, bit1, p);
 			free_bitspan(lowerMask);
-			free_bitspan(bit1);
 
-			bit_t bit2 = staticOffset[wordsize * (dynamicOffset + 1) + N];
+			bit_t bit2 = this->data[this->wordSize * (dynamicOffset + 1) + N];
 			bit_t upperMask = make_bit(p);
 			_and(upperMask, mask, address[0], p);
 			_mux(bit2, upperMask, src, bit2, p);
-			free_bitspan(lowerMask);
-			free_bitspan(bit2);
+			free_bitspan(upperMask);
 			return;
 		}
 		/*
@@ -193,42 +196,42 @@ template <class T> class Array {
 		staticOffset, dynamicOffset, mask, p); return;
 		}
 		 */
-		bit_t upperMask = make_bit(p);
-		// todo: remove
+// todo: remove
 #define bitsInAddress address.size()
-		_and(upperMask, mask, address[bitsInAddress - 1], p);
-		putBit(src, N, wordsize, address, bitsInAddress - 1, staticOffset,
-		       dynamicOffset + (1 << (bitsInAddress - 1)), upperMask, p);
-		free_bitspan(upperMask);
-
 		bit_t lowerMask = make_bit(p);
-		_andyn(lowerMask, mask, address[bitsInAddress - 1], p);
-		putBit(src, N, wordsize, address, bitsInAddress - 1, staticOffset,
-		       dynamicOffset, lowerMask, p);
+		_andyn(lowerMask, mask, address.last(1), p);
+		putBit(src, N, address.subspan(0, address.size() - 1), dynamicOffset,
+		       lowerMask);
 		free_bitspan(lowerMask);
+
+		bit_t upperMask = make_bit(p);
+		_and(upperMask, mask, address.last(1), p);
+		putBit(src, N, address.subspan(0, address.size() - 1),
+		       dynamicOffset + (1 << (bitsInAddress - 1)), upperMask);
+		free_bitspan(upperMask);
 	}
 };
 
-template <typename T> class ClientArray : Array<T> {
+template <typename T> class ClientArray : public Array<T> {
   public:
 	ClientArray(uint64_t _length, uint16_t _wordSize, TFHEClientParams_t _p)
 	    : p(_p), Array<T>(_length, _wordSize, makeTFHEServerParams(_p)) {}
 
 	// Copies n bytes from src to the given address (with the address given in
 	// bytes).
-	void put(char *src, uint64_t address, size_t n) {
+	void putp(char *src, uint64_t address, size_t n) {
 		assert((address * 8 + n) < this->length * this->wordSize);
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < 8; j++) {
 				char bit = (src[i] >> j) & 1;
-				printf("data[%#016x] = %d\n", (address + i) * 8 + j, bit);
 				constant(&this->data[(address + i) * 8 + j], bit, p);
 			}
 		}
 	}
 
-	void put(T src, uint64_t address) {
-		src._writeTo(this->data.subspan(address * this->wordSize, this->wordSize));
+	void putp(T src, uint64_t address) {
+		src._writeTo(
+		    this->data.subspan(address * this->wordSize, this->wordSize));
 	}
 
 	/*
@@ -236,8 +239,8 @@ template <typename T> class ClientArray : Array<T> {
 	// dst. Note that the pointers are copied, so changes made to dst will be
 	// reflected in the array.
 	void peek(bits_t dst, uint64_t address) {
-		assert(address < this->length);
-		memcpy(dst, &this->data[address], this->wordSize);
+	    assert(address < this->length);
+	    memcpy(dst, &this->data[address], this->wordSize);
 	}
 	*/
 
@@ -261,7 +264,8 @@ template <typename T> class ClientArray : Array<T> {
 
 	void get(T dst, uint64_t address) {
 		assert(address < this->length);
-		dst._fromBytes(this->data.subspan(address * this->wordSize, this->wordSize));
+		dst._fromBytes(
+		    this->data.subspan(address * this->wordSize, this->wordSize));
 	}
 
   private:

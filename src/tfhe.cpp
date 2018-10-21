@@ -45,7 +45,7 @@ bit_t make_bit(TFHEServerParams_t p) {
 	return gsl::span<LweSample, 1>(new_gate_bootstrapping_ciphertext(p.params), 1);
 }
 
-gsl::span<LweSample> make_bit_span(int N, TFHEClientParams_t p) {
+gsl::span<LweSample> make_bitspan(int N, TFHEClientParams_t p) {
 	LweSample *ptr = new_gate_bootstrapping_ciphertext_array(N, p.params);
 	return gsl::span<LweSample>(ptr, N);
 }

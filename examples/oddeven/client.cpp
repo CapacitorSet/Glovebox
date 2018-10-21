@@ -40,10 +40,10 @@ int main(int argc, char *argv[]) {
 	fclose(secret_key);
 
 	a = ClientInt::newU8(0xde, p);
-	b = ClientInt::newU8(0xad, p);
+	b = ClientInt::newU8(0x01, p);
 	arr = new ClientArray<ClientInt>(2, 8, p);
-	arr->put(*a, 0);
-	arr->put(*b, 1);
+	arr->putp(*b, 0);
+	arr->put(*a, *b);
 	/*
 	char data[2] = {(char) 0xde, (char) 0xad};
 	arr->put(data, 0, 2);
