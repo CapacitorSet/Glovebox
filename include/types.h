@@ -129,17 +129,31 @@ template <class T> class Array {
 		data = make_bitspan(_length * _wordSize, p);
 	}
 
-	// void put(T src, bitspan_t address) {
 	void put(T src, ClientInt address) {
 		// Todo: check that there are enough address bits
-		assert(src.size() <= this->wordSize);
+		assert(src.size() == this->wordSize);
 		bit_t mask = make_bit(p);
 		constant(mask, 1, p);
 
 		putBits(src.data, address.data, 0, mask);
 	}
 
-  private:
+	void getp(T dst, uint64_t address) {
+		assert(address < this->length);
+		dst._fromBytes(
+				this->data.subspan(address * this->wordSize, this->wordSize));
+	}
+
+	void get(T dst, ClientInt address) {
+		// Todo: check that there are enough address bits
+		assert(dst.size() == this->wordSize);
+		bit_t mask = make_bit(p);
+		constant(mask, 1, p);
+
+		getBits(dst.data, address.data, 0, mask);
+	}
+
+private:
 	TFHEServerParams_t p;
 
 	void putBits(bitspan_t src, bitspan_t address, size_t dynamicOffset,
@@ -185,8 +199,6 @@ template <class T> class Array {
 		staticOffset, dynamicOffset, mask, p); return;
 		}
 		 */
-// todo: remove
-#define bitsInAddress address.size()
 		bit_t lowerMask = make_bit(p);
 		_andyn(lowerMask, mask, address.last(), p);
 		putBits(src, address.subspan(0, address.size() - 1), dynamicOffset,
@@ -196,7 +208,63 @@ template <class T> class Array {
 		bit_t upperMask = make_bit(p);
 		_and(upperMask, mask, address.last(), p);
 		putBits(src, address.subspan(0, address.size() - 1),
-		        dynamicOffset + (1 << (bitsInAddress - 1)), upperMask);
+		        dynamicOffset + (1 << (address.size() - 1)), upperMask);
+		free_bitspan(upperMask);
+	}
+
+	void getBits(bitspan_t dst, bitspan_t address, size_t dynamicOffset,
+	             bit_t mask) {
+		// Reads out of bounds are a no-op. This is necessary for arrays to
+		// work with sizes other than powers of two. Bound checks should be done
+		// at the caller.
+		if (dynamicOffset >= this->length) {
+			// printf("%zu out of bounds.\n", dynamicOffset);
+			return;
+		}
+		if (address.size() == 1) {
+			// printf("Put: %zu out of %li\n", this->wordSize * dynamicOffset + N, this->length * wordSize);
+			size_t offset = wordSize * dynamicOffset;
+			bit_t lowerMask = make_bit(p);
+			_andyn(lowerMask, mask, address[0], p);
+			for (int i = 0; i < wordSize; i++)
+				_mux(dst[i], lowerMask, data[offset + i], dst[i], p);
+			free_bitspan(lowerMask);
+
+			offset += wordSize;
+			bit_t upperMask = make_bit(p);
+			_and(upperMask, mask, address[0], p);
+			for (int i = 0; i < wordSize; i++)
+				_mux(dst[i], upperMask, data[offset + i], dst[i], p);
+			free_bitspan(upperMask);
+			return;
+		}
+		/*
+		Would branching result in an offset so high it will read out of bounds?
+		This can naturally happen if an instruction is reading one word ahead
+		(eg. to read the argument). getN_thbit will scan the entire memory, and
+		when it scans the last word, the branch "read one word ahead" will
+		overflow. As a consequence of this, if the machine intentionally reads
+		out of bounds it will read zeros rather than segfaulting - but you would
+		never want to read past the memory size, right?
+
+		 int willBranchOverflow = (N + 8 * (1 + dynamicOffset + (1 <<
+		(bitsInAddress
+		- 1)))) >= MEMSIZE; if (willBranchOverflow) {
+		    // If yes, force the result to stay in bounds: return the lower
+		branch only. putN_thBit(src, N, wordsize, address, bitsInAddress - 1,
+		staticOffset, dynamicOffset, mask, p); return;
+		}
+		 */
+		bit_t lowerMask = make_bit(p);
+		_andyn(lowerMask, mask, address.last(), p);
+		putBits(dst, address.subspan(0, address.size() - 1), dynamicOffset,
+		        lowerMask);
+		free_bitspan(lowerMask);
+
+		bit_t upperMask = make_bit(p);
+		_and(upperMask, mask, address.last(), p);
+		putBits(dst, address.subspan(0, address.size() - 1),
+		        dynamicOffset + (1 << (address.size() - 1)), upperMask);
 		free_bitspan(upperMask);
 	}
 };
@@ -235,7 +303,7 @@ template <typename T> class ClientArray : public Array<T> {
 
 	// Decrypts one word at the given address (given in words) and puts it into
 	// dst.
-	void get(char *dst, uint64_t address) {
+	void getp(char *dst, uint64_t address) {
 		assert(address < this->length);
 		char byte;
 		char bytepos = 0;
@@ -249,12 +317,6 @@ template <typename T> class ClientArray : public Array<T> {
 				byte = 0;
 			}
 		}
-	}
-
-	void get(T dst, uint64_t address) {
-		assert(address < this->length);
-		dst._fromBytes(
-		    this->data.subspan(address * this->wordSize, this->wordSize));
 	}
 
   private:

@@ -48,13 +48,13 @@ int main(int argc, char *argv[]) {
 	char data[2] = {(char) 0xde, (char) 0xad};
 	arr->put(data, 0, 2);
 	*/
-	arr->get(*b, 0);
-	printf("Printing b: ");
-	b->print(p);
+	arr->Array::get(*a, *a);
+	printf("Printing a: ");
+	a->print(p);
 	printf("\n");
 	char out[2];
-	arr->get(out, 0);
-	arr->get(out + 1, 1);
+	arr->getp(out, 0);
+	arr->getp(out + 1, 1);
 	printf("%#02x %#02x\n", out[0], out[1]);
 
 	dyad_init();
