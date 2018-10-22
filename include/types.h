@@ -153,6 +153,22 @@ template <class T> class Array {
 		getBits(dst.data, address.data, 0, mask);
 	}
 
+	bit_t equals(Array arr) {
+		bit_t ret = make_bit(p);
+		if (arr.data.size() != data.size()) {
+			// constant(ret, 0, p);
+			return ret;
+		}
+		constant(ret, 1, p);
+		bit_t equal = make_bit(p);
+		for (int i = 0; i < data.size(); i++) {
+			_xnor(equal, data[i], arr.data[i], p);
+			_and(ret, ret, equal, p);
+		}
+		free_bitspan(equal);
+		return ret;
+	}
+
 private:
 	TFHEServerParams_t p;
 

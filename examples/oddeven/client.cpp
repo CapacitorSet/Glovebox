@@ -44,6 +44,10 @@ int main(int argc, char *argv[]) {
 	arr = new ClientArray<ClientInt>(2, 8, p);
 	arr->putp(*b, 0);
 	arr->put(*a, *b);
+	auto arr2 = new ClientArray<ClientInt>(2, 8, p);
+	arr2->putp(*b, 0);
+	arr2->put(*a, *b);
+	printf("Are arrays the same? %d.\n", decrypt(arr->equals(*arr2), p));
 	/*
 	char data[2] = {(char) 0xde, (char) 0xad};
 	arr->put(data, 0, 2);

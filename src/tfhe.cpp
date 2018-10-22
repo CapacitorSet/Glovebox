@@ -87,6 +87,10 @@ void _xor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p) {
 	bootsXOR(dst.data(), a.data(), b.data(), p.bk);
 }
 
+void _xnor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p) {
+	bootsXNOR(dst.data(), a.data(), b.data(), p.bk);
+}
+
 void _or(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p) {
 	bootsOR(dst.data(), a.data(), b.data(), p.bk);
 }

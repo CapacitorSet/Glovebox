@@ -47,7 +47,7 @@ void _nand(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p);
 void _or(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p);
 void _nor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p);
 void _xor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p);
-void _nxor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p);
+void _xnor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p);
 
 void _mux(bit_t dst, bit_t cond, bit_t a, bit_t b, TFHEServerParams_t p);
 void _copy(bit_t dst, bit_t src, TFHEServerParams_t p);
