@@ -63,12 +63,20 @@ void constant(bit_t dst, char src, TFHEServerParams_t p) {
 	bootsCONSTANT(dst.data(), src, p.bk);
 }
 
+void _not(bit_t dst, bit_t src, TFHEServerParams_t p) {
+	bootsNOT(dst.data(), src.data(), p.bk);
+}
+
 void _and(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p) {
 	bootsAND(dst.data(), a.data(), b.data(), p.bk);
 }
 
 void _andyn(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p) {
 	bootsANDYN(dst.data(), a.data(), b.data(), p.bk);
+}
+
+void _nand(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p) {
+	bootsNAND(dst.data(), a.data(), b.data(), p.bk);
 }
 
 void _nor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p) {

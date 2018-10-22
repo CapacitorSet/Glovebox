@@ -151,11 +151,18 @@ namespace details
             : span_iterator(other.span_, other.index_)
         {}
 
+        /*
         GSL_SUPPRESS(bounds.1) // NO-FORMAT: attribute
         constexpr reference operator*() const
         {
             Expects(index_ != span_->size());
             return *(span_->data() + index_);
+        }
+        */
+        constexpr std::conditional_t<IsConst, const span<element_type_, 1>, span<element_type_, 1>> operator*() const
+        {
+            Expects(index_ != span_->size());
+            return std::conditional_t<IsConst, const span<element_type_, 1>, span<element_type_, 1>>(span_->subspan(index_, 1), 0);
         }
 
         constexpr pointer operator->() const

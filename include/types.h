@@ -65,21 +65,19 @@ class Int {
 	void add(Int, Int);
 	void copy(Int);
 
-	static bit_t isZero(Int n) {
-		bit_t ret = make_bit(n.p);
-		constant(ret, 1, n.p);
-		// Todo: write custom iterator
-		for (int i = 0; i < n.data.size(); i++)
-			_andyn(ret, ret, n.data[i], n.p);
+	bit_t isZero() {
+		bit_t ret = make_bit(p);
+		constant(ret, 1, p);
+		for (const auto bit : data)
+			_andyn(ret, ret, bit, p);
 		return ret;
 	}
 
-	static bit_t isNonZero(Int n) {
-		bit_t ret = make_bit(n.p);
-		constant(ret, 1, n.p);
-		for (int i = 0; i < n.data.size(); i++)
-			_and(ret, ret, n.data[i], n.p);
-		_not(ret, ret, n.p);
+	bit_t isNonZero() {
+		bit_t ret = make_bit(p);
+		constant(ret, 0, p);
+		for (const auto bit : data)
+			_or(ret, ret, bit, p);
 		return ret;
 	}
 

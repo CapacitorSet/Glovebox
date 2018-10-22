@@ -77,8 +77,8 @@ Int::Int(char *packet, size_t pktsize, TFHEServerParams_t _p) : p(_p) {
 
 // todo: document that it doesn't export a header
 void Int::exportToFile(FILE *out) {
-	for (auto &bit : data)
-		export_gate_bootstrapping_ciphertext_toFile(out, &bit, p.params);
+	for (auto bit : data)
+		export_gate_bootstrapping_ciphertext_toFile(out, bit.data(), p.params);
 }
 
 void Int::print(TFHEClientParams_t p) {
