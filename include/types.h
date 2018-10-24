@@ -4,6 +4,7 @@
 #include "tfhe.h"
 #include <cassert>
 #include <cstdint>
+#include <cstdio>
 #include <glob.h>
 
 // The enum is not actually used, it just ensures that type IDs do not overlap
@@ -321,7 +322,7 @@ template <typename T> class ClientArray : public Array<T> {
 	// dst.
 	void getp(char *dst, uint64_t address) {
 		assert(address < this->length);
-		char byte;
+		char byte = 0;
 		char bytepos = 0;
 		size_t dstpos = 0;
 		for (int i = 0; i < this->wordSize; i++) {
@@ -337,6 +338,42 @@ template <typename T> class ClientArray : public Array<T> {
 
   private:
 	TFHEClientParams_t p;
+};
+
+// A string of *fixed* length.
+class String : protected Array<Int> {
+public:
+	String(uint16_t len, TFHEServerParams_t p) : Array<Int>(len, 8, p) {}
+	String(char *src, TFHEServerParams_t p) : Array<Int>(strlen(src), 8, p) {
+		for (size_t i = 0; i < length; i++)
+			for (int j = 0; j < 8; j++)
+				constant(data[i * 8 + j], src[i], p);
+	}
+
+	void toCStr(char *dst, TFHEClientParams_t _p) {
+		for (size_t i = 0; i < length; i++) {
+			char out = 0;
+			for (int j = 0; j < 8; j++)
+				out |= decrypt(data[i * 8 + j], _p) << j;
+			dst[i] = out;
+		}
+		dst[length] = 0;
+	}
+
+	bit_t equals(String dst) {
+		return Array::equals(dst);
+	}
+};
+
+class ClientString: public String {
+public:
+	ClientString(uint16_t len, TFHEClientParams_t p) : String(len, makeTFHEServerParams(p)) {}
+	ClientString(char *src, TFHEClientParams_t p) : String(src, makeTFHEServerParams(p)) {
+		size_t len = strlen(src);
+		for (size_t i = 0; i < length; i++)
+			for (int j = 0; j < 8; j++)
+				constant(data[i * 8 + j], (src[i] >> j) & 1, p);
+	}
 };
 
 #endif // FHE_TOOLS_TYPES_H

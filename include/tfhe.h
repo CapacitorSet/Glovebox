@@ -29,15 +29,15 @@ void freeTFHEClientParams(TFHEClientParams_t p);
 
 bit_t make_bit(TFHEServerParams_t p);
 bit_t make_bit(TFHEClientParams_t p);
-gsl::span<LweSample> make_bitspan(int N, TFHEServerParams_t p);
+gsl::span<LweSample> make_bitspan(int N, TFHEClientParams_t p);
 gsl::span<LweSample> make_bitspan(int N, TFHEServerParams_t p);
 
 void free_bitspan(bitspan_t item);
 
 int decrypt(bit_t dst, TFHEClientParams_t p);
 
-void constant(bit_t dst, char src, TFHEServerParams_t p);
-void constant(bit_t dst, char src, TFHEClientParams_t p);
+void constant(bit_t dst, bool src, TFHEServerParams_t p);
+void constant(bit_t dst, bool src, TFHEClientParams_t p);
 
 void _not(bit_t dst, bit_t a, TFHEServerParams_t p);
 void _and(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p);

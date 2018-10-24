@@ -48,6 +48,13 @@ int main(int argc, char *argv[]) {
 	arr2->putp(*b, 0);
 	arr2->put(*a, *b);
 	printf("Are arrays the same? %d.\n", decrypt(arr->equals(*arr2), p));
+
+	ClientString str("Lorem IPSUM", p);
+	ClientString str2("lorem ipsum", p);
+	printf("Are strings the same? %d.\n", decrypt(str.equals(str2), p));
+	char decrypted[100];
+	str.toCStr(decrypted, p);
+	printf("Decrypted string: %s\n", decrypted);
 	/*
 	char data[2] = {(char) 0xde, (char) 0xad};
 	arr->put(data, 0, 2);
