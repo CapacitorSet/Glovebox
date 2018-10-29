@@ -85,3 +85,23 @@ target_link_libraries(example_oddeven_server
         tfhe-spqlios-fma
         examples_networking
         )
+
+# Linear regression [not yet implemented]
+add_executable(example_linreg_client
+        examples/linreg/client.cpp
+        )
+target_link_libraries(example_linreg_client
+        PRIVATE
+        fhetools
+        tfhe-spqlios-fma
+        examples_networking
+        )
+add_executable(example_linreg_server
+        examples/linreg/server.cpp
+        )
+target_link_libraries(example_linreg_server
+        PRIVATE
+        fhetools
+        tfhe-spqlios-fma
+        examples_networking
+        )

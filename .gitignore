@@ -22,3 +22,5 @@ example_fibonacci_client
 example_fibonacci_server
 example_oddeven_client
 example_oddeven_server
+example_linreg_client
+example_linreg_server

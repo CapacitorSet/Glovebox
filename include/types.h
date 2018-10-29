@@ -405,4 +405,57 @@ public:
 	}
 };
 
+// 16 bit integer part + 16 bit fractional
+class Fixed32 {
+public:
+	Fixed32(float src, TFHEServerParams_t _p) : Fixed32(_p) {
+		int32_t tmp = (int32_t) src; // Extract integer part
+		src -= tmp;
+		tmp <<= 16;
+		tmp += (int32_t) (src * (1 << 16));
+
+		for (int i = 0; i < 32; i++)
+			constant(data[i], (tmp >> i) & 1, p);
+	}
+
+	float toFloat(TFHEClientParams_t _p) {
+		int16_t integer = 0;
+		int16_t fractional = 0;
+		for (int i = 0; i < 16; i++) {
+			fractional |= decrypt(data[i], _p) << i;
+		}
+		for (int i = 16; i < 32; i++) {
+			integer |= decrypt(data[i], _p) << (i - 16);
+		}
+		return (float) (integer) + ((float) (fractional) / ((float) (1 << 16)));
+	}
+
+	void free() {
+		free_bitspan(data);
+	}
+
+protected:
+	explicit Fixed32(TFHEServerParams_t _p) : p(_p) {
+		data = make_bitspan(32, p);
+	}
+
+	bitspan_t data;
+	TFHEServerParams_t p;
+};
+
+class ClientFixed32 : public Fixed32 {
+public:
+	ClientFixed32(float src, TFHEClientParams_t _p) : Fixed32(makeTFHEServerParams(_p)) {
+		data = make_bitspan(32, p);
+
+		int32_t tmp = (int32_t) src; // Extract integer part
+		src -= tmp;
+		tmp <<= 16;
+		tmp += (int32_t) (src * (1 << 16));
+
+		for (int i = 0; i < 32; i++)
+			constant(data[i], (tmp >> i) & 1, p);
+	}
+};
+
 #endif // FHE_TOOLS_TYPES_H
