@@ -2,6 +2,7 @@
 #define FHE_TOOLS_TYPES_H
 
 #include "tfhe.h"
+#include "flow-control.h"
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
@@ -47,8 +48,14 @@ class Int {
 	}
 
 	// todo: rename
-	void _writeTo(bitspan_t dst) { _copy(dst, this->data, p); }
-	void _fromBytes(bitspan_t dst) { _copy(this->data, dst, p); }
+	void _writeTo(bitspan_t dst) { _copy(dst, data, p); }
+	void _fromBytes(bitspan_t dst) { _copy(data, dst, p); }
+	maskable_function_t _m_fromBytes(bit_t mask, bitspan_t dst) {
+		return [=] (bit_t mask) -> void {
+			for (int i = 0; i < data.size(); i++)
+				_mux(data[i], mask, dst[i], data[i], p);
+		};
+	}
 
 	static const int typeID = INT_TYPE_ID;
 	const int size() const { return data.size(); }
@@ -139,9 +146,23 @@ template <class T> class Array {
 		putBits(src.data, address.data, 0, mask);
 	}
 
+	maskable_function_t m_put(T src, ClientInt address) {
+		// Todo: check that there are enough address bits
+		assert(src.size() == this->wordSize);
+		return [=] (bit_t mask) -> void {
+			putBits(src.data, address.data, 0, mask);
+		};
+	}
+
 	void getp(T dst, uint64_t address) {
 		assert(address < this->length);
 		dst._fromBytes(
+				this->data.subspan(address * this->wordSize, this->wordSize));
+	}
+
+	maskable_function_t m_getp(T dst, uint64_t address) {
+		assert(address < this->length);
+		return dst._m_fromBytes(
 				this->data.subspan(address * this->wordSize, this->wordSize));
 	}
 
@@ -152,6 +173,14 @@ template <class T> class Array {
 		constant(mask, 1, p);
 
 		getBits(dst.data, address.data, 0, mask);
+	}
+
+	maskable_function_t m_get(T dst, ClientInt address) {
+		// Todo: check that there are enough address bits
+		assert(dst.size() == this->wordSize);
+		return [=] (bit_t mask) -> void {
+			getBits(dst.data, address.data, 0, mask);
+		};
 	}
 
 	bit_t equals(Array arr) {

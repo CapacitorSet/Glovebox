@@ -16,7 +16,7 @@ add_library(fhetools STATIC
         include/types.h
         src/server.cpp
         src/client.cpp
-        )
+        src/flow-control.cpp)
 
 target_include_directories(fhetools
         PUBLIC
@@ -66,7 +66,7 @@ target_link_libraries(example_fibonacci_server
         examples_networking
         )
 
-# Odd/even
+# Odd/even [not yet implemented]
 add_executable(example_oddeven_client
         examples/oddeven/client.cpp
         )

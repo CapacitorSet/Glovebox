@@ -30,6 +30,7 @@ void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) 
 	delete i;
 }
 
+// Todo: implement
 int main(int argc, char *argv[]) {
 	FILE *secret_key = fopen("secret.key", "rb");
 	if (secret_key == nullptr) {
@@ -59,7 +60,13 @@ int main(int argc, char *argv[]) {
 	char data[2] = {(char) 0xde, (char) 0xad};
 	arr->put(data, 0, 2);
 	*/
-	arr->Array::get(*a, *a);
+	printf("Printing a: ");
+	a->print(p);
+	printf("\n");
+	printf("Printing b: ");
+	b->print(p);
+	printf("\n");
+	_if_else(arr->equals(*arr2), arr->Array::m_get(*a, *b), arr->Array::m_get(*a, *a), makeTFHEServerParams(p));
 	printf("Printing a: ");
 	a->print(p);
 	printf("\n");
