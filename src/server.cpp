@@ -71,14 +71,22 @@ Int::Int(char *packet, size_t pktsize, TFHEServerParams_t _p) : p(_p) {
 	}
 	assert(f);
 	data = make_bitspan(size, p);
+#if PLAINTEXT
+	assert("TODO: implement" == 0);
+#else
 	for (int i = 0; i < size; i++)
 		import_gate_bootstrapping_ciphertext_fromFile(f, &data.at(i), p.params);
+#endif
 }
 
 // todo: document that it doesn't export a header
 void Int::exportToFile(FILE *out) {
+#if PLAINTEXT
+	assert("TODO: implement" == 0);
+#else
 	for (auto bit : data)
 		export_gate_bootstrapping_ciphertext_toFile(out, bit.data(), p.params);
+#endif
 }
 
 void Int::print(TFHEClientParams_t p) {
@@ -99,33 +107,18 @@ void Int::add(Int a, Int b) {
 	assert(size() == b.size());
 	assert(isSigned == b.isSigned);
 
-	// Inputs
-	bit_t CIn = make_bit(p);
-	constant(CIn, 0, p);
+	::add(data, a.data, b.data, p);
+}
 
-	// Intermediate variables
-	bit_t AxorB = make_bit(p);
-	bit_t AxorBandCIn = make_bit(p);
-	bit_t AandB = make_bit(p);
+void Int::mult(Int a, Int b) {
+	assert(size() == a.size());
+	assert(isSigned == a.isSigned);
+	assert(size() == b.size());
+	assert(isSigned == b.isSigned);
 
-	// Output variables
-	bit_t COut = make_bit(p);
-	for (int i = 0; i < size(); i++) {
-		bit_t A = a.data[i];
-		bit_t B = b.data[i];
-		bit_t S = data[i]; // Write to self
-
-		_xor(AxorB, A, B, p);
-		_and(AxorBandCIn, AxorB, CIn, p);
-		_and(AandB, A, B, p);
-
-		// COut = ((A XOR B) AND CIn) OR (A AND B)
-		_or(COut, AxorBandCIn, AandB, p);
-		_xor(S, AxorB, CIn, p); // S = (A XOR B) XOR CIn
-
-		// The current COut will be used as CIn.
-		_copy(CIn, COut, p);
-	}
+	auto dummy = make_bitspan(2 * size(), p);
+	::mult(dummy, a.data, b.data, p);
+	_copy(data, dummy.subspan(0, 8), p);
 }
 
 void Int::copy(Int src) {

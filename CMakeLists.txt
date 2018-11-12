@@ -2,8 +2,10 @@ cmake_minimum_required(VERSION 3.5)
 
 project(fhetools)
 
+# find_package(OpenMP)
 # -fpermissive: needed to deal with const stuff
-set(CMAKE_CXX_FLAGS "-fpermissive -fno-PIC -no-pie -g -fsanitize=address")
+# ${OpenMP_CXX_FLAGS}
+set(CMAKE_CXX_FLAGS "-fpermissive -fno-PIC -no-pie -g -fsanitize=address -DPLAINTEXT=0")
 
 # Create a library
 
@@ -16,7 +18,12 @@ add_library(fhetools STATIC
         include/types.h
         src/server.cpp
         src/client.cpp
-        src/flow-control.cpp)
+        src/flow-control.cpp
+        src/fixed32.cpp
+        src/polynomial.cpp
+        include/primitives.h
+        src/primitives.cpp
+        )
 
 target_include_directories(fhetools
         PUBLIC

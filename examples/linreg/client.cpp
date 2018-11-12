@@ -37,11 +37,24 @@ int main(int argc, char *argv[]) {
 		return 1;
 	}
 	p = makeTFHEClientParams(secret_key);
+	auto _p = makeTFHEServerParams(p);
 	fclose(secret_key);
 
-	ClientFixed32 a = ClientFixed32(1.3, p);
-	printf("Current value: %f\n", a.toFloat(p));
+	Int *x = Int::newU8(15, _p);
+	Int *y = Int::newU8(15, _p);
+	Int *res = Int::newU8(_p);
+	res->mult(*x, *y);
+	printf("Result of multiplication: ");
+	res->print(p);
+	printf("\n");
 
+	ClientFixed32 a = ClientFixed32(2.0, p);
+	printf("Current value: a=%f\n", a.times(ClientFixed32(100.5, p)).toFloat(p));
+
+	KnownPolynomial pol = KnownPolynomial(std::vector<float>({1.0f, 2.0f, 1.0f}), makeTFHEServerParams(p));
+	printf("p(x) = 1.0 in x=a: %f\n", pol.evaluate(a).toFloat(p));
+
+	/*
 	dyad_init();
 
 	s = dyad_newStream();
@@ -56,7 +69,7 @@ int main(int argc, char *argv[]) {
 	puts("No more connections, closing.");
 
 	dyad_shutdown();
+	 */
 	freeTFHEClientParams(p);
-	a.free();
 	return 0;
 }

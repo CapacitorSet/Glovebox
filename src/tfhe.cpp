@@ -4,6 +4,103 @@
 #include "tfhe.h"
 #include "compile_time_settings.h"
 
+/* An "agnostic" interface to TFHE. Might support a plaintext backend and TFHE v2 in the future.
+ */
+
+#if PLAINTEXT
+#warning You are compiling a plaintext binary.
+
+TFHEClientParams_t makeTFHEClientParams(FILE*) {
+	return TFHEClientParams_t{};
+}
+
+TFHEServerParams_t makeTFHEServerParams(FILE*) {
+	return TFHEServerParams_t{};
+}
+
+TFHEServerParams_t makeTFHEServerParams(TFHEClientParams_t) {
+	return TFHEServerParams_t{};
+}
+
+void freeTFHEServerParams(TFHEServerParams_t) {
+}
+void freeTFHEClientParams(TFHEClientParams_t) {
+}
+
+int decrypt(bit_t dst, TFHEClientParams_t) {
+	return *dst.data();
+}
+
+bit_t make_bit(TFHEClientParams_t) {
+	return gsl::span<bool, 1>(reinterpret_cast<bool*>(malloc(1)), 1);
+}
+
+bit_t make_bit(TFHEServerParams_t) {
+	return gsl::span<bool, 1>(reinterpret_cast<bool*>(malloc(1)), 1);
+}
+
+bitspan_t make_bitspan(int N, TFHEClientParams_t) {
+	return gsl::span<bool>(reinterpret_cast<bool*>(malloc(N)), N);
+}
+
+bitspan_t make_bitspan(int N, TFHEServerParams_t) {
+	return gsl::span<bool>(reinterpret_cast<bool*>(malloc(N)), N);
+}
+
+void constant(bit_t dst, bool src, TFHEClientParams_t) {
+	*dst.data() = src;
+}
+
+void constant(bit_t dst, bool src, TFHEServerParams_t) {
+	*dst.data() = src;
+}
+
+void _not(bit_t dst, bit_t src, TFHEServerParams_t) {
+	*dst.data() = !*src.data();
+}
+
+void _and(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t) {
+	*dst.data() = *a.data() && *b.data();
+}
+
+void _andyn(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t) {
+	*dst.data() = *a.data() && !*b.data();
+}
+
+void _nand(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t) {
+	*dst.data() = !(*a.data() && *b.data());
+}
+
+void _nor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t) {
+	*dst.data() = !(*a.data() || *b.data());
+}
+
+void _xor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t) {
+	*dst.data() = *a.data() ^ *b.data();
+}
+
+void _xnor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t) {
+	*dst.data() = !(*a.data() ^ *b.data());
+}
+
+void _or(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t) {
+	*dst.data() = *a.data() || *b.data();
+}
+
+void free_bitspan(bitspan_t item) {
+	free(item.data());
+}
+
+void _mux(bit_t dst, bit_t cond, bit_t a, bit_t b, TFHEServerParams_t) {
+	*dst.data() = *cond.data() ? *a.data() : *b.data();
+}
+
+void _copy(bit_t dst, bit_t src, TFHEServerParams_t) {
+	*dst.data() = *src.data();
+}
+
+#else
+
 TFHEClientParams_t makeTFHEClientParams(FILE *secret_key) {
 	TFheGateBootstrappingSecretKeySet *key =
 	    new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
@@ -45,12 +142,12 @@ bit_t make_bit(TFHEServerParams_t p) {
 	return gsl::span<LweSample, 1>(new_gate_bootstrapping_ciphertext(p.params), 1);
 }
 
-gsl::span<LweSample> make_bitspan(int N, TFHEClientParams_t p) {
+bitspan_t make_bitspan(int N, TFHEClientParams_t p) {
 	LweSample *ptr = new_gate_bootstrapping_ciphertext_array(N, p.params);
 	return gsl::span<LweSample>(ptr, N);
 }
 
-gsl::span<LweSample> make_bitspan(int N, TFHEServerParams_t p) {
+bitspan_t make_bitspan(int N, TFHEServerParams_t p) {
 	LweSample *ptr = new_gate_bootstrapping_ciphertext_array(N, p.params);
 	return gsl::span<LweSample>(ptr, N);
 }
@@ -106,8 +203,5 @@ void _mux(bit_t dst, bit_t cond, bit_t a, bit_t b, TFHEServerParams_t p) {
 void _copy(bit_t dst, bit_t src, TFHEServerParams_t p) {
 	bootsCOPY(dst.data(), src.data(), p.bk);
 }
-void _copy(bitspan_t dst, bitspan_t src, TFHEServerParams_t p) {
-	assert(dst.size() == src.size());
-	for (int i = 0; i < dst.size(); i++)
-		bootsCOPY(&dst.at(i), &src.at(i), p.bk);
-}
+
+#endif

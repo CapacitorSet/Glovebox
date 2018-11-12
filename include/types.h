@@ -1,11 +1,15 @@
+#include <utility>
+
 #ifndef FHE_TOOLS_TYPES_H
 #define FHE_TOOLS_TYPES_H
 
 #include "tfhe.h"
+#include "primitives.h"
 #include "flow-control.h"
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
+#include <cstring>
 #include <glob.h>
 
 // The enum is not actually used, it just ensures that type IDs do not overlap
@@ -71,6 +75,7 @@ class Int {
 	void writeU8(uint8_t);
 
 	void add(Int, Int);
+	void mult(Int, Int);
 	void copy(Int);
 
 	bit_t isZero() {
@@ -418,17 +423,10 @@ public:
 			constant(data[i], (tmp >> i) & 1, p);
 	}
 
-	float toFloat(TFHEClientParams_t _p) {
-		int16_t integer = 0;
-		int16_t fractional = 0;
-		for (int i = 0; i < 16; i++) {
-			fractional |= decrypt(data[i], _p) << i;
-		}
-		for (int i = 16; i < 32; i++) {
-			integer |= decrypt(data[i], _p) << (i - 16);
-		}
-		return (float) (integer) + ((float) (fractional) / ((float) (1 << 16)));
-	}
+	float toFloat(TFHEClientParams_t _p);
+
+	Fixed32 plus(Fixed32 src);
+	Fixed32 times(Fixed32 src);
 
 	void free() {
 		free_bitspan(data);
@@ -456,6 +454,24 @@ public:
 		for (int i = 0; i < 32; i++)
 			constant(data[i], (tmp >> i) & 1, p);
 	}
+};
+
+class KnownPolynomial {
+public:
+	KnownPolynomial(std::vector<Fixed32> _factors, TFHEServerParams_t _p) : factors(std::move(_factors)), p(_p) {
+	}
+	KnownPolynomial(std::vector<float> _factors, TFHEServerParams_t _p) : p(_p) {
+		for (auto _factor : _factors) {
+			factors.push_back(Fixed32(_factor, _p));
+		}
+	}
+
+	Fixed32 evaluate(Fixed32 x);
+
+private:
+	std::vector<Fixed32> factors;
+
+	TFHEServerParams_t p;
 };
 
 #endif // FHE_TOOLS_TYPES_H
