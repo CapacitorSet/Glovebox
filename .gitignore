@@ -16,6 +16,9 @@ secret.key
 # Library
 libfhetools.a
 
+# Google Test
+gtest/
+
 # Binaries
 keygen
 example_fibonacci_client
@@ -24,3 +27,4 @@ example_oddeven_client
 example_oddeven_server
 example_linreg_client
 example_linreg_server
+fhetools_test
