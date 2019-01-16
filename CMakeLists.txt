@@ -6,6 +6,7 @@ project(fhetools)
 # ${OpenMP_CXX_FLAGS}
 # -fpermissive: needed to deal with const stuff
 set(CMAKE_CXX_FLAGS "-fpermissive -fno-PIC -no-pie -g -fsanitize=address -DPLAINTEXT=0")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 
 # Create a library
 
