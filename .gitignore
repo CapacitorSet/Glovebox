@@ -18,6 +18,7 @@ libfhetools.a
 
 # Google Test
 gtest/
+Testing/
 
 # Binaries
 bin/
