@@ -164,33 +164,18 @@ void _not(bit_t dst, bit_t src, TFHEServerParams_t p) {
 	bootsNOT(dst.data(), src.data(), p.bk);
 }
 
-void _and(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p) {
-	bootsAND(dst.data(), a.data(), b.data(), p.bk);
+#define BINARY_OPERATOR(LibName, TFHEName) void _ ## LibName(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p) { \
+	boots ## TFHEName(dst.data(), a.data(), b.data(), p.bk); \
 }
 
-void _andyn(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p) {
-	bootsANDYN(dst.data(), a.data(), b.data(), p.bk);
-}
-
-void _nand(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p) {
-	bootsNAND(dst.data(), a.data(), b.data(), p.bk);
-}
-
-void _nor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p) {
-	bootsNOR(dst.data(), a.data(), b.data(), p.bk);
-}
-
-void _xor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p) {
-	bootsXOR(dst.data(), a.data(), b.data(), p.bk);
-}
-
-void _xnor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p) {
-	bootsXNOR(dst.data(), a.data(), b.data(), p.bk);
-}
-
-void _or(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p) {
-	bootsOR(dst.data(), a.data(), b.data(), p.bk);
-}
+BINARY_OPERATOR(and, AND)
+BINARY_OPERATOR(andyn, ANDYN)
+BINARY_OPERATOR(andny, ANDNY)
+BINARY_OPERATOR(nand, NAND)
+BINARY_OPERATOR(nor, NOR)
+BINARY_OPERATOR(xor, XOR)
+BINARY_OPERATOR(xnor, XNOR)
+BINARY_OPERATOR(or, OR)
 
 void free_bitspan(bitspan_t item) {
 	free_LweSample_array(item.size(), item.data());

@@ -135,5 +135,5 @@ include_directories("${source_dir}/googletest/include"
         "${source_dir}/googlemock/include")
 ############# end
 add_executable(fhetools_test tests/main.cpp)
-target_link_libraries(fhetools_test libgtest libgmock)
+target_link_libraries(fhetools_test fhetools libgtest libgmock)
 add_test(fhetools_test fhetools_test)
