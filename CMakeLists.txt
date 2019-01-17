@@ -26,6 +26,9 @@ add_library(fhetools STATIC
         src/primitives.cpp
         )
 
+# Should we do the linking ourselves, or have the user choose?
+target_link_libraries(fhetools PRIVATE tfhe-spqlios-fma)
+
 target_include_directories(fhetools
         PUBLIC
         ${PROJECT_SOURCE_DIR}/include
@@ -36,11 +39,7 @@ target_include_directories(fhetools
 add_executable(keygen
         examples/keygen/main.cpp
         )
-target_link_libraries(keygen
-        PRIVATE
-        fhetools
-        tfhe-spqlios-fma
-        )
+target_link_libraries(keygen PRIVATE fhetools)
 
 add_library(examples_networking OBJECT
         examples/dyad.c
@@ -61,7 +60,6 @@ add_executable(example_fibonacci_client
 target_link_libraries(example_fibonacci_client
         PRIVATE
         fhetools
-        tfhe-spqlios-fma
         examples_networking
         )
 add_executable(example_fibonacci_server
@@ -70,7 +68,6 @@ add_executable(example_fibonacci_server
 target_link_libraries(example_fibonacci_server
         PRIVATE
         fhetools
-        tfhe-spqlios-fma
         examples_networking
         )
 
@@ -81,7 +78,6 @@ add_executable(example_oddeven_client
 target_link_libraries(example_oddeven_client
         PRIVATE
         fhetools
-        tfhe-spqlios-fma
         examples_networking
         )
 add_executable(example_oddeven_server
@@ -90,7 +86,6 @@ add_executable(example_oddeven_server
 target_link_libraries(example_oddeven_server
         PRIVATE
         fhetools
-        tfhe-spqlios-fma
         examples_networking
         )
 
@@ -101,7 +96,6 @@ add_executable(example_linreg_client
 target_link_libraries(example_linreg_client
         PRIVATE
         fhetools
-        tfhe-spqlios-fma
         examples_networking
         )
 add_executable(example_linreg_server
@@ -110,7 +104,6 @@ add_executable(example_linreg_server
 target_link_libraries(example_linreg_server
         PRIVATE
         fhetools
-        tfhe-spqlios-fma
         examples_networking
         )
 
