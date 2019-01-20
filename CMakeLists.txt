@@ -2,10 +2,6 @@ cmake_minimum_required(VERSION 3.5)
 
 project(fhetools)
 
-# find_package(OpenMP)
-# ${OpenMP_CXX_FLAGS}
-# -fpermissive: needed to deal with const stuff
-set(CMAKE_CXX_FLAGS "-fpermissive -fno-PIC -no-pie")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 
 # Create a library
@@ -27,13 +23,15 @@ add_library(fhetools STATIC
         )
 
 if (PLAINTEXT)
-    message("Plaintext yes")
     add_definitions(-DPLAINTEXT=1)
 else()
-    message("Plaintext no")
     add_definitions(-DPLAINTEXT=0)
     # Should we do the linking ourselves, or have the user choose?
     target_link_libraries(fhetools PRIVATE tfhe-spqlios-fma)
+    # Hardening: https://wiki.debian.org/Hardening
+    target_compile_options(fhetools PUBLIC -O2 -Wformat -Wformat-security -Werror=format-security -fstack-protector-strong -fPIE -fPIC)
+    target_link_options(fhetools PUBLIC -O2 -Wformat -Wformat-security -Werror=format-security -fstack-protector-strong -pie -Wl,-z,relro -Wl,-z,now)
+    add_definitions(-D_FORTIFY_SOURCE=2)
 endif()
 
 target_include_directories(fhetools
