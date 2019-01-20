@@ -1,12 +1,9 @@
 #ifndef FHE_CPU_TFHE_H
 #define FHE_CPU_TFHE_H
 
-#include "compile_time_settings.h"
 #include <cstdint>
 #include <cstdio>
 #include <gsl_span_custom.h>
-
-#include <tfhe/tfhe.h>
 
 #if PLAINTEXT
 typedef gsl::span<bool> bitspan_t;
@@ -14,6 +11,8 @@ typedef gsl::span<bool, 1> bit_t;
 typedef struct {} TFHEServerParams_t;
 typedef struct {} TFHEClientParams_t;
 #else
+#include <tfhe/tfhe.h>
+
 typedef gsl::span<LweSample> bitspan_t;
 typedef gsl::span<LweSample, 1> bit_t;
 typedef struct {

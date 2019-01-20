@@ -8,17 +8,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 
 # Generate the static library from the library sources
 add_library(fhetools STATIC
-        include/compile_time_settings.h
-        include/gsl_span_custom.h
-        include/tfhe.h
+        include/fhe-tools.h
         src/tfhe.cpp
-        include/types.h
         src/server.cpp
         src/client.cpp
-        src/flow-control.cpp
+        src/flow_control.cpp
         src/fixed32.cpp
         src/polynomial.cpp
-        include/primitives.h
         src/primitives.cpp
         )
 

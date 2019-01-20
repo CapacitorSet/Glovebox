@@ -1,9 +1,6 @@
-#include <omp.h>
+#include <cassert>
 #include "types.h"
 #include "tfhe.h"
-
-// todo remove
-#define NUM_THREADS 4
 
 void zero(bitspan_t src, TFHEClientParams_t p) {
 	for (auto bit : src)
@@ -51,31 +48,20 @@ void _full_adder(bit_t out, bit_t carry_out, bit_t A, bit_t B, bit_t carry_in, T
 	free_bitspan(AandB);
 }
 
-void add(bitspan_t result, bitspan_t a, bitspan_t b, TFHEServerParams_t p) {
-	assert(result.size() == a.size());
-	assert(a.size() == b.size());
+void add_carry(bitspan_t out, bit_t carry, bitspan_t A, bitspan_t B, TFHEServerParams_t p) {
+	assert(out.size() == A.size());
+	assert(A.size() == B.size());
+	for (int i = 0; i < A.size(); i++)
+		_full_adder(out[i], carry, A[i], B[i], carry, p);
+}
 
-	// Inputs
-	bit_t CIn = make_bit(p);
-	constant(CIn, 0, p);
-
-	// Intermediate variables
-	bit_t AxorB = make_bit(p);
-	bit_t AxorBandCIn = make_bit(p);
-	bit_t AandB = make_bit(p);
-
-	// Output variables
-	bit_t COut = make_bit(p);
-	for (int i = 0; i < a.size(); i++) {
-		bit_t A = a[i];
-		bit_t B = b[i];
-		bit_t S = result[i];
-
-		_full_adder(S, COut, A, B, S, p);
-
-		// The current COut will be used as CIn.
-		_copy(CIn, COut, p);
-	}
+void add(bitspan_t out, bitspan_t A, bitspan_t B, TFHEServerParams_t p) {
+	assert(out.size() == A.size());
+	assert(A.size() == B.size());
+	bit_t carry = make_bit(p);
+	constant(carry, 0, p);
+	add_carry(out, carry, A, B, p);
+	free_bitspan(carry);
 }
 
 void mult(bitspan_t result, bitspan_t a, bitspan_t b, TFHEServerParams_t _p) {
@@ -88,7 +74,6 @@ void mult(bitspan_t result, bitspan_t a, bitspan_t b, TFHEServerParams_t _p) {
 		_and(first_operand[i], a[i], b[0], _p);
 
 	bit_t carry = make_bit(_p);
-	constant(carry, 0, _p);
 
 	bit_t masked_operand_bit = make_bit(_p);
 
@@ -99,16 +84,16 @@ void mult(bitspan_t result, bitspan_t a, bitspan_t b, TFHEServerParams_t _p) {
 	 */
 
 	for (int j = 0; j < size - 1; j++) {
-		printf("Multiplication progress: %d/%d\n", j, size - 2);
+		constant(carry, 0, _p);
 		bitspan_t masked_second_operand = make_bitspan(size, _p);
 		for (int i = 0; i < size; i++)
 			_and(masked_second_operand[i], a[i], b[j + 1], _p);
 
-		_full_adder(result[0], carry, first_operand[1], masked_second_operand[0], carry, _p);
-		// I think this can be refactored to use first_operand[0] too?
-		for (int i = 1; i < size - 1; i++)
-			_full_adder(first_operand[i], carry, first_operand[i + 1], masked_second_operand[i], carry, _p);
-		_half_adder(first_operand[size - 1], carry, masked_second_operand[size - 1], carry, _p);
+		bitspan_t first_operand_output = make_bitspan(size, _p);
+		/*parallel_*/add_carry(first_operand_output.subspan(0, size - 1), carry, first_operand.subspan(1, size - 1), masked_second_operand.subspan(0, size - 1), _p);
+		_half_adder(first_operand_output[size - 1], carry, masked_second_operand[size - 1], carry, _p);
+		_copy(result[0], first_operand_output[0], _p);
+		_copy(first_operand, first_operand_output, _p);
 	}
 
 	_memcpy(result.subspan(size - 1, size), first_operand, size, _p);

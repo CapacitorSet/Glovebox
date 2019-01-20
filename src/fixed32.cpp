@@ -1,5 +1,4 @@
-#include "types.h"
-#include "primitives.h"
+#include "types/fixed32.h"
 
 float Fixed32::toFloat(TFHEClientParams_t _p) {
 	uint16_t integer = 0;

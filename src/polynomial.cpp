@@ -1,4 +1,4 @@
-#include "types.h"
+#include "fhe-tools.h"
 
 Fixed32 KnownPolynomial::evaluate(Fixed32 x) {
 	// powers[1] = x

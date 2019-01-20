@@ -1,8 +1,5 @@
 #include <cassert>
-#include <gsl_span_custom.h>
-#include <tfhe.h>
-#include "tfhe.h"
-#include "compile_time_settings.h"
+#include "fhe-tools.h"
 
 /* An "agnostic" interface to TFHE. Might support a plaintext backend and TFHE v2 in the future.
  */

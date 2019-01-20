@@ -1,4 +1,4 @@
-#include "flow-control.h"
+#include "flow_control.h"
 
 void _if(bit_t cond, maskable_function_t iftrue) {
 	iftrue(cond);
