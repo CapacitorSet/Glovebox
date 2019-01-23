@@ -135,6 +135,10 @@ set_target_properties(libgmock PROPERTIES
 include_directories("${source_dir}/googletest/include"
         "${source_dir}/googlemock/include")
 ############# end
-add_executable(fhetools_test tests/main.cpp)
+add_executable(fhetools_test
+        tests/main.cpp
+        tests/FHEContext.cpp
+        tests/gates.cpp
+        tests/int.cpp)
 target_link_libraries(fhetools_test fhetools libgtest libgmock)
 add_test(fhetools_test fhetools_test)
