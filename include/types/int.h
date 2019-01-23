@@ -10,6 +10,10 @@ class Int {
 	template <class T> friend class Array;
 
 protected:
+	bool isSigned;
+	bitspan_t data;
+
+public:
 	Int(uint8_t _size, bool _isSigned, TFHEServerParams_t _p,
 	    bool initialize = true)
 			: isSigned(_isSigned), p(_p) {
@@ -17,12 +21,10 @@ protected:
 			data = make_bitspan(_size, p);
 	}
 
-	bool isSigned;
-	bitspan_t data;
-
-public:
 	// virtual void writeU8(uint8_t) = 0;
 
+	void decrypt(char *dst, TFHEClientParams_t p);
+	uint8_t toU8(TFHEClientParams_t p);
 	ptr_with_length_t exportToChar();
 	void exportToFile(FILE *out);
 	void print(TFHEClientParams_t p);
@@ -93,7 +95,6 @@ public:
 		return ret;
 	}
 	void writeU8(uint8_t);
-	uint8_t toU8();
 	ClientInt(uint8_t _size, bool _isSigned, TFHEClientParams_t _p)
 			: p(_p), Int(_size, _isSigned, _p) {}
 

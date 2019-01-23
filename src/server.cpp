@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <types.h>
 #include <unistd.h>
+#include <types/int.h>
 
 // Generic Int code
 
@@ -89,14 +90,28 @@ void Int::exportToFile(FILE *out) {
 #endif
 }
 
-void Int::print(TFHEClientParams_t p) {
-	for (int i = size(); i-- > 0;)
-		printf("%d", decrypt(data[i], p));
+void Int::decrypt(char *dst, TFHEClientParams_t p) {
+	for (int i = 0; i < size(); ) {
+		char byte = 0;
+		for (int j = 0; j < 8; i++, j++)
+			byte |= (::decrypt(data[i], p) & 1) << j;
+		*dst = byte;
+		dst++;
+	}
+}
+
+uint8_t Int::toU8(TFHEClientParams_t p) {
+	assert(size() == 8);
+	assert(!isSigned);
+	uint8_t ret = 0;
+	for (int i = 0; i < 8; i++)
+		ret |= (::decrypt(data[i], p) & 1) << i;
+	return ret;
 }
 
 void Int::sprint(char *out, TFHEClientParams_t p) {
 	for (int i = size(); i-- > 0;)
-		sprintf(out++, "%d", decrypt(data[i], p));
+		sprintf(out++, "%d", ::decrypt(data[i], p));
 }
 
 // ServerInt-specific code
