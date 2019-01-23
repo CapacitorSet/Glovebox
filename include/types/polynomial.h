@@ -1,6 +1,8 @@
 #ifndef FHETOOLS_POLYNOMIAL_H
 #define FHETOOLS_POLYNOMIAL_H
 
+#include <vector>
+
 class KnownPolynomial {
 public:
 	KnownPolynomial(std::vector<Fixed32> _factors, TFHEServerParams_t _p) : factors(std::move(_factors)), p(_p) {

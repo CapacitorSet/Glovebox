@@ -64,6 +64,10 @@ void _andyn(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t) {
 	*dst.data() = *a.data() && !*b.data();
 }
 
+void _andny(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t) {
+	*dst.data() = !*a.data() && *b.data();
+}
+
 void _nand(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t) {
 	*dst.data() = !(*a.data() && *b.data());
 }

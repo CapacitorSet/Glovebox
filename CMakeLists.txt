@@ -20,6 +20,8 @@ add_library(fhetools STATIC
 
 if (PLAINTEXT)
     add_definitions(-DPLAINTEXT=1)
+    target_compile_options(fhetools PUBLIC -Wformat -Wformat-security -Werror=format-security -fsanitize=memory -g)
+    target_link_options(fhetools PUBLIC -O2 -Wformat -Wformat-security -Werror=format-security -fsanitize=memory -g)
 else()
     add_definitions(-DPLAINTEXT=0)
     # Should we do the linking ourselves, or have the user choose?
