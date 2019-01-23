@@ -83,12 +83,11 @@ private:
 class ClientInt : public Int {
 public:
 	ClientInt(char *packet, size_t pktsize, TFHEClientParams_t _p)
-			: p(_p), Int(packet, pktsize, makeTFHEServerParams(_p)){};
+			: p(_p), Int(packet, pktsize, _p){};
 	static ClientInt *newU8(TFHEClientParams_t _p) {
 		return new ClientInt(8, false, _p);
 	}
 	static ClientInt *newU8(uint8_t n, TFHEClientParams_t p) {
-		auto r = Int::newU8(makeTFHEServerParams(p));
 		auto ret = ClientInt::newU8(p);
 		ret->writeU8(n);
 		return ret;
@@ -96,7 +95,7 @@ public:
 	void writeU8(uint8_t);
 	uint8_t toU8();
 	ClientInt(uint8_t _size, bool _isSigned, TFHEClientParams_t _p)
-			: p(_p), Int(_size, _isSigned, makeTFHEServerParams(_p)) {}
+			: p(_p), Int(_size, _isSigned, _p) {}
 
 private:
 	TFHEClientParams_t p;

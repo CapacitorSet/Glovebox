@@ -38,7 +38,7 @@ protected:
 
 class ClientFixed32 : public Fixed32 {
 public:
-	ClientFixed32(float src, TFHEClientParams_t _p) : Fixed32(makeTFHEServerParams(_p)) {
+	ClientFixed32(float src, TFHEClientParams_t _p) : Fixed32(_p) {
 		data = make_bitspan(32, p);
 
 		int32_t tmp = (int32_t) src; // Extract integer part

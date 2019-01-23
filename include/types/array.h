@@ -209,7 +209,7 @@ private:
 template <typename T> class ClientArray : public Array<T> {
 public:
 	ClientArray(uint64_t _length, uint16_t _wordSize, TFHEClientParams_t _p)
-			: p(_p), Array<T>(_length, _wordSize, makeTFHEServerParams(_p)) {}
+			: p(_p), Array<T>(_length, _wordSize, _p) {}
 
 	// Copies n bytes from src to the given address (with the address given in
 	// bytes).

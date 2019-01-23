@@ -9,7 +9,9 @@
 typedef gsl::span<bool> bitspan_t;
 typedef gsl::span<bool, 1> bit_t;
 typedef struct {} TFHEServerParams_t;
-typedef struct {} TFHEClientParams_t;
+typedef struct {
+	operator TFHEServerParams_t() { return {}; }
+} TFHEClientParams_t;
 #else
 #include <tfhe/tfhe.h>
 
@@ -25,12 +27,17 @@ typedef struct {
 typedef struct {
 	TFheGateBootstrappingSecretKeySet* key;
 	const TFheGateBootstrappingParameterSet* params;
+	operator TFHEServerParams_t() {
+		return TFHEServerParams_t{
+			key->cloud.params,
+			&(key->cloud)
+		};
+	}
 } TFHEClientParams_t;
 #endif
 
 TFHEClientParams_t makeTFHEClientParams(FILE *secret_key);
 TFHEServerParams_t makeTFHEServerParams(FILE *cloud_key);
-TFHEServerParams_t makeTFHEServerParams(TFHEClientParams_t p);
 void freeTFHEServerParams(TFHEServerParams_t p);
 void freeTFHEClientParams(TFHEClientParams_t p);
 
