@@ -453,7 +453,9 @@ public:
             details::is_allowed_element_type_conversion<OtherElementType, element_type>::value>>
     constexpr span(const span<OtherElementType, OtherExtent>& other, char this_constructor_is_for_internal_usage)
         : storage_(other.data(), details::extent_type<OtherExtent>(other.size()))
-    {}
+    {
+        (void)this_constructor_is_for_internal_usage; // Silence unused warning
+    }
 
     ~span() noexcept = default;
     constexpr span& operator=(const span& other) noexcept = default;

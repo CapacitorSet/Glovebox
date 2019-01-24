@@ -14,11 +14,9 @@ protected:
 	bitspan_t data;
 
 public:
-	Int(uint8_t _size, bool _isSigned, TFHEServerParams_t _p,
-	    bool initialize = true)
+	Int(uint8_t _size, bool _isSigned, TFHEServerParams_t _p)
 			: isSigned(_isSigned), p(_p) {
-		if (initialize)
-			data = make_bitspan(_size, p);
+		data = make_bitspan(_size, p);
 	}
 
 	// virtual void writeU8(uint8_t) = 0;
@@ -38,7 +36,7 @@ public:
 	// todo: rename
 	void _writeTo(bitspan_t dst) { _copy(dst, data, p); }
 	void _fromBytes(bitspan_t dst) { _copy(data, dst, p); }
-	maskable_function_t _m_fromBytes(bit_t mask, bitspan_t dst) {
+	maskable_function_t _m_fromBytes(bitspan_t dst) {
 		return [=] (bit_t mask) -> void {
 			for (int i = 0; i < data.size(); i++)
 				_mux(data[i], mask, dst[i], data[i], p);
@@ -46,17 +44,17 @@ public:
 	}
 
 	static const int typeID = INT_TYPE_ID;
-	const int size() const { return data.size(); }
+	int size() const { return data.size(); }
 	const bool &getSigned() const { return isSigned; }
 
 	Int(char *packet, size_t pktsize, TFHEServerParams_t _p);
 	static Int *newU8(TFHEServerParams_t p) { return new Int(8, false, p); }
 	static Int *newU8(uint8_t n, TFHEServerParams_t p) {
 		auto ret = Int::newU8(p);
-		ret->writeU8(n);
+		ret->write(n);
 		return ret;
 	}
-	void writeU8(uint8_t);
+	void write(uint64_t);
 
 	void add(Int, Int);
 	void mult(Int, Int);
@@ -85,7 +83,7 @@ private:
 class ClientInt : public Int {
 public:
 	ClientInt(char *packet, size_t pktsize, TFHEClientParams_t _p)
-			: p(_p), Int(packet, pktsize, _p){};
+			: Int(packet, pktsize, _p), p(_p) {};
 	static ClientInt *newU8(TFHEClientParams_t _p) {
 		return new ClientInt(8, false, _p);
 	}
@@ -96,7 +94,7 @@ public:
 	}
 	void writeU8(uint8_t);
 	ClientInt(uint8_t _size, bool _isSigned, TFHEClientParams_t _p)
-			: p(_p), Int(_size, _isSigned, _p) {}
+			: Int(_size, _isSigned, _p), p(_p) {}
 
 private:
 	TFHEClientParams_t p;

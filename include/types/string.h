@@ -35,7 +35,6 @@ class ClientString: public String {
 public:
 	ClientString(uint16_t len, TFHEClientParams_t p) : String(len, p) {}
 	ClientString(char *src, TFHEClientParams_t p) : String(src, p) {
-		size_t len = strlen(src);
 		for (size_t i = 0; i < length; i++)
 			for (int j = 0; j < 8; j++)
 				constant(data[i * 8 + j], (src[i] >> j) & 1, p);

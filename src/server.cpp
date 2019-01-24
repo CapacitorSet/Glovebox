@@ -84,6 +84,7 @@ Int::Int(char *packet, size_t pktsize, TFHEServerParams_t _p) : p(_p) {
 void Int::exportToFile(FILE *out) {
 #if PLAINTEXT
 	assert("TODO: implement" == 0);
+	(void)out;
 #else
 	for (auto bit : data)
 		export_gate_bootstrapping_ciphertext_toFile(out, bit.data(), p.params);
@@ -93,7 +94,7 @@ void Int::exportToFile(FILE *out) {
 void Int::decrypt(char *dst, TFHEClientParams_t p) {
 	for (int i = 0; i < size(); ) {
 		char byte = 0;
-		for (int j = 0; j < 8; i++, j++)
+		for (int j = 0; j < 8 && i < size(); i++, j++)
 			byte |= (::decrypt(data[i], p) & 1) << j;
 		*dst = byte;
 		dst++;
@@ -144,10 +145,15 @@ void Int::copy(Int src) {
 	}
 }
 
-void Int::writeU8(uint8_t val) {
-	assert(size() == 8);
+static uint8_t highest_bit_set(uint64_t val) {
+	uint8_t ret = 0;
+	while (val >>= 1) ret++;
+	return ret;
+}
+
+void Int::write(uint64_t val) {
+	assert(highest_bit_set(val) <= size()); // Check that the value fits
 	assert(!isSigned);
-	for (int i = 0; i < 8; i++) {
+	for (int i = 0; i < size(); i++)
 		constant(data[i], (val >> i) & 1, p);
-	}
 }
