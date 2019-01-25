@@ -151,9 +151,16 @@ static uint8_t highest_bit_set(uint64_t val) {
 	return ret;
 }
 
-void Int::write(uint64_t val) {
+void Int::uwrite(uint64_t val) {
 	assert(highest_bit_set(val) <= size()); // Check that the value fits
 	assert(!isSigned);
+	for (int i = 0; i < size(); i++)
+		constant(data[i], (val >> i) & 1, p);
+}
+
+void Int::swrite(int64_t val) {
+	assert(highest_bit_set(labs(val)) <= size()); // Check that the value fits
+	assert(isSigned);
 	for (int i = 0; i < size(); i++)
 		constant(data[i], (val >> i) & 1, p);
 }

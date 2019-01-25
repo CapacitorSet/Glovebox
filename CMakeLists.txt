@@ -111,37 +111,41 @@ target_link_libraries(example_linreg_server
         examples_networking
         )
 
-# http://www.kaizou.org/2014/11/gtest-cmake/
-############# start
-find_package(Threads REQUIRED)
-include(ExternalProject)
-ExternalProject_Add(
-        gtest
-        URL https://github.com/google/googletest/archive/release-1.8.1.zip
-        URL_MD5 ad6868782b5952b7476a7c1c72d5a714
-        PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gtest
-        INSTALL_COMMAND ""
-)
-ExternalProject_Get_Property(gtest source_dir binary_dir)
-add_library(libgtest IMPORTED STATIC GLOBAL)
-add_dependencies(libgtest gtest)
-set_target_properties(libgtest PROPERTIES
-        "IMPORTED_LOCATION" "${binary_dir}/googlemock/gtest/libgtest.a"
-        "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
-        )
-add_library(libgmock IMPORTED STATIC GLOBAL)
-add_dependencies(libgmock gtest)
-set_target_properties(libgmock PROPERTIES
-        "IMPORTED_LOCATION" "${binary_dir}/googlemock/libgmock.a"
-        "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
-        )
-include_directories("${source_dir}/googletest/include"
-        "${source_dir}/googlemock/include")
-############# end
-add_executable(fhetools_test
-        tests/main.cpp
-        tests/FHEContext.cpp
-        tests/gates.cpp
-        tests/int.cpp)
-target_link_libraries(fhetools_test fhetools libgtest libgmock)
-add_test(fhetools_test fhetools_test)
+if (TESTS_ENABLED)
+    # http://www.kaizou.org/2014/11/gtest-cmake/
+    ############# start
+    find_package(Threads REQUIRED)
+    include(ExternalProject)
+    ExternalProject_Add(
+            gtest
+            URL https://github.com/google/googletest/archive/release-1.8.1.zip
+            URL_MD5 ad6868782b5952b7476a7c1c72d5a714
+            PREFIX ${CMAKE_CURRENT_BINARY_DIR}/gtest
+            INSTALL_COMMAND ""
+    )
+    ExternalProject_Get_Property(gtest source_dir binary_dir)
+    add_library(libgtest IMPORTED STATIC GLOBAL)
+    add_dependencies(libgtest gtest)
+    set_target_properties(libgtest PROPERTIES
+            "IMPORTED_LOCATION" "${binary_dir}/googlemock/gtest/libgtest.a"
+            "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
+            )
+    add_library(libgmock IMPORTED STATIC GLOBAL)
+    add_dependencies(libgmock gtest)
+    set_target_properties(libgmock PROPERTIES
+            "IMPORTED_LOCATION" "${binary_dir}/googlemock/libgmock.a"
+            "IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
+            )
+    include_directories("${source_dir}/googletest/include"
+            "${source_dir}/googlemock/include")
+    ############# end
+    add_executable(fhetools_test
+            tests/main.cpp
+            tests/FHEContext.cpp
+            tests/gates.cpp
+            tests/int.cpp)
+    add_subdirectory("${PROJECT_SOURCE_DIR}/rapidcheck")
+    add_subdirectory("${PROJECT_SOURCE_DIR}/rapidcheck/extras/gtest")
+    target_link_libraries(fhetools_test fhetools libgtest libgmock rapidcheck rapidcheck_gtest)
+    add_test(fhetools_test fhetools_test)
+endif()

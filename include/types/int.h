@@ -14,6 +14,9 @@ protected:
 	bitspan_t data;
 
 public:
+	static const bool UNSIGNED = false;
+	static const bool SIGNED = true;
+
 	Int(uint8_t _size, bool _isSigned, TFHEServerParams_t _p)
 			: isSigned(_isSigned), p(_p) {
 		data = make_bitspan(_size, p);
@@ -51,10 +54,11 @@ public:
 	static Int *newU8(TFHEServerParams_t p) { return new Int(8, false, p); }
 	static Int *newU8(uint8_t n, TFHEServerParams_t p) {
 		auto ret = Int::newU8(p);
-		ret->write(n);
+		ret->uwrite(n);
 		return ret;
 	}
-	void write(uint64_t);
+	void uwrite(uint64_t); // unsigned write
+	void swrite(int64_t);  // signed write
 
 	void add(Int, Int);
 	void mult(Int, Int);

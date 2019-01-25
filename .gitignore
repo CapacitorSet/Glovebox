@@ -16,9 +16,10 @@ secret.key
 # Library
 libfhetools.a
 
-# Google Test
+# Test libraries and artifacts
 gtest/
 Testing/
+rapidcheck/
 
 # Binaries
 bin/
