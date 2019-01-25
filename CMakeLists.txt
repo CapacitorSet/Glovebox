@@ -27,9 +27,10 @@ else()
     # Should we do the linking ourselves, or have the user choose?
     target_link_libraries(fhetools PRIVATE tfhe-spqlios-fma)
     # Hardening: https://wiki.debian.org/Hardening
-    target_compile_options(fhetools PUBLIC -O2 -Wformat -Wformat-security -Werror=format-security -fstack-protector-strong -fPIE -fPIC)
-    target_link_options(fhetools PUBLIC -O2 -Wformat -Wformat-security -Werror=format-security -fstack-protector-strong -pie -Wl,-z,relro -Wl,-z,now)
+    target_compile_options(fhetools PUBLIC -Wformat -Wformat-security -Werror=format-security -fstack-protector-strong -fPIE -fPIC)
+    target_link_options(fhetools PUBLIC -Wformat -Wformat-security -Werror=format-security -fstack-protector-strong -pie -Wl,-z,relro -Wl,-z,now)
     add_definitions(-D_FORTIFY_SOURCE=2)
+    add_compile_options(-O2)
 endif()
 
 target_include_directories(fhetools
