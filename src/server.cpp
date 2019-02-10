@@ -24,13 +24,11 @@ FILE *charptr_to_file(char *src, size_t len) {
 
 ptr_with_length_t Int::exportToChar() {
 	// Todo: header should have >1 byte for size
-	char header[2];
-	memcpy(header, &isSigned, 1);
+	char header[1];
 	char mysize = size();
-	memcpy(header + 1, &mysize, 1);
+	memcpy(header, &mysize, 1);
 	printf("Header:\n");
-	printf("\tSigned: %d\n", header[0]);
-	printf("\tSize: %d\n", header[1]);
+	printf("\tSize: %d\n", header[0]);
 	char *filename = std::tmpnam(nullptr);
 	printf("exportToChar: %s\n", filename);
 	FILE *wptr = fopen(filename, "wb");
@@ -55,14 +53,12 @@ ptr_with_length_t Int::exportToChar() {
 }
 
 Int::Int(char *packet, size_t pktsize, TFHEServerParams_t _p) : p(_p) {
-	memcpy(&isSigned, packet, 1);
 	char size;
-	memcpy(&size, packet + 1, 1);
+	memcpy(&size, packet, 1);
 	// Skip header
-	packet += 2;
-	pktsize -= 2;
+	packet += 1;
+	pktsize -= 1;
 	printf("Header:\n");
-	printf("\tSigned: %d\n", isSigned);
 	printf("\tSize: %d\n", size);
 	FILE *f = charptr_to_file(packet, pktsize);
 	if (f == nullptr) {
@@ -101,9 +97,8 @@ void Int::decrypt(char *dst, TFHEClientParams_t p) {
 	}
 }
 
-uint8_t Int::toU8(TFHEClientParams_t p) {
+int8_t Int::toI8(TFHEClientParams_t p) {
 	assert(size() == 8);
-	assert(!isSigned);
 	uint8_t ret = 0;
 	for (int i = 0; i < 8; i++)
 		ret |= (::decrypt(data[i], p) & 1) << i;
@@ -124,18 +119,14 @@ void Int::print(TFHEClientParams_t p) {
 
 void Int::add(Int a, Int b) {
 	assert(size() == a.size());
-	assert(isSigned == a.isSigned);
 	assert(size() == b.size());
-	assert(isSigned == b.isSigned);
 
 	::add(data, a.data, b.data, p);
 }
 
 void Int::mult(Int a, Int b) {
 	assert(size() == a.size());
-	assert(isSigned == a.isSigned);
 	assert(size() == b.size());
-	assert(isSigned == b.isSigned);
 
 	auto dummy = make_bitspan(2 * size(), p);
 	::mult(dummy, a.data, b.data, p);
@@ -144,7 +135,6 @@ void Int::mult(Int a, Int b) {
 
 void Int::copy(Int src) {
 	assert(size() == src.size());
-	assert(isSigned == src.isSigned);
 	for (int i = 0; i < size(); i++) {
 		_copy(data[i], src.data[i], p);
 	}
@@ -156,16 +146,8 @@ static uint8_t highest_bit_set(uint64_t val) {
 	return ret;
 }
 
-void Int::uwrite(uint64_t val) {
-	assert(highest_bit_set(val) <= size()); // Check that the value fits
-	assert(!isSigned);
-	for (int i = 0; i < size(); i++)
-		constant(data[i], (val >> i) & 1, p);
-}
-
-void Int::swrite(int64_t val) {
+void Int::write(int64_t val) {
 	assert(highest_bit_set(labs(val)) <= size()); // Check that the value fits
-	assert(isSigned);
 	for (int i = 0; i < size(); i++)
 		constant(data[i], (val >> i) & 1, p);
 }
