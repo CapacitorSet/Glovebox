@@ -236,8 +236,8 @@ module.exports = /*
         peg$c64 = function(a, z) { return {
             type: "gate",
             gate: "not",
-            src: a,
-            dst: z
+            a: a,
+            z: z
         }; },
         peg$c65 = "  AND _",
         peg$c66 = peg$literalExpectation("  AND _", false),

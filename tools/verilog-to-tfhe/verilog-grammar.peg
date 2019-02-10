@@ -73,8 +73,8 @@ NotGate = "  NOT _" [0-9]+ "_ (\n"
     "  );\n" { return {
     type: "gate",
     gate: "not",
-    src: a,
-    dst: z
+    a: a,
+    z: z
 }; }
 
 AndGate = "  AND _" [0-9]+ "_ (\n"

@@ -129,29 +129,43 @@ function addLastDeclaration(it, i) {
  */
 for (let i = 0; i < _.gates.length; i++) {
 	const gate = _.gates[i];
-	if (gate.gate == "mux") {
+	switch (gate.gate) {
+	case "mux":
 		addFirstDeclaration(gate.z.value, i);
 		addFirstDeclaration(gate.sel.value, i);
 		addFirstDeclaration(gate.t.value, i);
 		addFirstDeclaration(gate.f.value, i);
-	} else {
+		break;
+	case "not":
+		addFirstDeclaration(gate.z.value, i);
+		addFirstDeclaration(gate.a.value, i);
+		break;
+	default:
 		addFirstDeclaration(gate.z.value, i);
 		addFirstDeclaration(gate.a.value, i);
 		addFirstDeclaration(gate.b.value, i);
+		break;
 	}
 }
 
 for (let i = _.gates.length; i --> 0;) {
 	const gate = _.gates[i];
-	if (gate.gate == "mux") {
+	switch (gate.gate) {
+	case "mux":
 		addLastDeclaration(gate.z.value, i);
 		addLastDeclaration(gate.sel.value, i);
 		addLastDeclaration(gate.t.value, i);
 		addLastDeclaration(gate.f.value, i);
-	} else {
+		break;
+	case "not":
+		addLastDeclaration(gate.z.value, i);
+		addLastDeclaration(gate.a.value, i);
+		break;
+	default:
 		addLastDeclaration(gate.z.value, i);
 		addLastDeclaration(gate.a.value, i);
 		addLastDeclaration(gate.b.value, i);
+		break;
 	}
 }
 
@@ -186,7 +200,8 @@ function free_if_needed(it, i) {
 
 const gates = _.gates
 	.map((it, i) => {
-		if (it.gate == "mux") {
+		switch (it.gate) {
+		case "mux": {
 			let ret = "";
 			ret += declare_if_needed(it.z, i);
 			ret += declare_if_needed(it.sel, i);
@@ -198,7 +213,17 @@ const gates = _.gates
 			ret += free_if_needed(it.t, i);
 			ret += free_if_needed(it.f, i);
 			return ret;
-		} else {
+		}
+		case "not": {
+			let ret = "";
+			ret += declare_if_needed(it.z, i);
+			ret += declare_if_needed(it.a, i);
+			ret += `  _not(${transpile_identifier(it.z)}, ${transpile_identifier(it.a)});\n`;
+			ret += free_if_needed(it.z, i);
+			ret += free_if_needed(it.a, i);
+			return ret;
+		}
+		default: {
 			let ret = "";
 			ret += declare_if_needed(it.z, i);
 			ret += declare_if_needed(it.a, i);
@@ -208,6 +233,7 @@ const gates = _.gates
 			ret += free_if_needed(it.a, i);
 			ret += free_if_needed(it.b, i);
 			return ret;
+		}
 		}
 	})
 	.join("");
