@@ -175,7 +175,7 @@ XnorGate = "  XNOR _" [0-9]+ "_ (\n"
 
 MuxGate = "  MUX _" [0-9]+ "_ (\n"
     "    .F(" f:Identifier "),\n"
-    "    .SEL(_" sel:[0-9]+ "_),\n"
+    "    .SEL(" sel:Identifier "),\n"
     "    .T(" t:Identifier "),\n"
     "    .Z(" z:Identifier ")\n"
     "  );\n" { return {
@@ -183,7 +183,7 @@ MuxGate = "  MUX _" [0-9]+ "_ (\n"
     gate: "mux",
     t: t,
     f: f,
-    sel: "_" + sel.join("") + "_",
+    sel: sel,
     z: z
 }; }
 
