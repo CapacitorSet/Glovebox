@@ -165,7 +165,7 @@ void _not(bit_t dst, bit_t src, TFHEServerParams_t p) {
 	bootsNOT(dst.data(), src.data(), p.bk);
 }
 
-#define BINARY_OPERATOR(LibName, TFHEName) void _ ## LibName(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p) { \
+#define BINARY_OPERATOR(LibName, TFHEName) void _ ## LibName(bit_t dst, const bit_t a, const bit_t b, TFHEServerParams_t p) { \
 	boots ## TFHEName(dst.data(), a.data(), b.data(), p.bk); \
 }
 
@@ -173,10 +173,12 @@ BINARY_OPERATOR(and, AND)
 BINARY_OPERATOR(andyn, ANDYN)
 BINARY_OPERATOR(andny, ANDNY)
 BINARY_OPERATOR(nand, NAND)
+BINARY_OPERATOR(or, OR)
+BINARY_OPERATOR(oryn, ORYN)
+BINARY_OPERATOR(orny, ORNY)
 BINARY_OPERATOR(nor, NOR)
 BINARY_OPERATOR(xor, XOR)
 BINARY_OPERATOR(xnor, XNOR)
-BINARY_OPERATOR(or, OR)
 
 void free_bitspan(bitspan_t item) {
 	free_LweSample_array(item.size(), item.data());
