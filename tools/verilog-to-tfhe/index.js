@@ -41,26 +41,11 @@ buf += `${prototype};
 ${prototype} {
 `;
 
-// Maps variables to their type (wire, input or output)
-const vars = new Map();
-for (const decl of _.decls)
-	vars.set(decl.name, decl.type);
-
-const wires = _.decls
-	.filter(it => it.type === "wire")
-	.map(it => {
-		if (it.size === 1)
-			return `  bit_t ${it.name} = make_bit();\n`;
-		else
-			return `  bitspan_t ${it.name} = make_bitspan(${it.size});\n`;
-	})
-	.join("");
-buf += wires;
-
 // Assignments shouldn't appear often in optimized code, and at this time they're not implemented
 // correctly (we need to keep track of the width of variables).
 assert(_.assignments.length == 0);
 /*
+
 // Assignments like "wire <- (input/constant)" are to be put first.
 function is_initial_assignment(it) {
 	const srcType = it.src.type == "constant" ? "constant" : vars.get(it.src.value);
@@ -122,12 +107,108 @@ function transpile_identifier(it) {
 	return it.value + "[" + it.index.begin + "]";
 }
 
+let metadata = {};
+for (const decl of _.decls) {
+	metadata[decl.name] = {
+		type: decl.type,
+		size: decl.size
+	};
+}
+
+function addFirstDeclaration(it, i) {
+	if (!("firstDeclared" in metadata[it]))
+		metadata[it].firstDeclared = i;
+}
+function addLastDeclaration(it, i) {
+	if (!("lastDeclared" in metadata[it]))
+		metadata[it].lastDeclared = i;
+}
+
+/* Track the first and the last time each wire was used. This information can
+ * be used to decide when to allocate and deallocate the corresponding bits.
+ */
+for (let i = 0; i < _.gates.length; i++) {
+	const gate = _.gates[i];
+	if (gate.gate == "mux") {
+		addFirstDeclaration(gate.z.value, i);
+		addFirstDeclaration(gate.sel.value, i);
+		addFirstDeclaration(gate.t.value, i);
+		addFirstDeclaration(gate.f.value, i);
+	} else {
+		addFirstDeclaration(gate.z.value, i);
+		addFirstDeclaration(gate.a.value, i);
+		addFirstDeclaration(gate.b.value, i);
+	}
+}
+
+for (let i = _.gates.length; i --> 0;) {
+	const gate = _.gates[i];
+	if (gate.gate == "mux") {
+		addLastDeclaration(gate.z.value, i);
+		addLastDeclaration(gate.sel.value, i);
+		addLastDeclaration(gate.t.value, i);
+		addLastDeclaration(gate.f.value, i);
+	} else {
+		addLastDeclaration(gate.z.value, i);
+		addLastDeclaration(gate.a.value, i);
+		addLastDeclaration(gate.b.value, i);
+	}
+}
+
+const declared_variables = new Set(_.decls.filter(it => it.type !== "wire").map(it => it.value));
+
+// Allocate memory, if we marked this place as the first place the bit is used.
+function declare_if_needed(it, i) {
+	assert(it.type == "identifier");
+	const {type, size, firstDeclared} = metadata[it.value];
+	if (type != "wire")
+		return "";
+	if (firstDeclared != i)
+		return "";
+
+	if (size === 1)
+		return `  bit_t ${it.value} = make_bit();\n`;
+	else
+		return `  bitspan_t ${it.value} = make_bitspan(${size});\n`;
+}
+
+// Free memory, if we marked this place as the last place the bit is used.
+function free_if_needed(it, i) {
+	assert(it.type == "identifier");
+	const {type, size, lastDeclared} = metadata[it.value];
+	if (type != "wire")
+		return "";
+	if (lastDeclared != i)
+		return "";
+
+	return `  free_bitspan(${it.value});\n`;
+}
+
 const gates = _.gates
-	.map(it => {
-		if (it.gate == "mux")
-			return `  _mux(${transpile_identifier(it.z)}, ${transpile_identifier(it.sel)}, ${transpile_identifier(it.t)}, ${transpile_identifier(it.f)});\n`;
-		else
-			return `  _${it.gate}(${transpile_identifier(it.z)}, ${transpile_identifier(it.a)}, ${transpile_identifier(it.b)});\n`;
+	.map((it, i) => {
+		if (it.gate == "mux") {
+			let ret = "";
+			ret += declare_if_needed(it.z, i);
+			ret += declare_if_needed(it.sel, i);
+			ret += declare_if_needed(it.t, i);
+			ret += declare_if_needed(it.f, i);
+			ret += `  _mux(${transpile_identifier(it.z)}, ${transpile_identifier(it.sel)}, ${transpile_identifier(it.t)}, ${transpile_identifier(it.f)});\n`;
+			ret += free_if_needed(it.z, i);
+			ret += free_if_needed(it.sel, i);
+			ret += free_if_needed(it.t, i);
+			ret += free_if_needed(it.f, i);
+			return ret;
+		} else {
+			let ret = "";
+			ret += declare_if_needed(it.z, i);
+			ret += declare_if_needed(it.a, i);
+			ret += declare_if_needed(it.b, i);
+			ret += `  _${it.gate}(${transpile_identifier(it.z)}, ${transpile_identifier(it.a)}, ${transpile_identifier(it.b)});\n`;
+			ret += free_if_needed(it.z, i);
+			ret += free_if_needed(it.a, i);
+			ret += free_if_needed(it.b, i);
+			return ret;
+		}
 	})
 	.join("");
 buf += gates;
