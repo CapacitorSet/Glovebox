@@ -1,0 +1,87 @@
+library(demo) {
+	cell(COPY) {
+		area: 1;
+		pin(A) { direction: input; }
+		pin(Z) { direction: output; function: "A"; }
+	}
+	cell(NOT) {
+		area: 1;
+		pin(A) { direction: input; }
+		pin(Z) { direction: output; function: "A'"; }
+	}
+	cell(XOR) {
+		area: 10;
+		pin(A) { direction: input; }
+		pin(B) { direction: input; }
+		pin(Z) { direction: output; function: "(A^B)"; }
+	}
+	cell(XNOR) {
+		area: 10;
+		pin(A) { direction: input; }
+		pin(B) { direction: input; }
+		pin(Z) { direction: output; function: "(A^B)'"; }
+	}	
+	cell(NOR) {
+		area: 10;
+		pin(A) { direction: input; }
+		pin(B) { direction: input; }
+		pin(Z) { direction: output; function: "(A+B)'"; }
+	}	
+	cell(OR) {
+		area: 10;
+		pin(A) { direction: input; }
+		pin(B) { direction: input; }
+		pin(Z) { direction: output; function: "(A+B)"; }
+	}	
+	cell(NAND) {
+		area: 10;
+		pin(A) { direction: input; }
+		pin(B) { direction: input; }
+		pin(Z) { direction: output; function: "(A&B)'"; }
+	}	
+	cell(AND) {
+		area: 10;
+		pin(A) { direction: input; }
+		pin(B) { direction: input; }
+		pin(Z) { direction: output; function: "(A&B)"; }
+	}
+	cell(ORYN) {
+		area: 10;
+		pin(A) { direction: input; }
+		pin(B) { direction: input; }
+		pin(Z) { direction: output; function: "(A+B')"; }
+	}	
+	cell(ANDYN) {
+		area: 10;
+		pin(A) { direction: input; }
+		pin(B) { direction: input; }
+		pin(Z) { direction: output; function: "(A&B')"; }
+	}
+	cell(MUX) {
+		area: 20;
+		pin(SEL) { direction: input; }
+		pin(T) { direction: input; }
+		pin(F) { direction: input; }
+		pin(Z) { direction: output; function: "(SEL&T)+(SEL'&F')"; }
+	}
+	cell(DFF) {
+		area: 20;
+		ff("IQ", "IQN") {
+			clocked_on: CLK;
+			next_state: D;
+			preset: I;
+			clear: RST;
+		}
+		pin(CLK) {
+			direction: input;
+			clock: true;
+		}
+		pin(D) { direction: input; }
+		pin(Q) {
+			direction: output;
+			function: "IQ";
+		}
+		pin(I) { direction: input; }
+		pin(RST) { direction: input; }
+	}
+}
