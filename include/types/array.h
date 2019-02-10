@@ -18,12 +18,12 @@ protected:
 	static void getN_thBit(bits_t ret, uint8_t N, uint8_t wordsize,
 	                       bits_t address, uint8_t bitsInAddress,
 	                       bits_t staticOffset, size_t dynamicOffset,
-	                       TFHEServerParams_t p);
+	                       TFHEServerParams_t p = default_server_params);
 	                       */
 
 public:
 	static const int typeID = ARRAY_TYPE_ID;
-	Array(uint64_t _length, uint16_t _wordSize, TFHEServerParams_t _p)
+	Array(uint64_t _length, uint16_t _wordSize, TFHEServerParams_t _p = default_server_params)
 			: wordSize(_wordSize), length(_length), p(_p) {
 		data = make_bitspan(_length * _wordSize, p);
 	}
@@ -208,7 +208,7 @@ private:
 
 template <typename T> class ClientArray : public Array<T> {
 public:
-	ClientArray(uint64_t _length, uint16_t _wordSize, TFHEClientParams_t _p)
+	ClientArray(uint64_t _length, uint16_t _wordSize, TFHEClientParams_t _p = default_client_params)
 			: Array<T>(_length, _wordSize, _p), p(_p) {}
 
 	// Copies n bytes from src to the given address (with the address given in

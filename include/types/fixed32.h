@@ -8,7 +8,7 @@
 // 16 bit integer part + 16 bit fractional
 class Fixed32 {
 public:
-	Fixed32(float src, TFHEServerParams_t _p) : Fixed32(_p) {
+	Fixed32(float src, TFHEServerParams_t _p = default_server_params) : Fixed32(_p) {
 		int32_t tmp = (int32_t) src; // Extract integer part
 		src -= tmp;
 		tmp <<= 16;
@@ -18,7 +18,7 @@ public:
 			constant(data[i], (tmp >> i) & 1, p);
 	}
 
-	float toFloat(TFHEClientParams_t _p);
+	float toFloat(TFHEClientParams_t _p = default_client_params);
 
 	Fixed32 plus(Fixed32 src);
 	Fixed32 times(Fixed32 src);
@@ -28,7 +28,7 @@ public:
 	}
 
 protected:
-	explicit Fixed32(TFHEServerParams_t _p) : p(_p) {
+	explicit Fixed32(TFHEServerParams_t _p = default_server_params) : p(_p) {
 		data = make_bitspan(32, p);
 	}
 
@@ -38,7 +38,7 @@ protected:
 
 class ClientFixed32 : public Fixed32 {
 public:
-	ClientFixed32(float src, TFHEClientParams_t _p) : Fixed32(_p) {
+	ClientFixed32(float src, TFHEClientParams_t _p = default_client_params) : Fixed32(_p) {
 		data = make_bitspan(32, p);
 
 		int32_t tmp = (int32_t) src; // Extract integer part

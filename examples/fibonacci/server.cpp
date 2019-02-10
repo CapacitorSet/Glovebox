@@ -8,7 +8,7 @@
 
 #include "../dyad.h"
 
-TFHEServerParams_t params;
+TFHEServerParams_t default_server_params;
 
 Int* first;
 Int* second;
@@ -16,13 +16,13 @@ Int* second;
 void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) {
 	puts("New packet.");
 	assert(dataType == INT_TYPE_ID);
-	auto tmp = new Int(packet, pktsize, params);
+	auto tmp = new Int(packet, pktsize);
 	if (first == nullptr) {
 		first = tmp;
 	} else if (second == nullptr) {
 		second = tmp;
 
-		auto x = Int::newU8(params);
+		auto x = Int::newU8();
 		for (int i = 0; i < 3; i++) {
 			printf("Iteration %d\n", i);
 			x->add(*first, *second);
@@ -43,7 +43,7 @@ int main() {
 		return 1;
 	}
 	puts("Initializing TFHE...");
-	params = makeTFHEServerParams(cloud_key);
+	default_server_params = makeTFHEServerParams(cloud_key);
 	fclose(cloud_key);
 
 	dyad_init();

@@ -17,19 +17,19 @@ public:
 	static const bool UNSIGNED = false;
 	static const bool SIGNED = true;
 
-	Int(uint8_t _size, bool _isSigned, TFHEServerParams_t _p)
+	Int(uint8_t _size, bool _isSigned, TFHEServerParams_t _p = default_server_params)
 			: isSigned(_isSigned), p(_p) {
 		data = make_bitspan(_size, p);
 	}
 
 	// virtual void writeU8(uint8_t) = 0;
 
-	void decrypt(char *dst, TFHEClientParams_t p);
-	uint8_t toU8(TFHEClientParams_t p);
+	void decrypt(char *dst, TFHEClientParams_t p = default_client_params);
+	uint8_t toU8(TFHEClientParams_t p = default_client_params);
 	ptr_with_length_t exportToChar();
 	void exportToFile(FILE *out);
-	void print(TFHEClientParams_t p);
-	void sprint(char *out, TFHEClientParams_t p);
+	void print(TFHEClientParams_t p = default_client_params);
+	void sprint(char *out, TFHEClientParams_t p = default_client_params);
 	void free() {
 		// it only actually works if the free is commented out.
 		// todo: figure out wtf is up
@@ -50,9 +50,9 @@ public:
 	int size() const { return data.size(); }
 	const bool &getSigned() const { return isSigned; }
 
-	Int(char *packet, size_t pktsize, TFHEServerParams_t _p);
-	static Int *newU8(TFHEServerParams_t p) { return new Int(8, false, p); }
-	static Int *newU8(uint8_t n, TFHEServerParams_t p) {
+	Int(char *packet, size_t pktsize, TFHEServerParams_t _p = default_server_params);
+	static Int *newU8(TFHEServerParams_t p = default_server_params) { return new Int(8, false, p); }
+	static Int *newU8(uint8_t n, TFHEServerParams_t p = default_server_params) {
 		auto ret = Int::newU8(p);
 		ret->uwrite(n);
 		return ret;
@@ -86,18 +86,18 @@ private:
 
 class ClientInt : public Int {
 public:
-	ClientInt(char *packet, size_t pktsize, TFHEClientParams_t _p)
+	ClientInt(char *packet, size_t pktsize, TFHEClientParams_t _p = default_client_params)
 			: Int(packet, pktsize, _p), p(_p) {};
-	static ClientInt *newU8(TFHEClientParams_t _p) {
+	static ClientInt *newU8(TFHEClientParams_t _p = default_client_params) {
 		return new ClientInt(8, false, _p);
 	}
-	static ClientInt *newU8(uint8_t n, TFHEClientParams_t p) {
+	static ClientInt *newU8(uint8_t n, TFHEClientParams_t p = default_client_params) {
 		auto ret = ClientInt::newU8(p);
 		ret->writeU8(n);
 		return ret;
 	}
 	void writeU8(uint8_t);
-	ClientInt(uint8_t _size, bool _isSigned, TFHEClientParams_t _p)
+	ClientInt(uint8_t _size, bool _isSigned, TFHEClientParams_t _p = default_client_params)
 			: Int(_size, _isSigned, _p), p(_p) {}
 
 private:

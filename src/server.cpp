@@ -115,6 +115,11 @@ void Int::sprint(char *out, TFHEClientParams_t p) {
 		sprintf(out++, "%d", ::decrypt(data[i], p));
 }
 
+void Int::print(TFHEClientParams_t p) {
+	for (int i = size(); i-- > 0;)
+		printf("%d", ::decrypt(data[i], p));
+}
+
 // ServerInt-specific code
 
 void Int::add(Int a, Int b) {

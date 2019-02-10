@@ -9,7 +9,7 @@
 
 ClientInt* a;
 ClientInt* b;
-TFHEClientParams_t p;
+TFHEClientParams_t default_client_params;
 
 dyad_Stream *s;
 
@@ -21,10 +21,10 @@ void onConnect(dyad_Event *e) {
 void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) {
 	puts("New packet.");
 	assert(dataType == INT_TYPE_ID);
-	auto i = new ClientInt(packet, pktsize, p);
+	auto i = new ClientInt(packet, pktsize);
 	printf("Size: %d\n", i->size());
 	printf("Value: %d\n", i->toU8());
-	i->print(p);
+	i->print();
 	putchar('\n');
 	delete i;
 }
@@ -35,11 +35,11 @@ int main(int argc, char *argv[]) {
 		puts("secret.key not found: run ./keygen first.");
 		return 1;
 	}
-	p = makeTFHEClientParams(secret_key);
+	default_client_params = makeTFHEClientParams(secret_key);
 	fclose(secret_key);
 
-	a = ClientInt::newU8(1, p);
-	b = ClientInt::newU8(1, p);
+	a = ClientInt::newU8(1);
+	b = ClientInt::newU8(1);
 
 	dyad_init();
 
@@ -55,7 +55,7 @@ int main(int argc, char *argv[]) {
 	puts("No more connections, closing.");
 
 	dyad_shutdown();
-	freeTFHEClientParams(p);
+	freeTFHEClientParams(default_client_params);
 	delete a;
 	delete b;
 	return 0;

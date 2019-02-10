@@ -153,7 +153,7 @@ bitspan_t make_bitspan(int N, TFHEServerParams_t p) {
 	return gsl::span<LweSample>(ptr, N);
 }
 
-void constant(bit_t dst, bool src, TFHEClientParams_t p) {
+void encrypt(bit_t dst, bool src, TFHEClientParams_t p) {
 	bootsSymEncrypt(dst.data(), src, p.key);
 }
 
