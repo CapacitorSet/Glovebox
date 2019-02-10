@@ -157,7 +157,7 @@ void encrypt(bit_t dst, bool src, TFHEClientParams_t p) {
 	bootsSymEncrypt(dst.data(), src, p.key);
 }
 
-void constant(bit_t dst, bool src, TFHEServerParams_t p) {
+void constant(bit_t dst, bool src, only_TFHEServerParams_t p) {
 	bootsCONSTANT(dst.data(), src, p.bk);
 }
 

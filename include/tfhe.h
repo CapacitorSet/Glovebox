@@ -18,13 +18,20 @@ typedef struct {
 using bit_t = gsl::span<LweSample, 1>;
 using bitspan_t = gsl::span<LweSample>;
 
-typedef struct {
+using only_TFHEServerParams_t = struct {
 	const TFheGateBootstrappingParameterSet *params;
 	/* Todo: remove the const qualifier, deal with the issue that TFHEServerParams_t can be created either from a file
 	 * (resulting in `TFHEGateBoostrappingCloudKeySet*`) or from TFHEClientParams_t (resulting in `const TFHEGate...Set*`).
 	 */
 	const TFheGateBootstrappingCloudKeySet *bk;
-} TFHEServerParams_t;
+};
+using TFHEServerParams_t = struct {
+	const TFheGateBootstrappingParameterSet *params;
+	const TFheGateBootstrappingCloudKeySet *bk;
+	operator only_TFHEServerParams_t() {
+		return only_TFHEServerParams_t{params, bk};
+	}
+};
 typedef struct {
 	TFheGateBootstrappingSecretKeySet* key;
 	const TFheGateBootstrappingParameterSet* params;
@@ -34,24 +41,25 @@ typedef struct {
 			&(key->cloud)
 		};
 	}
+	operator only_TFHEServerParams_t() = delete; // If you can read this you're passing client params to server-only functions.
 } TFHEClientParams_t;
 #endif
 
 TFHEClientParams_t makeTFHEClientParams(FILE *secret_key);
 TFHEServerParams_t makeTFHEServerParams(FILE *cloud_key);
-void freeTFHEServerParams(TFHEServerParams_t p);
+void freeTFHEServerParams(only_TFHEServerParams_t p);
 void freeTFHEClientParams(TFHEClientParams_t p);
 
 extern TFHEServerParams_t default_server_params;
 extern TFHEClientParams_t default_client_params;
 bit_t make_bit(TFHEServerParams_t p = default_server_params);
 bit_t make_bit(TFHEClientParams_t p);
-bit_t make_server_bit(TFHEServerParams_t p = default_server_params);
+bit_t make_server_bit(only_TFHEServerParams_t p = default_server_params);
 bit_t make_client_bit(TFHEClientParams_t p = default_client_params);
 bitspan_t make_bitspan(int N, TFHEClientParams_t p);
 bitspan_t make_bitspan(int N, TFHEServerParams_t p = default_server_params);
 bitspan_t make_client_bitspan(int N, TFHEClientParams_t p = default_client_params);
-bitspan_t make_server_bitspan(int N, TFHEServerParams_t p = default_server_params);
+bitspan_t make_server_bitspan(int N, only_TFHEServerParams_t p = default_server_params);
 
 void free_bitspan(bitspan_t item);
 
@@ -64,7 +72,7 @@ int decrypt(bit_t dst,
 #endif
 );
 
-void constant(bit_t dst, bool src, TFHEServerParams_t p = default_server_params);
+void constant(bit_t dst, bool src, only_TFHEServerParams_t p = default_server_params);
 void encrypt(bit_t dst, bool src, TFHEClientParams_t p = default_client_params);
 
 void _not(bit_t dst, bit_t a, TFHEServerParams_t p = default_server_params);

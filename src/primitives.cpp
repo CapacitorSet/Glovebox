@@ -4,7 +4,7 @@
 
 void zero(bitspan_t src, TFHEClientParams_t p) {
 	for (auto bit : src)
-		constant(bit, 0, p);
+		encrypt(bit, 0, p);
 }
 
 void zero(bitspan_t src, TFHEServerParams_t p) {

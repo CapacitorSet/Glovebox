@@ -22,7 +22,7 @@ void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) 
 	} else if (second == nullptr) {
 		second = tmp;
 
-		auto x = Int::newU8();
+		auto x = Int::newI8();
 		for (int i = 0; i < 3; i++) {
 			printf("Iteration %d\n", i);
 			x->add(*first, *second);

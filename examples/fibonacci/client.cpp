@@ -23,7 +23,7 @@ void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) 
 	assert(dataType == INT_TYPE_ID);
 	auto i = new ClientInt(packet, pktsize);
 	printf("Size: %d\n", i->size());
-	printf("Value: %d\n", i->toU8());
+	printf("Value: %d\n", i->toI8());
 	i->print();
 	putchar('\n');
 	delete i;
@@ -38,8 +38,8 @@ int main(int argc, char *argv[]) {
 	default_client_params = makeTFHEClientParams(secret_key);
 	fclose(secret_key);
 
-	a = ClientInt::newU8(1);
-	b = ClientInt::newU8(1);
+	a = ClientInt::newI8(1);
+	b = ClientInt::newI8(1);
 
 	dyad_init();
 
