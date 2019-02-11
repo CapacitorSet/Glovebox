@@ -1,6 +1,7 @@
 #ifndef FHETOOLS_ARRAY_H
 #define FHETOOLS_ARRAY_H
 
+#include <cassert>
 #include "type_ids.h"
 #include "tfhe.h"
 #include "int.h"

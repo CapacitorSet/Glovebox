@@ -8,39 +8,39 @@
 #if PLAINTEXT
 typedef gsl::span<bool> bitspan_t;
 typedef gsl::span<bool, 1> bit_t;
-using only_TFHEServerParams_t = struct {};
-using TFHEServerParams_t = struct {
+typedef struct {} only_TFHEServerParams_t;
+typedef struct {
 	operator only_TFHEServerParams_t() {
 		return only_TFHEServerParams_t{};
 	}
-};
-using TFHEClientParams_t = struct {
+} TFHEServerParams_t;
+typedef struct {
 	operator TFHEServerParams_t() {
 		return TFHEServerParams_t{};
 	}
 	operator only_TFHEServerParams_t() = delete; // If you can read this you're passing client params to server-only functions.
-};
+} TFHEClientParams_t;
 #else
 #include <tfhe/tfhe.h>
 
 using bit_t = gsl::span<LweSample, 1>;
 using bitspan_t = gsl::span<LweSample>;
 
-using only_TFHEServerParams_t = struct {
+typedef struct {
 	const TFheGateBootstrappingParameterSet *params;
 	/* Todo: remove the const qualifier, deal with the issue that TFHEServerParams_t can be created either from a file
 	 * (resulting in `TFHEGateBoostrappingCloudKeySet*`) or from TFHEClientParams_t (resulting in `const TFHEGate...Set*`).
 	 */
 	const TFheGateBootstrappingCloudKeySet *bk;
-};
-using TFHEServerParams_t = struct {
+} only_TFHEServerParams_t ;
+typedef struct {
 	const TFheGateBootstrappingParameterSet *params;
 	const TFheGateBootstrappingCloudKeySet *bk;
 	operator only_TFHEServerParams_t() {
 		return only_TFHEServerParams_t{params, bk};
 	}
-};
-using TFHEClientParams_t = struct {
+} TFHEServerParams_t ;
+typedef struct {
 	TFheGateBootstrappingSecretKeySet* key;
 	const TFheGateBootstrappingParameterSet* params;
 	operator TFHEServerParams_t() {
@@ -50,7 +50,7 @@ using TFHEClientParams_t = struct {
 		};
 	}
 	operator only_TFHEServerParams_t() = delete; // If you can read this you're passing client params to server-only functions.
-};
+} TFHEClientParams_t;
 #endif
 
 TFHEClientParams_t makeTFHEClientParams(FILE *secret_key);
