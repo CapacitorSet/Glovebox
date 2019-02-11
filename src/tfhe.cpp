@@ -44,11 +44,11 @@ bitspan_t make_bitspan(int N, TFHEServerParams_t) {
 	return gsl::span<bool>(reinterpret_cast<bool*>(malloc(N)), N);
 }
 
-void constant(bit_t dst, bool src, TFHEClientParams_t) {
+void encrypt(bit_t dst, bool src, TFHEClientParams_t) {
 	*dst.data() = src;
 }
 
-void constant(bit_t dst, bool src, TFHEServerParams_t) {
+void constant(bit_t dst, bool src, only_TFHEServerParams_t) {
 	*dst.data() = src;
 }
 
@@ -56,37 +56,23 @@ void _not(bit_t dst, bit_t src, TFHEServerParams_t) {
 	*dst.data() = !*src.data();
 }
 
-void _and(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t) {
-	*dst.data() = *a.data() && *b.data();
+#define BINARY_OPERATOR(LibName, CppExpr) void _ ## LibName(bit_t dst, const bit_t a, const bit_t b, TFHEServerParams_t p) { \
+	(void) p; /* Silence unused warning */ \
+	auto A = *a.data(); \
+	auto B = *b.data(); \
+	*dst.data() = (CppExpr); \
 }
 
-void _andyn(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t) {
-	*dst.data() = *a.data() && !*b.data();
-}
-
-void _andny(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t) {
-	*dst.data() = !*a.data() && *b.data();
-}
-
-void _nand(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t) {
-	*dst.data() = !(*a.data() && *b.data());
-}
-
-void _nor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t) {
-	*dst.data() = !(*a.data() || *b.data());
-}
-
-void _xor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t) {
-	*dst.data() = *a.data() ^ *b.data();
-}
-
-void _xnor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t) {
-	*dst.data() = !(*a.data() ^ *b.data());
-}
-
-void _or(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t) {
-	*dst.data() = *a.data() || *b.data();
-}
+BINARY_OPERATOR(and, A && B)
+BINARY_OPERATOR(andyn, A && !B)
+BINARY_OPERATOR(andny, !A && B)
+BINARY_OPERATOR(nand, !(A && B))
+BINARY_OPERATOR(or, (A || B))
+BINARY_OPERATOR(oryn, A || !B)
+BINARY_OPERATOR(orny, !A || B)
+BINARY_OPERATOR(nor, !(A || B))
+BINARY_OPERATOR(xor, A ^ B)
+BINARY_OPERATOR(xnor, !(A ^ B))
 
 void free_bitspan(bitspan_t item) {
 	free(item.data());
