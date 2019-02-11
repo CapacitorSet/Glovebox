@@ -32,7 +32,7 @@ TEST_OP(xnor,  !(A ^ B));
 TEST_F(FHEContext, DecryptFromClient) {
 	ITERATE_BIT(plaintext) {
 		bit_t ciphertext = make_bit(clientParams);
-		constant(ciphertext, plaintext, clientParams);
+		encrypt(ciphertext, plaintext, clientParams);
 		ASSERT_EQ(decrypt(ciphertext, clientParams), plaintext);
 	}
 }
