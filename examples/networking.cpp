@@ -80,18 +80,19 @@ void onAccept(dyad_Event *e) {
 	dyad_addListener(e->remote, DYAD_EVENT_DATA, onData, nullptr);
 }
 
-void sendWithFree(dyad_Stream *s, char dataType, ptr_with_length_t data) {
+void sendRaw(dyad_Stream *s, char dataType, std::string data) {
 	char header[HEADER_BYTES] = {PROTOCOL_VERSION};
-	memcpy(header + 1, &data.len, 4);
+	const char *tmp = data.c_str();
+	auto len = data.length();
+	memcpy(header + 1, &len, 4);
 	memcpy(header + 5, &dataType, 1);
 	dyad_write(s, header, HEADER_BYTES);
-	dyad_write(s, data.ptr, data.len);
-	free(data.ptr);
+	dyad_write(s, tmp, len);
 }
 
 void send(dyad_Stream *s, ClientInt *i) {
-	sendWithFree(s, Int::typeID, i->exportToChar());
+	sendRaw(s, Int::typeID, i->exportToString());
 }
 void send(dyad_Stream *s, Int *i) {
-	sendWithFree(s, Int::typeID, i->exportToChar());
+	sendRaw(s, Int::typeID, i->exportToString());
 }

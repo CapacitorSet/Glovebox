@@ -21,8 +21,8 @@ public:
 
 	void decrypt(char *dst, TFHEClientParams_t p = default_client_params);
 	int8_t toI8(TFHEClientParams_t p = default_client_params);
-	ptr_with_length_t exportToChar();
-	void exportToFile(FILE *out);
+	std::string exportToString();
+
 	void print(TFHEClientParams_t p = default_client_params);
 	void sprint(char *out, TFHEClientParams_t p = default_client_params);
 	void free() {

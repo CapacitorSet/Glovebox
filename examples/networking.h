@@ -12,6 +12,6 @@ void onAccept(dyad_Event *e);
 
 void send(dyad_Stream *stream, ClientInt*);
 void send(dyad_Stream *stream, Int*);
-void sendWithFree(dyad_Stream *stream, char dataType, ptr_with_length_t data);
+void sendRaw(dyad_Stream *s, char dataType, std::string data);
 
 #endif //FHETOOLS_SERVER_PARSER_H

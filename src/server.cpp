@@ -6,6 +6,7 @@
 #include <types.h>
 #include <unistd.h>
 #include <types/int.h>
+#include <sstream>
 
 // Generic Int code
 
@@ -22,34 +23,18 @@ FILE *charptr_to_file(char *src, size_t len) {
 	return rptr;
 }
 
-ptr_with_length_t Int::exportToChar() {
+std::string Int::exportToString() {
 	// Todo: header should have >1 byte for size
 	char header[1];
 	char mysize = size();
 	memcpy(header, &mysize, 1);
 	printf("Header:\n");
 	printf("\tSize: %d\n", header[0]);
-	char *filename = std::tmpnam(nullptr);
-	printf("exportToChar: %s\n", filename);
-	FILE *wptr = fopen(filename, "wb");
-	assert(wptr);
-	exportToFile(wptr);
-	fclose(wptr);
-
-	// https://stackoverflow.com/a/238609
-	struct stat st;
-	stat(filename, &st);
-	long _size = st.st_size + sizeof(header);
-	assert(_size <= SIZE_MAX); // So it can be cast to size_t safely
-	auto size = static_cast<size_t>(_size);
-	FILE *rptr = fopen(filename, "rb");
-	assert(rptr);
-	char *out = static_cast<char *>(malloc(size));
-	memcpy(out, header, sizeof(header));
-	fread(out + sizeof(header), 1, size, rptr);
-	fclose(rptr);
-	// unlink(filename);
-	return ptr_with_length_t{out, size};
+	std::ostringstream oss;
+	oss.write(header, sizeof(header));
+	for (auto bit : data)
+		export_gate_bootstrapping_ciphertext_toStream(oss, bit.data(), p.params);
+	return oss.str();
 }
 
 Int::Int(char *packet, size_t pktsize, TFHEServerParams_t _p) : p(_p) {
@@ -73,17 +58,6 @@ Int::Int(char *packet, size_t pktsize, TFHEServerParams_t _p) : p(_p) {
 #else
 	for (int i = 0; i < size; i++)
 		import_gate_bootstrapping_ciphertext_fromFile(f, &data.at(i), p.params);
-#endif
-}
-
-// todo: document that it doesn't export a header
-void Int::exportToFile(FILE *out) {
-#if PLAINTEXT
-	assert("TODO: implement" == 0);
-	(void)out;
-#else
-	for (auto bit : data)
-		export_gate_bootstrapping_ciphertext_toFile(out, bit.data(), p.params);
 #endif
 }
 
