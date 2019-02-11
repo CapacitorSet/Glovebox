@@ -10,19 +10,6 @@
 
 // Generic Int code
 
-FILE *charptr_to_file(char *src, size_t len) {
-	char *filename = std::tmpnam(nullptr);
-	printf("charptr_to_file: %s\n", filename);
-	FILE *wptr = fopen(filename, "wb");
-	assert(wptr);
-	fwrite(src, len, 1, wptr);
-	fclose(wptr);
-
-	FILE *rptr = fopen(filename, "rb");
-	assert(rptr);
-	return rptr;
-}
-
 std::string Int::exportToString() {
 	// Todo: header should have >1 byte for size
 	char header[1];
@@ -45,19 +32,14 @@ Int::Int(char *packet, size_t pktsize, TFHEServerParams_t _p) : p(_p) {
 	pktsize -= 1;
 	printf("Header:\n");
 	printf("\tSize: %d\n", size);
-	FILE *f = charptr_to_file(packet, pktsize);
-	if (f == nullptr) {
-		printf("errno: %d\n", errno);
-		printf("Error opening file: %s\n", strerror(errno));
-		exit(-1);
-	}
-	assert(f);
+	std::stringstream ss;
+	ss.write(packet, pktsize);
 	data = make_bitspan(size, p);
 #if PLAINTEXT
 	assert("TODO: implement" == 0);
 #else
 	for (int i = 0; i < size; i++)
-		import_gate_bootstrapping_ciphertext_fromFile(f, &data.at(i), p.params);
+		import_gate_bootstrapping_ciphertext_fromStream(ss, &data.at(i), p.params);
 #endif
 }
 
