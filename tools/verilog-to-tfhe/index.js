@@ -1,6 +1,7 @@
 const assert = require("assert");
 const fs = require("fs");
 const parser = require("./parser.js");
+const toposort = require("toposort");
 
 if (process.argv.length != 3) {
 	console.error(`Syntax: ${process.argv[0]} ${process.argv[1]} file.v`);
@@ -115,6 +116,12 @@ for (const decl of _.decls) {
 	};
 }
 
+// Maps identifiers to the ID of the gate whose output they are
+let outputMappings = {};
+
+for (let i = 0; i < _.gates.length; i++)
+	outputMappings[transpile_identifier(_.gates[i].z)] = i;
+
 function addFirstDeclaration(it, i) {
 	if (!("firstDeclared" in metadata[it]))
 		metadata[it].firstDeclared = i;
@@ -124,11 +131,44 @@ function addLastDeclaration(it, i) {
 		metadata[it].lastDeclared = i;
 }
 
+/* The circuit must be topologically sorted, i.e. the inputs of each gate must
+ * be calculated before the gate itself.
+ */
+const edges = [];
+for (const gate of _.gates) {
+	switch (gate.gate) {
+	case "mux":
+		edges.push([transpile_identifier(gate.sel), transpile_identifier(gate.z)]);
+		edges.push([transpile_identifier(gate.t), transpile_identifier(gate.z)]);
+		edges.push([transpile_identifier(gate.f), transpile_identifier(gate.z)]);
+		break;
+	case "not":
+		edges.push([transpile_identifier(gate.a), transpile_identifier(gate.z)]);
+		break;
+	default:
+		edges.push([transpile_identifier(gate.a), transpile_identifier(gate.z)]);
+		edges.push([transpile_identifier(gate.b), transpile_identifier(gate.z)]);
+		break;
+	}
+}
+
+// The list of wires/outputs in topological order
+const path = toposort(edges);
+// The list of corresponding gates in topological order
+const gateList = path
+	// Exclude everything which isn't output by a gate (i.e. inputs)
+	.filter(it => it in outputMappings)
+	.map(it => {
+		const gateID = outputMappings[it];
+		return _.gates[gateID];
+	});
+
+
 /* Track the first and the last time each wire was used. This information can
  * be used to decide when to allocate and deallocate the corresponding bits.
  */
-for (let i = 0; i < _.gates.length; i++) {
-	const gate = _.gates[i];
+for (let i = 0; i < gateList.length; i++) {
+	const gate = gateList[i];
 	switch (gate.gate) {
 	case "mux":
 		addFirstDeclaration(gate.z.value, i);
@@ -148,8 +188,8 @@ for (let i = 0; i < _.gates.length; i++) {
 	}
 }
 
-for (let i = _.gates.length; i --> 0;) {
-	const gate = _.gates[i];
+for (let i = gateList.length; i --> 0;) {
+	const gate = gateList[i];
 	switch (gate.gate) {
 	case "mux":
 		addLastDeclaration(gate.z.value, i);
@@ -168,8 +208,6 @@ for (let i = _.gates.length; i --> 0;) {
 		break;
 	}
 }
-
-const declared_variables = new Set(_.decls.filter(it => it.type !== "wire").map(it => it.value));
 
 // Allocate memory, if we marked this place as the first place the bit is used.
 function declare_if_needed(it, i) {
@@ -198,7 +236,7 @@ function free_if_needed(it, i) {
 	return `  free_bitspan(${it.value});\n`;
 }
 
-const gates = _.gates
+const gates = gateList
 	.map((it, i) => {
 		switch (it.gate) {
 		case "mux": {
