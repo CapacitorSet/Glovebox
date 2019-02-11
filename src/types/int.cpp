@@ -1,14 +1,11 @@
 #include <cassert>
 #include <cstring>
-#include <glob.h>
-#include <istream>
 #include <sys/stat.h>
 #include <types.h>
 #include <unistd.h>
 #include <types/int.h>
 #include <sstream>
-
-// Generic Int code
+#include <serialization.h>
 
 std::string Int::exportToString() {
 	// Todo: header should have >1 byte for size
@@ -18,9 +15,8 @@ std::string Int::exportToString() {
 	printf("Header:\n");
 	printf("\tSize: %d\n", header[0]);
 	std::ostringstream oss;
-	oss.write(header, sizeof(header));
-	for (auto bit : data)
-		export_gate_bootstrapping_ciphertext_toStream(oss, bit.data(), p.params);
+	oss << header;
+	serialize(oss, data, p);
 	return oss.str();
 }
 
@@ -38,8 +34,7 @@ Int::Int(char *packet, size_t pktsize, TFHEServerParams_t _p) : p(_p) {
 #if PLAINTEXT
 	assert("TODO: implement" == 0);
 #else
-	for (int i = 0; i < size; i++)
-		import_gate_bootstrapping_ciphertext_fromStream(ss, &data.at(i), p.params);
+	deserialize(ss, data, p);
 #endif
 }
 
@@ -70,8 +65,6 @@ void Int::print(TFHEClientParams_t p) {
 	for (int i = size(); i-- > 0;)
 		printf("%d", ::decrypt(data[i], p));
 }
-
-// ServerInt-specific code
 
 void Int::add(Int a, Int b) {
 	assert(size() == a.size());
@@ -106,4 +99,11 @@ void Int::write(int64_t val) {
 	assert(highest_bit_set(labs(val)) <= size()); // Check that the value fits
 	for (int i = 0; i < size(); i++)
 		constant(data[i], (val >> i) & 1, p);
+}
+
+void ClientInt::write(int64_t val) {
+	assert(size() == 8);
+	for (int i = 0; i < 8; i++) {
+		encrypt(data[i], (val >> i) & 1, p);
+	}
 }

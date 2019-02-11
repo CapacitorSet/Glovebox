@@ -10,12 +10,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin)
 add_library(fhetools STATIC
         include/fhe-tools.h
         src/tfhe.cpp
-        src/server.cpp
-        src/client.cpp
-        src/flow_control.cpp
-        src/fixed32.cpp
-        src/polynomial.cpp
         src/primitives.cpp
+        src/flow_control.cpp
+        src/types/int.cpp
+        src/types/fixed32.cpp
+        src/types/polynomial.cpp
+        src/serialization.cpp
         )
 
 if (PLAINTEXT)
