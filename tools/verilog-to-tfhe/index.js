@@ -24,7 +24,7 @@ try {
 	process.exit(3);
 }
 
-let buf = "/* Generated automatically by CapacitorSet/FHE-tools */\n\n";
+let buf = "/* Generated automatically by CapacitorSet/FHE-tools */\n#include <tfhe.h>\n\n";
 
 buf += ast.map(transpile_module).join("");
 
@@ -38,7 +38,7 @@ function transpile_module(_) {
 	const inputs = _.decls
 		.filter(it => it.type === "input")
 		.map(it => "const " + (it.size == 1 ? "bit_t" : "bitspan_t") + " " + it.name);
-	buf += `void ${_.name}(${outputs.concat(inputs).join(", ")}) {\n`;
+	buf += `void ${_.name}(${outputs.concat(inputs).join(", ")}, TFHEServerParams_t p) {\n`;
 
 	// Assignments shouldn't appear often in optimized code, and at this time they're not implemented
 	// correctly (we need to keep track of the width of variables).
@@ -243,7 +243,7 @@ function transpile_module(_) {
 				ret += declare_if_needed(it.sel, i);
 				ret += declare_if_needed(it.t, i);
 				ret += declare_if_needed(it.f, i);
-				ret += `  _mux(${transpile_identifier(it.z)}, ${transpile_identifier(it.sel)}, ${transpile_identifier(it.t)}, ${transpile_identifier(it.f)});\n`;
+				ret += `  _mux(${transpile_identifier(it.z)}, ${transpile_identifier(it.sel)}, ${transpile_identifier(it.t)}, ${transpile_identifier(it.f)}, p);\n`;
 				ret += free_if_needed(it.z, i);
 				ret += free_if_needed(it.sel, i);
 				ret += free_if_needed(it.t, i);
@@ -254,7 +254,7 @@ function transpile_module(_) {
 				let ret = "";
 				ret += declare_if_needed(it.z, i);
 				ret += declare_if_needed(it.a, i);
-				ret += `  _not(${transpile_identifier(it.z)}, ${transpile_identifier(it.a)});\n`;
+				ret += `  _not(${transpile_identifier(it.z)}, ${transpile_identifier(it.a)}, p);\n`;
 				ret += free_if_needed(it.z, i);
 				ret += free_if_needed(it.a, i);
 				return ret;
@@ -264,7 +264,7 @@ function transpile_module(_) {
 				ret += declare_if_needed(it.z, i);
 				ret += declare_if_needed(it.a, i);
 				ret += declare_if_needed(it.b, i);
-				ret += `  _${it.gate}(${transpile_identifier(it.z)}, ${transpile_identifier(it.a)}, ${transpile_identifier(it.b)});\n`;
+				ret += `  _${it.gate}(${transpile_identifier(it.z)}, ${transpile_identifier(it.a)}, ${transpile_identifier(it.b)}, p);\n`;
 				ret += free_if_needed(it.z, i);
 				ret += free_if_needed(it.a, i);
 				ret += free_if_needed(it.b, i);
