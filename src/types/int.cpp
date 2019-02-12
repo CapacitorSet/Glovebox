@@ -31,11 +31,7 @@ Int::Int(char *packet, size_t pktsize, TFHEServerParams_t _p) : p(_p) {
 	std::stringstream ss;
 	ss.write(packet, pktsize);
 	data = make_bitspan(size, p);
-#if PLAINTEXT
-	assert("TODO: implement" == 0);
-#else
 	deserialize(ss, data, p);
-#endif
 }
 
 void Int::decrypt(char *dst, TFHEClientParams_t p) {
