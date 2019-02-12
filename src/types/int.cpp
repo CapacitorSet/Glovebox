@@ -66,7 +66,21 @@ void Int::add(Int a, Int b) {
 	assert(size() == a.size());
 	assert(size() == b.size());
 
-	::add(data, a.data, b.data, p);
+	switch (size()) {
+		case 8: {
+			bit_t carry = make_bit();
+			::add8(carry, data, a.data, b.data, p);
+			break;
+		}
+		case 16: {
+			bit_t carry = make_bit();
+			::add16(carry, data, a.data, b.data, p);
+			break;
+		}
+		default:
+			::add(data, a.data, b.data, p);
+			break;
+	}
 }
 
 void Int::mult(Int a, Int b) {
@@ -74,7 +88,14 @@ void Int::mult(Int a, Int b) {
 	assert(size() == b.size());
 
 	auto dummy = make_bitspan(2 * size(), p);
-	::mult(dummy, a.data, b.data, p);
+	switch (size()) {
+		case 8:
+			::mul8(dummy, a.data, b.data, p);
+			break;
+		default:
+			::mult(dummy, a.data, b.data, p);
+			break;
+	}
 	_copy(data, dummy.subspan(0, 8), p);
 }
 

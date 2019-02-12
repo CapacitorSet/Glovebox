@@ -14,4 +14,9 @@ void _copy(bitspan_t dst, bitspan_t src, TFHEServerParams_t p = default_server_p
 void _half_adder(bit_t out, bit_t carry_out, bit_t A, bit_t B, TFHEServerParams_t p = default_server_params);
 void _full_adder(bit_t out, bit_t carry_out, bit_t A, bit_t B, bit_t carry_in, TFHEServerParams_t p = default_server_params);
 
+void add8(bit_t carry, bitspan_t out, const bitspan_t a, const bitspan_t b, TFHEServerParams_t p);
+void add16(bit_t carry, bitspan_t out, const bitspan_t a, const bitspan_t b, TFHEServerParams_t p);
+void mul8(bitspan_t out, const bitspan_t a, const bitspan_t b, TFHEServerParams_t p);
+void mul16(bitspan_t out, const bitspan_t a, const bitspan_t b, TFHEServerParams_t p);
+
 #endif //FHETOOLS_PRIMITIVES_H
