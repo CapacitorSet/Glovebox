@@ -10,6 +10,7 @@
 ClientInt* a;
 ClientInt* b;
 TFHEClientParams_t default_client_params;
+TFHEServerParams_t default_server_params;
 
 dyad_Stream *s;
 

@@ -8,6 +8,7 @@
 
 #include "../dyad.h"
 
+TFHEClientParams_t default_client_params;
 TFHEServerParams_t default_server_params;
 
 Int* first;
