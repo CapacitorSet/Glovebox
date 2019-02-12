@@ -143,7 +143,9 @@ if (TESTS_ENABLED)
             tests/main.cpp
             tests/FHEContext.cpp
             tests/gates.cpp
-            tests/int.cpp)
+            tests/int.cpp
+            tests/serialization.cpp
+            )
     add_subdirectory("${PROJECT_SOURCE_DIR}/rapidcheck")
     add_subdirectory("${PROJECT_SOURCE_DIR}/rapidcheck/extras/gtest")
     target_link_libraries(fhetools_test fhetools libgtest libgmock rapidcheck rapidcheck_gtest)
