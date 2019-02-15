@@ -1,7 +1,7 @@
 To do's
 =======
 
-[ ] Implement Int as a template class, with instances of Int8, Int16, Int32
+[x] Implement Int as a template class, with instances of Int8, Int16, Int32
 
 [ ] Drop Varint
 

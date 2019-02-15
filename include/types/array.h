@@ -29,7 +29,7 @@ public:
 		data = make_bitspan(_length * _wordSize, p);
 	}
 
-	void put(T src, Varint address) {
+	void put(T src, Int8 address) {
 		// Todo: check that there are enough address bits
 		assert(src.size() == this->wordSize);
 		bit_t mask = make_bit(p);
@@ -38,7 +38,7 @@ public:
 		putBits(src.data, address.data, 0, mask);
 	}
 
-	maskable_function_t m_put(T src, Varint address) {
+	maskable_function_t m_put(T src, Int8 address) {
 		// Todo: check that there are enough address bits
 		assert(src.size() == this->wordSize);
 		return [=] (bit_t mask) -> void {
@@ -58,7 +58,7 @@ public:
 				this->data.subspan(address * this->wordSize, this->wordSize));
 	}
 
-	void get(T dst, ClientInt address) {
+	void get(T dst, Int8 address) {
 		// Todo: check that there are enough address bits
 		assert(dst.size() == this->wordSize);
 		bit_t mask = make_bit(p);
@@ -67,7 +67,7 @@ public:
 		getBits(dst.data, address.data, 0, mask);
 	}
 
-	maskable_function_t m_get(T dst, ClientInt address) {
+	maskable_function_t m_get(T dst, Int8 address) {
 		// Todo: check that there are enough address bits
 		assert(dst.size() == this->wordSize);
 		return [=] (bit_t mask) -> void {

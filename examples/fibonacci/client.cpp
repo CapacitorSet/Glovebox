@@ -6,30 +6,27 @@
 
 #include "../dyad.h"
 
-ClientInt* a;
-ClientInt* b;
+Int8 *a;
+Int8 *b;
 TFHEClientParams_t default_client_params;
 TFHEServerParams_t default_server_params;
 
 dyad_Stream *s;
 
 void onConnect(dyad_Event *e) {
+	puts("Sending...");
 	send(s, a);
 	send(s, b);
 }
 
 void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) {
-	puts("New packet.");
-	assert(dataType == INT_TYPE_ID);
-	auto i = new ClientInt(packet, pktsize);
-	printf("Size: %d\n", i->size());
-	printf("Value: %d\n", i->toI8());
-	i->print();
-	putchar('\n');
-	delete i;
+	puts("Received:");
+	assert(dataType == Int8::typeID);
+	Int8 output(packet, pktsize);
+	printf("%d\n", output.toI8());
 }
 
-int main(int argc, char *argv[]) {
+int main() {
 	FILE *secret_key = fopen("secret.key", "rb");
 	if (secret_key == nullptr) {
 		puts("secret.key not found: run ./keygen first.");
@@ -38,14 +35,15 @@ int main(int argc, char *argv[]) {
 	default_client_params = makeTFHEClientParams(secret_key);
 	fclose(secret_key);
 
-	a = ClientInt::newI8(1);
-	b = ClientInt::newI8(1);
+	a = new Int8(1);
+	b = new Int8(1);
 
 	dyad_init();
 
 	s = dyad_newStream();
 	dyad_addListener(s, DYAD_EVENT_CONNECT, onConnect, nullptr);
 	dyad_addListener(s, DYAD_EVENT_DATA, onData, nullptr);
+	puts("Connecting...");
 	dyad_connect(s, "127.0.0.1", 8000);
 
 	while (dyad_getStreamCount() > 0) {

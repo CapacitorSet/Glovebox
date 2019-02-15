@@ -9,29 +9,29 @@
 TFHEClientParams_t default_client_params;
 TFHEServerParams_t default_server_params;
 
-Varint* first;
-Varint* second;
+Int8* first;
+Int8* second;
 
 void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) {
 	puts("New packet.");
 	assert(dataType == INT_TYPE_ID);
-	auto tmp = new Varint(packet, pktsize);
+	auto tmp = new Int8(packet, pktsize);
 	if (first == nullptr) {
 		first = tmp;
 	} else if (second == nullptr) {
 		second = tmp;
 
-		auto x = Varint::newI8();
+		Int8 x;
 		for (int i = 0; i < 3; i++) {
 			printf("Iteration %d\n", i);
-			x->add(*first, *second);
+			x.add(*first, *second);
 			// todo: document that this is buggy af because it will result in ptrs being reused
 			// first = second;
 			// second = x;
 			first->copy(*second);
-			second->copy(*x);
+			second->copy(x);
 		}
-		send(stream, x);
+		send(stream, &x);
 	}
 }
 
