@@ -6,10 +6,10 @@
 #include "int.h"
 
 // A string of *fixed* length.
-class String : protected Array<Varint> {
+class String : protected Array<Int8> {
 public:
-	explicit String(uint16_t len, TFHEServerParams_t p = default_server_params) : Array<Varint>(len, 8, p) {}
-	explicit String(char *src, TFHEServerParams_t p = default_server_params) : Array<Varint>(strlen(src), 8, p) {
+	explicit String(uint16_t len, TFHEServerParams_t p = default_server_params) : Array<Int8>(len, 8, p) {}
+	explicit String(char *src, TFHEServerParams_t p = default_server_params) : Array<Int8>(strlen(src), 8, p) {
 		for (size_t i = 0; i < length; i++)
 			for (int j = 0; j < 8; j++)
 				constant(data[i * 8 + j], src[i], p);
