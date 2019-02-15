@@ -30,14 +30,18 @@ buf += ast.map(transpile_module).join("");
 
 console.log(buf);
 
+function get_type(size) {
+	return size == 1 ? "bit_t" : `fixed_bitspan_t<${size}>`;
+}
+
 function transpile_module(_) {
 	let buf = "";
 	const outputs = _.decls
 		.filter(it => it.type === "output")
-		.map(it => (it.size == 1 ? "bit_t" : "bitspan_t") + " " + it.name);
+		.map(it => get_type(it.size) + " " + it.name);
 	const inputs = _.decls
 		.filter(it => it.type === "input")
-		.map(it => "const " + (it.size == 1 ? "bit_t" : "bitspan_t") + " " + it.name);
+		.map(it => "const " + get_type(it.size) + " " + it.name);
 	buf += `void ${_.name}(${outputs.concat(inputs).join(", ")}, TFHEServerParams_t p) {\n`;
 
 	// Assignments shouldn't appear often in optimized code, and at this time they're not implemented
