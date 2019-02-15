@@ -6,14 +6,14 @@ typedef struct {
 	size_t len;
 } ptr_with_length_t;
 
-class Int {
+class Varint {
 	template <class T> friend class Array;
 
 protected:
 	bitspan_t data;
 
 public:
-	explicit Int(uint8_t _size, TFHEServerParams_t _p = default_server_params) : p(_p) {
+	explicit Varint(uint8_t _size, TFHEServerParams_t _p = default_server_params) : p(_p) {
 		data = make_bitspan(_size, p);
 	}
 
@@ -44,27 +44,27 @@ public:
 	static const int typeID = INT_TYPE_ID;
 	int size() const { return data.size(); }
 
-	Int(char *packet, size_t pktsize, TFHEServerParams_t _p = default_server_params);
-	static Int *newI8(TFHEServerParams_t p = default_server_params) { return new Int(8, p); }
-	static Int *newI8(int8_t n, TFHEServerParams_t p = default_server_params) {
-		auto ret = Int::newI8(p);
+	Varint(char *packet, size_t pktsize, TFHEServerParams_t _p = default_server_params);
+	static Varint *newI8(TFHEServerParams_t p = default_server_params) { return new Varint(8, p); }
+	static Varint *newI8(int8_t n, TFHEServerParams_t p = default_server_params) {
+		auto ret = Varint::newI8(p);
 		ret->write(n);
 		return ret;
 	}
 	void write(int64_t);
 
-	void add(Int, Int);
-	void mult(Int, Int);
-	void copy(Int);
+	void add(Varint, Varint);
+	void mult(Varint, Varint);
+	void copy(Varint);
 
 private:
 	TFHEServerParams_t p;
 };
 
-class ClientInt : public Int {
+class ClientInt : public Varint {
 public:
 	ClientInt(char *packet, size_t pktsize, TFHEClientParams_t _p = default_client_params)
-			: Int(packet, pktsize, _p), p(_p) {};
+			: Varint(packet, pktsize, _p), p(_p) {};
 	static ClientInt *newI8(TFHEClientParams_t _p = default_client_params) {
 		return new ClientInt(8, _p);
 	}
@@ -75,7 +75,7 @@ public:
 	}
 	void write(int64_t);
 	explicit ClientInt(uint8_t _size, TFHEClientParams_t _p = default_client_params)
-			: Int(_size, _p), p(_p) {}
+			: Varint(_size, _p), p(_p) {}
 
 private:
 	TFHEClientParams_t p;

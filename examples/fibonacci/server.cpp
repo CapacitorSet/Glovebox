@@ -11,19 +11,19 @@
 TFHEClientParams_t default_client_params;
 TFHEServerParams_t default_server_params;
 
-Int* first;
-Int* second;
+Varint* first;
+Varint* second;
 
 void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) {
 	puts("New packet.");
 	assert(dataType == INT_TYPE_ID);
-	auto tmp = new Int(packet, pktsize);
+	auto tmp = new Varint(packet, pktsize);
 	if (first == nullptr) {
 		first = tmp;
 	} else if (second == nullptr) {
 		second = tmp;
 
-		auto x = Int::newI8();
+		auto x = Varint::newI8();
 		for (int i = 0; i < 3; i++) {
 			printf("Iteration %d\n", i);
 			x->add(*first, *second);

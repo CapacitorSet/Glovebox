@@ -7,7 +7,7 @@
 #include <sstream>
 #include <serialization.h>
 
-std::string Int::exportToString() {
+std::string Varint::exportToString() {
 	// Todo: header should have >1 byte for size
 	char header[1];
 	char mysize = size();
@@ -20,7 +20,7 @@ std::string Int::exportToString() {
 	return oss.str();
 }
 
-Int::Int(char *packet, size_t pktsize, TFHEServerParams_t _p) : p(_p) {
+Varint::Varint(char *packet, size_t pktsize, TFHEServerParams_t _p) : p(_p) {
 	char size;
 	memcpy(&size, packet, 1);
 	// Skip header
@@ -34,7 +34,7 @@ Int::Int(char *packet, size_t pktsize, TFHEServerParams_t _p) : p(_p) {
 	deserialize(ss, data, p);
 }
 
-void Int::decrypt(char *dst, TFHEClientParams_t p) {
+void Varint::decrypt(char *dst, TFHEClientParams_t p) {
 	for (int i = 0; i < size(); ) {
 		char byte = 0;
 		for (int j = 0; j < 8 && i < size(); i++, j++)
@@ -44,7 +44,7 @@ void Int::decrypt(char *dst, TFHEClientParams_t p) {
 	}
 }
 
-int8_t Int::toI8(TFHEClientParams_t p) {
+int8_t Varint::toI8(TFHEClientParams_t p) {
 	assert(size() == 8);
 	uint8_t ret = 0;
 	for (int i = 0; i < 8; i++)
@@ -52,17 +52,17 @@ int8_t Int::toI8(TFHEClientParams_t p) {
 	return ret;
 }
 
-void Int::sprint(char *out, TFHEClientParams_t p) {
+void Varint::sprint(char *out, TFHEClientParams_t p) {
 	for (int i = size(); i-- > 0;)
 		sprintf(out++, "%d", ::decrypt(data[i], p));
 }
 
-void Int::print(TFHEClientParams_t p) {
+void Varint::print(TFHEClientParams_t p) {
 	for (int i = size(); i-- > 0;)
 		printf("%d", ::decrypt(data[i], p));
 }
 
-void Int::add(Int a, Int b) {
+void Varint::add(Varint a, Varint b) {
 	assert(size() == a.size());
 	assert(size() == b.size());
 
@@ -83,7 +83,7 @@ void Int::add(Int a, Int b) {
 	}
 }
 
-void Int::mult(Int a, Int b) {
+void Varint::mult(Varint a, Varint b) {
 	assert(size() == a.size());
 	assert(size() == b.size());
 
@@ -99,7 +99,7 @@ void Int::mult(Int a, Int b) {
 	_copy(data, dummy.subspan(0, 8), p);
 }
 
-void Int::copy(Int src) {
+void Varint::copy(Varint src) {
 	assert(size() == src.size());
 	for (int i = 0; i < size(); i++) {
 		_copy(data[i], src.data[i], p);
@@ -112,7 +112,7 @@ static uint8_t highest_bit_set(uint64_t val) {
 	return ret;
 }
 
-void Int::write(int64_t val) {
+void Varint::write(int64_t val) {
 	assert(highest_bit_set(labs(val)) <= size()); // Check that the value fits
 	for (int i = 0; i < size(); i++)
 		constant(data[i], (val >> i) & 1, p);
