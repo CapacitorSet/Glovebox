@@ -1,4 +1,3 @@
-#include <serialization.h>
 #include "gtest/gtest.h"
 #include <rapidcheck/gtest.h>
 #include "FHEContext.cpp"

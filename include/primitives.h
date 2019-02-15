@@ -1,7 +1,7 @@
 #ifndef FHETOOLS_PRIMITIVES_H
 #define FHETOOLS_PRIMITIVES_H
 
-#include "tfhe.h"
+#include <tfhe.h>
 
 void zero(bitspan_t src, TFHEClientParams_t p);
 void zero(bitspan_t src, TFHEServerParams_t p = default_server_params);

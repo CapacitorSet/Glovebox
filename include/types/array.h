@@ -2,10 +2,10 @@
 #define FHETOOLS_ARRAY_H
 
 #include <cassert>
+#include <tfhe.h>
+#include <flow_control.h>
 #include "type_ids.h"
-#include "tfhe.h"
 #include "int.h"
-#include "flow_control.h"
 
 template <class T> class Array {
 protected:

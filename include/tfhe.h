@@ -1,13 +1,12 @@
-#ifndef FHE_CPU_TFHE_H
-#define FHE_CPU_TFHE_H
+#ifndef FHETOOLS_TFHE_H
+#define FHETOOLS_TFHE_H
 
 #include <cstdint>
-#include <cstdio>
 #include <gsl_span_custom.h>
+#include <tfhe/tfhe.h>
 
 #if PLAINTEXT
-typedef gsl::span<bool> bitspan_t;
-typedef gsl::span<bool, 1> bit_t;
+using unsafe_bit_t = bool;
 typedef struct {} only_TFHEServerParams_t;
 typedef struct {
 	operator only_TFHEServerParams_t() {
@@ -21,10 +20,7 @@ typedef struct {
 	operator only_TFHEServerParams_t() = delete; // If you can read this you're passing client params to server-only functions.
 } TFHEClientParams_t;
 #else
-#include <tfhe/tfhe.h>
-
-using bit_t = gsl::span<LweSample, 1>;
-using bitspan_t = gsl::span<LweSample>;
+using unsafe_bit_t = LweSample;
 
 typedef struct {
 	const TFheGateBootstrappingParameterSet *params;
@@ -52,6 +48,9 @@ typedef struct {
 	operator only_TFHEServerParams_t() = delete; // If you can read this you're passing client params to server-only functions.
 } TFHEClientParams_t;
 #endif
+
+typedef gsl::span<unsafe_bit_t> bitspan_t;
+typedef gsl::span<unsafe_bit_t, 1> bit_t;
 
 TFHEClientParams_t makeTFHEClientParams(FILE *secret_key);
 TFHEServerParams_t makeTFHEServerParams(FILE *cloud_key);
@@ -100,4 +99,4 @@ void _copy(bit_t dst, bit_t src, TFHEServerParams_t p = default_server_params);
 
 void add(bitspan_t result, bitspan_t a, bitspan_t b, TFHEServerParams_t p = default_server_params);
 void mult(bitspan_t result, bitspan_t a, bitspan_t b, TFHEServerParams_t _p = default_server_params);
-#endif // FHE_CPU_TFHE_H
+#endif // FHETOOLS_TFHE_H

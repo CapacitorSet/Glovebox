@@ -1,10 +1,9 @@
 #ifndef FHETOOLS_INT_H
 #define FHETOOLS_INT_H
 
-typedef struct {
-	char *ptr;
-	size_t len;
-} ptr_with_length_t;
+#include <tfhe.h>
+#include <types/type_ids.h>
+
 
 class Varint {
 	template <class T> friend class Array;

@@ -4,7 +4,6 @@
 #include <cstring>
 #include "array.h"
 #include "int.h"
-#include "tfhe.h"
 
 // A string of *fixed* length.
 class String : protected Array<Varint> {
@@ -28,16 +27,6 @@ public:
 
 	bit_t equals(String dst) {
 		return Array::equals(dst);
-	}
-};
-
-class ClientString: public String {
-public:
-	ClientString(uint16_t len, TFHEClientParams_t p = default_client_params) : String(len, p) {}
-	ClientString(char *src, TFHEClientParams_t p = default_client_params) : String(src, p) {
-		for (size_t i = 0; i < length; i++)
-			for (int j = 0; j < 8; j++)
-				encrypt(data[i * 8 + j], (src[i] >> j) & 1, p);
 	}
 };
 

@@ -2,6 +2,7 @@
 #define FHETOOLS_POLYNOMIAL_H
 
 #include <vector>
+#include "fixed32.h"
 
 class KnownPolynomial {
 public:

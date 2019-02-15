@@ -1,6 +1,5 @@
 #include <cassert>
-#include "types.h"
-#include "tfhe.h"
+#include <tfhe.h>
 
 void zero(bitspan_t src, TFHEClientParams_t p) {
 	for (auto bit : src)

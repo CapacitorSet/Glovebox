@@ -1,8 +1,7 @@
-#include <assert.h>
+#include <cassert>
 #include <cstdio>
-#include <tfhe.h>
 #include <cstring>
-#include "types.h"
+#include <fhe-tools.h>
 #include "../networking.h"
 
 #include "../dyad.h"

@@ -1,5 +1,5 @@
 #include <cassert>
-#include "fhe-tools.h"
+#include <tfhe.h>
 
 /* An "agnostic" interface to TFHE. Might support a plaintext backend and TFHE v2 in the future.
  */

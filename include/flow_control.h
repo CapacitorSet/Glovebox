@@ -1,7 +1,7 @@
 #ifndef FLOW_CONTROL_H
 #define FLOW_CONTROL_H
 #include <functional>
-#include "tfhe.h"
+#include <tfhe.h>
 
 using maskable_function_t = std::function<void (bit_t)>;
 
