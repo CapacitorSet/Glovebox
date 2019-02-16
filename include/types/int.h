@@ -7,8 +7,18 @@
 #include <types/type_ids.h>
 #include <serialization.h>
 
+// Template programming is ugly.
+template<uint8_t N, typename = std::enable_if<N <= 64>>
+using smallest_int_t =
+	std::conditional_t<(N <= 8), int8_t,
+	std::conditional<(N <= 16), int16_t,
+	std::conditional<(N <= 32), int32_t,
+	int64_t
+>>>;
+
 template <uint8_t size>
 class Int {
+	using native_type_t = smallest_int_t<size>;
 public:
 	explicit Int(TFHEServerParams_t _p = default_server_params)
 			: p(_p), data(make_fixed_bitspan<size>(_p)) {};
@@ -22,6 +32,15 @@ public:
 		oss << header;
 		serialize(oss, data, p);
 		return oss.str();
+	}
+
+	// Decrypts the Int and returns an int of the smallest size possible
+	// (5 -> int8_t, 10 -> int16_t, etc)
+	native_type_t toInt(TFHEClientParams_t p = default_client_params) {
+		native_type_t ret = 0;
+		for (int i = 0; i < size; i++)
+			ret |= (::decrypt(data[i], p) & 1) << i;
+		return ret;
 	}
 protected:
 	// Initialize from a char*
@@ -77,9 +96,8 @@ public:
 	*/
 
 	void copy(Int8 src);
-
-	int8_t toI8(TFHEClientParams_t p = default_client_params);
 };
+
 /*
 class Int16 : Int<16> {
 public:

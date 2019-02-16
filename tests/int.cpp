@@ -7,7 +7,7 @@ using Int8Test = FHEContext;
 TEST_F(Int8Test, Decrypt) {
 	::rc::detail::checkGTest([=](int8_t plaintext_num) {
 		auto a = Int8(plaintext_num, clientParams);
-		RC_ASSERT(a.toI8(clientParams) == plaintext_num);
+		RC_ASSERT(a.toInt(clientParams) == plaintext_num);
 	});
 }
 
@@ -17,7 +17,7 @@ TEST_F(Int8Test, Serialization) {
 		auto tmp = in.exportToString();
 		auto tmp_cstr = tmp.c_str();
 		auto out = Int8(tmp_cstr, tmp.length(), serverParams);
-		RC_ASSERT(out.toI8(clientParams) == plaintext_num);
+		RC_ASSERT(out.toInt(clientParams) == plaintext_num);
 	});
 }
 
@@ -27,6 +27,6 @@ TEST_F(Int8Test, Sum) {
 		auto b = Int8(plaintext_b, clientParams);
 		auto sum = Int8(serverParams);
 		sum.add(a, b);
-		RC_ASSERT(sum.toI8(clientParams) == int8_t(plaintext_a + plaintext_b));
+		RC_ASSERT(sum.toInt(clientParams) == int8_t(plaintext_a + plaintext_b));
 	});
 }

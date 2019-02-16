@@ -22,8 +22,8 @@ void onConnect(dyad_Event *e) {
 void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) {
 	puts("Received:");
 	assert(dataType == Int8::typeID);
-	Int8 output(packet, pktsize);
-	printf("%d\n", output.toI8());
+	Int8 output = Int8(packet, pktsize);
+	printf("%i\n", output.toInt());
 }
 
 int main() {
