@@ -25,7 +25,7 @@ public:
 	}
 protected:
 	// Initialize from a char*
-	Int(char *packet, size_t pktsize, TFHEServerParams_t _p) : Int(_p) {
+	Int(const char *packet, size_t pktsize, TFHEServerParams_t _p) : Int(_p) {
 		char size_from_header;
 		memcpy(&size_from_header, packet, 1);
 		assert(size_from_header == size);
@@ -54,7 +54,7 @@ public:
 			constant(data[i], (src >> i) & 1, _p);
 	}
 	// Inizialize from a char*
-	Int8(char *packet, size_t pktsize, TFHEServerParams_t _p = default_server_params)
+	Int8(const char *packet, size_t pktsize, TFHEServerParams_t _p = default_server_params)
 		: Int(packet, pktsize, _p) {};
 
 	void add(Int8 a, Int8 b);
