@@ -17,14 +17,22 @@ void serialize(std::ostream &output, bitspan_t src, TFHEServerParams_t p) {
 
 void deserialize(std::istream &input, bitspan_t dst, TFHEClientParams_t p) {
 	(void) p;
-	for (const auto bit : dst)
-		input >> *bit.data();
+	// The standard approach `input >> *bit.data()` doesn't work for whatever reason
+	for (const auto bit : dst) {
+		char tmp;
+		input >> tmp;
+		encrypt(bit, tmp == '1', p);
+	}
 }
 
 void deserialize(std::istream &input, bitspan_t dst, TFHEServerParams_t p) {
 	(void) p;
-	for (const auto bit : dst)
-		input >> *bit.data();
+	// The standard approach `input >> *bit.data()` doesn't work for whatever reason
+	for (const auto bit : dst) {
+		char tmp;
+		input >> tmp;
+		constant(bit, tmp  == '1', p);
+	}
 }
 #else
 void serialize(std::ostream &output, bitspan_t src, TFHEClientParams_t p) {
