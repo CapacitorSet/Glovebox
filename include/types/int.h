@@ -20,9 +20,6 @@ template <uint8_t size>
 class Int {
 	using native_type_t = smallest_int_t<size>;
 public:
-	explicit Int(TFHEServerParams_t _p = default_server_params)
-			: p(_p), data(make_fixed_bitspan<size>(_p)) {};
-
 	std::string exportToString() {
 		// Todo: header should have >1 byte for size
 		char header[1];
@@ -43,6 +40,17 @@ public:
 		return ret;
 	}
 protected:
+	// Create an Int8, but do not initialize the memory
+	explicit Int(TFHEServerParams_t _p = default_server_params)
+		: p(_p), data(make_fixed_bitspan<size>(_p)) {};
+
+	// Initialize from a plaintext int
+	explicit Int(native_type_t src, TFHEServerParams_t _p = default_server_params)
+		: Int(_p) {
+		for (int i = 0; i < size; i++)
+			constant(data[i], (src >> i) & 1, _p);
+	}
+
 	// Initialize from a char*
 	Int(const char *packet, size_t pktsize, TFHEServerParams_t _p) : Int(_p) {
 		char size_from_header;
@@ -55,6 +63,7 @@ protected:
 		ss.write(packet, pktsize);
 		deserialize(ss, data, p);
 	}
+
 	TFHEServerParams_t p;
 	fixed_bitspan_t<size> data;
 };
@@ -68,10 +77,8 @@ public:
 	explicit Int8(TFHEServerParams_t _p = default_server_params)
 		: Int(_p) {};
 	// Initialize from a plaintext int8
-	explicit Int8(int8_t src, TFHEServerParams_t _p = default_server_params) : Int(_p) {
-		for (int i = 0; i < 8; i++)
-			constant(data[i], (src >> i) & 1, _p);
-	}
+	explicit Int8(int8_t src, TFHEServerParams_t _p = default_server_params)
+		: Int(src, _p) {};
 	// Inizialize from a char*
 	Int8(const char *packet, size_t pktsize, TFHEServerParams_t _p = default_server_params)
 		: Int(packet, pktsize, _p) {};
