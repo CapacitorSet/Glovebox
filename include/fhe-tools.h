@@ -8,7 +8,7 @@
 #include "flow_control.h"
 
 #include <types/int.h>
-#include <types/fixed32.h>
+#include <types/fixed.h>
 #include <types/polynomial.h>
 
 #include <types/array.h>

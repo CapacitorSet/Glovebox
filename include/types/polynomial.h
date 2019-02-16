@@ -1,8 +1,9 @@
 #ifndef FHETOOLS_POLYNOMIAL_H
 #define FHETOOLS_POLYNOMIAL_H
 
+/*
 #include <vector>
-#include "fixed32.h"
+#include "fixed.h"
 
 class KnownPolynomial {
 public:
@@ -23,5 +24,6 @@ private:
 
 	TFHEServerParams_t p;
 };
+*/
 
 #endif //FHETOOLS_POLYNOMIAL_H

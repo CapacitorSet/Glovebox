@@ -105,6 +105,12 @@ public:
 	void copy(Int8 src);
 };
 
+// The smallest Int class with at least N bits
+template<uint8_t N, typename = std::enable_if<N <= 8>>
+using smallest_Int = std::conditional_t<(N <= 8), Int8, /* error! */ void>;
+// When Int16, etc. are implemented it will have several std::conditional
+// clauses, one for each
+
 /*
 class Int16 : Int<16> {
 public:

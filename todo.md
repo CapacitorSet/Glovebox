@@ -5,7 +5,7 @@ To do's
 
 [x] Drop Varint
 
-[ ] Implement Fixed as a template class, with instances of Q4.4, Q8.8, Q16.16, maybe with Q0.x or Q1.x too?
+[x] Implement Fixed as a template class, with instances of Q4.4, Q8.8, Q16.16, maybe with Q0.x or Q1.x too?
 
 [x] Drop ClientInt, instance Int/Fixed from raw bitspans
 
