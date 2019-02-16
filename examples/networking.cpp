@@ -90,9 +90,6 @@ void sendRaw(dyad_Stream *s, char dataType, std::string data) {
 	dyad_write(s, tmp, len);
 }
 
-void send(dyad_Stream *s, ClientInt *i) {
-	sendRaw(s, Int::typeID, i->exportToString());
-}
-void send(dyad_Stream *s, Int *i) {
-	sendRaw(s, Int::typeID, i->exportToString());
+void send(dyad_Stream *s, Int8 *i) {
+	sendRaw(s, Int8::typeID, i->exportToString());
 }
