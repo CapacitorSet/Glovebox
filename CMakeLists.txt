@@ -20,17 +20,15 @@ add_library(fhetools STATIC
 
 if (PLAINTEXT)
     add_definitions(-DPLAINTEXT=1)
-    target_compile_options(fhetools PUBLIC -Wall -Wextra -Wformat -Wformat-security -Werror=format-security)
-    target_link_options(fhetools PUBLIC -O2 -Wall -Wextra -Wformat -Wformat-security -Werror=format-security)
+    target_compile_options(fhetools PUBLIC -Wall -Wextra -Wformat -Wformat-security -Werror=format-security -fsanitize=undefined -fsanitize-trap=bool)
+    target_link_options(fhetools PUBLIC -Wall -Wextra -Wformat -Wformat-security -Werror=format-security -fsanitize=undefined -fsanitize-trap=bool)
 else()
     add_definitions(-DPLAINTEXT=0)
     # Should we do the linking ourselves, or have the user choose?
     target_link_libraries(fhetools PRIVATE tfhe-spqlios-fma)
     # Hardening: https://wiki.debian.org/Hardening
-    target_compile_options(fhetools PUBLIC -Wformat -Wformat-security -Werror=format-security -fstack-protector-strong -fPIE -fPIC)
-    target_link_options(fhetools PUBLIC -Wformat -Wformat-security -Werror=format-security -fstack-protector-strong -pie -Wl,-z,relro -Wl,-z,now)
-    add_definitions(-D_FORTIFY_SOURCE=2)
-    add_compile_options(-O2)
+    target_compile_options(fhetools PUBLIC -D_FORTIFY_SOURCE=2 -O2 -Wformat -Wformat-security -Werror=format-security -fstack-protector-strong -fPIE -fPIC)
+    target_link_options(fhetools PUBLIC -D_FORTIFY_SOURCE=2 -O2 -Wformat -Wformat-security -Werror=format-security -fstack-protector-strong -pie -Wl,-z,relro -Wl,-z,now)
 endif()
 
 target_include_directories(fhetools
