@@ -158,13 +158,12 @@ module.exports = /*
         peg$c14 = peg$literalExpectation(");\n", false),
         peg$c15 = "endmodule\n",
         peg$c16 = peg$literalExpectation("endmodule\n", false),
-        peg$c17 = function(name, decls, gates, assignments) {
+        peg$c17 = function(name, decls, gates) {
                 return {
                     type: "module",
                     name: name.value,
                     decls: decls,
                     gates: gates,
-                    assignments: assignments
                 };
             },
         peg$c18 = ", ",
@@ -199,9 +198,10 @@ module.exports = /*
         peg$c35 = " = ",
         peg$c36 = peg$literalExpectation(" = ", false),
         peg$c37 = function(dst, src) { return {
-            type: "assignment",
-            src: src,
-            dst: dst
+            type: "gate",
+            gate: "copy",
+            a: src,
+            z: dst
         }; },
         peg$c38 = /^[0-9]/,
         peg$c39 = peg$classExpectation([["0", "9"]], false, false),
@@ -344,8 +344,8 @@ module.exports = /*
                 type: "identifier",
                 value: "_" + n.join("") + "_"
             }; },
-        peg$c110 = /^[A-Za-z0-9]/,
-        peg$c111 = peg$classExpectation([["A", "Z"], ["a", "z"], ["0", "9"]], false, false),
+        peg$c110 = /^[A-Za-z0-9_]/,
+        peg$c111 = peg$classExpectation([["A", "Z"], ["a", "z"], ["0", "9"], "_"], false, false),
         peg$c112 = function(name, index) { return {
                 type: "identifier",
                 value: name.join(""),
@@ -606,7 +606,7 @@ module.exports = /*
     }
 
     function peg$parseModule() {
-      var s0, s1, s2, s3, s4, s5, s6, s7, s8, s9;
+      var s0, s1, s2, s3, s4, s5, s6, s7, s8;
 
       s0 = peg$currPos;
       if (input.substr(peg$currPos, 8) === peg$c9) {
@@ -671,28 +671,17 @@ module.exports = /*
                     s7 = peg$FAILED;
                   }
                   if (s7 !== peg$FAILED) {
-                    s8 = [];
-                    s9 = peg$parseAssignment();
-                    while (s9 !== peg$FAILED) {
-                      s8.push(s9);
-                      s9 = peg$parseAssignment();
+                    if (input.substr(peg$currPos, 10) === peg$c15) {
+                      s8 = peg$c15;
+                      peg$currPos += 10;
+                    } else {
+                      s8 = peg$FAILED;
+                      if (peg$silentFails === 0) { peg$fail(peg$c16); }
                     }
                     if (s8 !== peg$FAILED) {
-                      if (input.substr(peg$currPos, 10) === peg$c15) {
-                        s9 = peg$c15;
-                        peg$currPos += 10;
-                      } else {
-                        s9 = peg$FAILED;
-                        if (peg$silentFails === 0) { peg$fail(peg$c16); }
-                      }
-                      if (s9 !== peg$FAILED) {
-                        peg$savedPos = s0;
-                        s1 = peg$c17(s2, s6, s7, s8);
-                        s0 = s1;
-                      } else {
-                        peg$currPos = s0;
-                        s0 = peg$FAILED;
-                      }
+                      peg$savedPos = s0;
+                      s1 = peg$c17(s2, s6, s7);
+                      s0 = s1;
                     } else {
                       peg$currPos = s0;
                       s0 = peg$FAILED;
@@ -1028,6 +1017,9 @@ module.exports = /*
                       s0 = peg$parseXnorGate();
                       if (s0 === peg$FAILED) {
                         s0 = peg$parseMuxGate();
+                        if (s0 === peg$FAILED) {
+                          s0 = peg$parseAssignment();
+                        }
                       }
                     }
                   }

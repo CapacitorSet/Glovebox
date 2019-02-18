@@ -44,63 +44,6 @@ function transpile_module(_) {
 		.map(it => "const " + get_type(it.size) + " " + it.name);
 	buf += `void ${_.name}(${outputs.concat(inputs).join(", ")}, TFHEServerParams_t p) {\n`;
 
-	// Assignments shouldn't appear often in optimized code, and at this time they're not implemented
-	// correctly (we need to keep track of the width of variables).
-	assert(_.assignments.length == 0);
-	/*
-
-	// Assignments like "wire <- (input/constant)" are to be put first.
-	function is_initial_assignment(it) {
-		const srcType = it.src.type == "constant" ? "constant" : vars.get(it.src.value);
-		const dstType = vars.get(it.dst.value);
-		return (srcType == "input" || srcType == "constant") && (dstType == "wire");
-	};
-	// Assignments like "output <- (wire/input/constant)" are to be put last.
-	function is_final_assignment(it) {
-		const srcType = it.src.type == "constant" ? "constant" : vars.get(it.src.value);
-		const dstType = vars.get(it.dst.value);
-		return (srcType == "input" || srcType == "wire" || srcType == "constant") && (dstType == "output");
-	};
-	const unexpected_assignments = _.assignments
-		.filter(it => !is_initial_assignment(it))
-		.filter(it => !is_final_assignment(it));
-	if (unexpected_assignments.length != 0) {
-		console.error("Some assignments are neither initial nor final:");
-		console.error(JSON.stringify(unexpected_assignments, null, 2));
-		process.exit(4);
-	}
-
-	function transpile_assignment(it) {
-		const {src, dst} = it;
-		assert(dst.type == "identifier");
-		if (!dst.index || !dst.index.end) {
-			const cpp_dst = dst.index ? `${dst.value}[${dst.index.begin}]` : dst.value;
-			switch (src.type) {
-			case "constant":
-				assert(!dst.index);
-				assert(dst.type == "identifier");
-				return `  _constant(${cpp_dst}, 0x${src.hex});\n`;
-			case "identifier":
-				if (src.index) {
-					assert(!src.index.end);
-					return `  _copy(${cpp_dst}, ${src.value}[${src.index.begin}]);\n`;
-				} else {
-					return `  _copy(${cpp_dst}, ${src.value});\n`;
-				}
-			default:
-				assert(false);
-			}
-		} else {
-			assert(false);
-		}
-	}
-	const initial_assignments = _.assignments
-		.filter(is_initial_assignment)
-		.map(transpile_assignment)
-		.join("");
-	buf += initial_assignments;
-	*/
-
 	// Add indices where necessary
 	function transpile_identifier(it) {
 		assert(it.type == "identifier");
@@ -144,6 +87,7 @@ function transpile_module(_) {
 			edges.push([transpile_identifier(gate.t), transpile_identifier(gate.z)]);
 			edges.push([transpile_identifier(gate.f), transpile_identifier(gate.z)]);
 			break;
+		case "copy":
 		case "not":
 			edges.push([transpile_identifier(gate.a), transpile_identifier(gate.z)]);
 			break;
@@ -178,6 +122,7 @@ function transpile_module(_) {
 			addFirstDeclaration(gate.t.value, i);
 			addFirstDeclaration(gate.f.value, i);
 			break;
+		case "copy":
 		case "not":
 			addFirstDeclaration(gate.z.value, i);
 			addFirstDeclaration(gate.a.value, i);
@@ -199,6 +144,7 @@ function transpile_module(_) {
 			addLastDeclaration(gate.t.value, i);
 			addLastDeclaration(gate.f.value, i);
 			break;
+		case "copy":
 		case "not":
 			addLastDeclaration(gate.z.value, i);
 			addLastDeclaration(gate.a.value, i);
@@ -254,11 +200,12 @@ function transpile_module(_) {
 				ret += free_if_needed(it.f, i);
 				return ret;
 			}
+			case "copy":
 			case "not": {
 				let ret = "";
 				ret += declare_if_needed(it.z, i);
 				ret += declare_if_needed(it.a, i);
-				ret += `  _not(${transpile_identifier(it.z)}, ${transpile_identifier(it.a)}, p);\n`;
+				ret += `  _${it.gate}(${transpile_identifier(it.z)}, ${transpile_identifier(it.a)}, p);\n`;
 				ret += free_if_needed(it.z, i);
 				ret += free_if_needed(it.a, i);
 				return ret;

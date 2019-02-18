@@ -6,14 +6,12 @@ Module
     = "\nmodule " name:Identifier "(" ModuleArgList ");\n"
     decls:(Wire / Input / Output)+
     gates:Gate+
-    assignments: Assignment*
     "endmodule\n" {
         return {
             type: "module",
             name: name.value,
             decls: decls,
             gates: gates,
-            assignments: assignments
         };
     }
 
@@ -50,12 +48,14 @@ Gate
     / XorGate
     / XnorGate
     / MuxGate
+    / Assignment
 
 Assignment
     = "  assign " dst:Identifier " = " src:AssignmentValue ";\n" { return {
-    type: "assignment",
-    src: src,
-    dst: dst
+    type: "gate",
+    gate: "copy",
+    a: src,
+    z: dst
 }; }
 
 AssignmentValue
@@ -196,7 +196,7 @@ Identifier
         type: "identifier",
         value: "_" + n.join("") + "_"
     }; }
-    / name:[A-Za-z0-9]+ index:ArrayIndex? { return {
+    / name:[A-Za-z0-9_]+ index:ArrayIndex? { return {
         type: "identifier",
         value: name.join(""),
         index: index
