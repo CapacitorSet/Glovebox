@@ -62,7 +62,7 @@ library(demo) {
 		pin(SEL) { direction: input; }
 		pin(T) { direction: input; }
 		pin(F) { direction: input; }
-		pin(Z) { direction: output; function: "(SEL&T)+(SEL'&F')"; }
+		pin(Z) { direction: output; function: "(SEL&T)+(SEL'&F)"; }
 	}
 	cell(DFF) {
 		area: 20;
