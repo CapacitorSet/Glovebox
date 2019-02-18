@@ -30,3 +30,17 @@ TEST_F(Int8Test, Sum) {
 		RC_ASSERT(sum.toInt(clientParams) == int8_t(plaintext_a + plaintext_b));
 	});
 }
+
+TEST_F(Int8Test, SumOverflow) {
+	::rc::detail::checkGTest([=](int8_t plaintext_a, int8_t plaintext_b) {
+		auto a = Int8(plaintext_a, clientParams);
+		auto b = Int8(plaintext_b, clientParams);
+		auto overflow = make_bit(serverParams);
+		auto sum = Int8(serverParams);
+		sum.add(overflow, a, b);
+		int16_t plaintext_sum = plaintext_a + plaintext_b;
+		bool plaintext_overflow = plaintext_sum > std::numeric_limits<int8_t>::max();
+		bool plaintext_underflow = plaintext_sum < std::numeric_limits<int8_t>::min();
+		RC_ASSERT((plaintext_overflow || plaintext_underflow) == decrypt(overflow, clientParams));
+	});
+}

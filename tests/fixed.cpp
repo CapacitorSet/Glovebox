@@ -2,6 +2,7 @@
 #include <rapidcheck/gtest.h>
 #include "FHEContext.cpp"
 
+using Q4_4 = Fixed<4, 4>;
 using Q4_4Test = FHEContext;
 
 TEST_F(Q4_4Test, Decrypt) {

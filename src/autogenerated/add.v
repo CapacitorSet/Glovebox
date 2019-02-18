@@ -1,15 +1,29 @@
-module add8(carry, out, a, b);
-   input  [7:0] a;
-   input  [7:0] b;
-   output [7:0] out;
-   output       carry;
-   assign {carry, out} = a + b;
+// Uses overflow detection from https://stackoverflow.com/a/24587824
+
+module add8(overflow, out, a, b);
+	localparam SIZE = 8;
+	localparam MSB = SIZE - 1;
+
+	input signed [(SIZE-1):0] a;
+	input signed [(SIZE-1):0] b;
+	wire extra;
+	output overflow;
+	output signed [(SIZE-1):0] out;
+
+	assign {extra, out} = {a[MSB], a} + {b[MSB], b};
+	assign overflow = extra ^ out[MSB];
 endmodule
 
-module add16(carry, out, a, b);
-   input  [15:0] a;
-   input  [15:0] b;
-   output [15:0] out;
-   output       carry;
-   assign {carry, out} = a + b;
+module add16(overflow, out, a, b);
+	localparam SIZE = 16;
+	localparam MSB = SIZE - 1;
+
+	input signed [(SIZE-1):0] a;
+	input signed [(SIZE-1):0] b;
+	wire extra;
+	output overflow;
+	output signed [(SIZE-1):0] out;
+
+	assign {extra, out} = {a[MSB], a} + {b[MSB], b};
+	assign overflow = extra ^ out[MSB];
 endmodule

@@ -83,12 +83,12 @@ public:
 	Int8(const char *packet, size_t pktsize, TFHEServerParams_t _p = default_server_params)
 		: Int(packet, pktsize, _p) {};
 
+	void add(bit_t overflow, Int8 a, Int8 b);
+	// Add and do not be notified if overflow happens
 	void add(Int8 a, Int8 b);
-	/*
-	void mul(Int8 a, Int8 b) {
-		::mul8(data, a.data, b.data, p);
-	}
-	*/
+	// In case of overflow the output will be *truncated* to the 8 LSBs!
+	void mul(bit_t overflow, Int8 a, Int8 b);
+	void mul(Int8 a, Int8 b);
 
 	// Used for array stuff; to be implemented later
 	/*
