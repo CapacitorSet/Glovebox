@@ -15,7 +15,7 @@ class Fixed : BASE_INT {
 
 	// Scale the number and return it as an integer
 	static native_type_t scale(double src) {
-		double scaled = src * (1 << FRAC_SIZE);
+		double scaled = round(src * double(1 << FRAC_SIZE));
 		// Assert that the scaled number fits
 		assert(scaled <= double(std::numeric_limits<native_type_t>::max()));
 		assert(scaled >= double(std::numeric_limits<native_type_t>::min()));
