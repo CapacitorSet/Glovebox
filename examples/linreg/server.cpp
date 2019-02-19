@@ -2,38 +2,25 @@
 #include <cstdio>
 #include <cstring>
 #include <cstdlib>
-#include <tfhe.h>
-#include "types.h"
+#include <fhe-tools.h>
 #include "../networking.h"
 
 #include "../dyad.h"
 
-TFHEServerParams_t params;
+TFHEServerParams_t default_server_params;
 
-Int* first;
-Int* second;
+using Q4_4 = Fixed<4, 4>;
+Q4_4 *x;
 
 void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) {
 	puts("New packet.");
-	assert(dataType == INT_TYPE_ID);
-	auto tmp = new Int(packet, pktsize, params);
-	if (first == nullptr) {
-		first = tmp;
-	} else if (second == nullptr) {
-		second = tmp;
-
-		auto x = Int::newU8(params);
-		for (int i = 0; i < 3; i++) {
-			printf("Iteration %d\n", i);
-			x->add(*first, *second);
-			// todo: document that this is buggy af because it will result in ptrs being reused
-			// first = second;
-			// second = x;
-			first->copy(*second);
-			second->copy(*x);
-		}
-		send(stream, x);
-	}
+	assert(dataType == Q4_4::typeID);
+	x = new Q4_4(packet, pktsize);
+	auto p = Polynomial<Q4_4>({1.0, 2.0});
+	bit_t p_overflow = make_bit();
+	auto y = p.evaluate(p_overflow, *x);
+	send(stream, &y);
+	// send(stream, p_overflow);
 }
 
 int main() {
@@ -43,7 +30,7 @@ int main() {
 		return 1;
 	}
 	puts("Initializing TFHE...");
-	params = makeTFHEServerParams(cloud_key);
+	default_server_params = makeTFHEServerParams(cloud_key);
 	fclose(cloud_key);
 
 	dyad_init();

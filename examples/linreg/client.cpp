@@ -1,60 +1,42 @@
 #include <assert.h>
 #include <cstdio>
-#include <tfhe.h>
 #include <cstring>
-#include "types.h"
+#include <fhe-tools.h>
 #include "../networking.h"
 
 #include "../dyad.h"
 
-TFHEClientParams_t p;
+TFHEClientParams_t default_client_params;
+
+using Q4_4 = Fixed<4, 4>;
+
+Q4_4 *x;
 
 dyad_Stream *s;
 
 void onConnect(dyad_Event *e) {
-	/*
-	send(s, a);
-	send(s, b);
-	*/
+	send(s, x);
 }
 
 void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) {
-	puts("New packet.");
-	assert(dataType == INT_TYPE_ID);
-	auto i = new ClientInt(packet, pktsize, p);
-	printf("Size: %d\n", i->size());
-	printf("Value: %d\n", i->toU8());
-	i->print(p);
-	putchar('\n');
-	delete i;
+	(void) stream;
+	puts("Received:");
+	assert(dataType == Q4_4::typeID);
+	auto y = Q4_4(packet, pktsize);
+	printf("%lf\n", y.toDouble());
 }
 
-// Todo: implement
-int main(int argc, char *argv[]) {
+int main() {
 	FILE *secret_key = fopen("secret.key", "rb");
 	if (secret_key == nullptr) {
 		puts("secret.key not found: run ./keygen first.");
 		return 1;
 	}
-	p = makeTFHEClientParams(secret_key);
-	auto _p = makeTFHEServerParams(p);
+	default_client_params = makeTFHEClientParams(secret_key);
 	fclose(secret_key);
 
-	Int *x = Int::newU8(15, _p);
-	Int *y = Int::newU8(15, _p);
-	Int *res = Int::newU8(_p);
-	res->mult(*x, *y);
-	printf("Result of multiplication: ");
-	res->print(p);
-	printf("\n");
+	x = new Q4_4(1.5);
 
-	ClientFixed32 a = ClientFixed32(2.0, p);
-	printf("Current value: a=%f\n", a.times(ClientFixed32(100.5, p)).toFloat(p));
-
-	KnownPolynomial pol = KnownPolynomial(std::vector<float>({1.0f, 2.0f, 1.0f}), makeTFHEServerParams(p));
-	printf("p(x) = 1.0 in x=a: %f\n", pol.evaluate(a).toFloat(p));
-
-	/*
 	dyad_init();
 
 	s = dyad_newStream();
@@ -69,7 +51,6 @@ int main(int argc, char *argv[]) {
 	puts("No more connections, closing.");
 
 	dyad_shutdown();
-	 */
-	freeTFHEClientParams(p);
+	freeTFHEClientParams(default_client_params);
 	return 0;
 }
