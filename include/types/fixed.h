@@ -27,6 +27,19 @@ public:
 		: BASE_INT(_p) {};
 	explicit Fixed(double src, TFHEServerParams_t _p = default_server_params)
 		: BASE_INT(scale(src), _p) {};
+	// Initialize from a char*
+	Fixed(const char *packet, size_t pktsize, TFHEServerParams_t _p) : Fixed<INT_SIZE, FRAC_SIZE>(_p) {
+		char int_size_from_header = packet[0];
+		char frac_size_from_header = packet[1];
+		assert(int_size_from_header == INT_SIZE);
+		assert(frac_size_from_header == FRAC_SIZE);
+		// Skip header
+		packet += 2;
+		pktsize -= 2;
+		std::stringstream ss;
+		ss.write(packet, pktsize);
+		deserialize(ss, this->data, this->p);
+	}
 
 	void add(bit_t overflow, Fixed<INT_SIZE, FRAC_SIZE> a, Fixed<INT_SIZE, FRAC_SIZE> b) {
 		BASE_INT::add(overflow, a, b);
@@ -39,6 +52,13 @@ public:
 		native_type_t tmp = this->toInt(p);
 		return double(tmp) / (1 << FRAC_SIZE);
 	};
+	std::string exportToString() {
+		char header[2] = {INT_SIZE, FRAC_SIZE};
+		std::ostringstream oss;
+		oss << header;
+		serialize(oss, this->data, this->p);
+		return oss.str();
+	}
 
 	void copy(Fixed<INT_SIZE, FRAC_SIZE> src) {
 		for (int i = 0; i < this->data.size(); i++)
