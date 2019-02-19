@@ -17,7 +17,8 @@ class Fixed : BASE_INT {
 	static native_type_t scale(double src) {
 		double scaled = src * (1 << FRAC_SIZE);
 		// Assert that the scaled number fits
-		assert(log2(fabs(scaled)) <= SIZE);
+		assert(scaled <= double(std::numeric_limits<native_type_t>::max()));
+		assert(scaled >= double(std::numeric_limits<native_type_t>::min()));
 		return native_type_t(scaled);
 	}
 

@@ -5,11 +5,21 @@
 using Q4_4 = Fixed<4, 4>;
 using Q4_4Test = FHEContext;
 
+// Round to within the resolution of a Q4.4, which is 2^-4
+double quantize(double a) {
+	return round(a * 16.f) / 16.f;
+}
+// Rescale to within the range of a Q4.4.
+// RapidCheck doesn't yet support doubles in ranges: https://github.com/emil-e/rapidcheck/issues/134
+double rescale(int8_t a) {
+	return double(a) / double(16);
+}
+
 TEST_F(Q4_4Test, Decrypt) {
-	::rc::detail::checkGTest([=](double plaintext_num) {
+	::rc::detail::checkGTest([=](int8_t _plaintext_num) {
+		double plaintext_num = rescale(_plaintext_num);
 		auto a = Q4_4(plaintext_num, clientParams);
-		ASSERT_DOUBLE_EQ(a.toDouble(clientParams), plaintext_num);
-		// RC_ASSERT(a.toDouble(clientParams) == plaintext_num);
+		RC_ASSERT(quantize(a.toDouble(clientParams)) == quantize(plaintext_num));
 	});
 }
 
