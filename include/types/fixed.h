@@ -27,17 +27,22 @@ public:
 	explicit Fixed(double src, TFHEServerParams_t _p = default_server_params)
 		: BASE_INT(scale(src), _p) {};
 
-	void add(Fixed<INT_SIZE, FRAC_SIZE> a, Fixed<INT_SIZE, FRAC_SIZE> b) {
-		BASE_INT::add(a, b);
+	void add(bit_t overflow, Fixed<INT_SIZE, FRAC_SIZE> a, Fixed<INT_SIZE, FRAC_SIZE> b) {
+		BASE_INT::add(overflow, a, b);
 	}
 	void mul(bit_t overflow, Fixed<INT_SIZE, FRAC_SIZE> a, Fixed<INT_SIZE, FRAC_SIZE> b) {
-		BASE_INT::mul(overflow, a, b);
+		BASE_INT::mul(overflow, a, b, FRAC_SIZE);
 	}
 
 	double toDouble(TFHEClientParams_t p = default_client_params) {
 		native_type_t tmp = this->toInt(p);
 		return double(tmp) / (1 << FRAC_SIZE);
 	};
+
+	void copy(Fixed<INT_SIZE, FRAC_SIZE> src) {
+		for (int i = 0; i < this->data.size(); i++)
+			_copy(this->data[i], src.data[i], this->p);
+	}
 };
 
 #endif //FHETOOLS_FIXED32_H
