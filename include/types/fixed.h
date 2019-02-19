@@ -8,7 +8,6 @@
 #define BASE_INT smallest_Int<INT_SIZE + FRAC_SIZE>
 template <uint8_t INT_SIZE, uint8_t FRAC_SIZE>
 class Fixed : BASE_INT {
-	static const int typeID = FIXED_TYPE_ID;
 	static const int SIZE = INT_SIZE + FRAC_SIZE;
 	static_assert(SIZE <= 8, "Size not supported");
 	using native_type_t = smallest_int_t<SIZE>;
@@ -23,12 +22,15 @@ class Fixed : BASE_INT {
 	}
 
 public:
+	static const int typeID = FIXED_TYPE_ID;
+
 	explicit Fixed(TFHEServerParams_t _p = default_server_params)
 		: BASE_INT(_p) {};
 	explicit Fixed(double src, TFHEServerParams_t _p = default_server_params)
 		: BASE_INT(scale(src), _p) {};
 	// Initialize from a char*
-	Fixed(const char *packet, size_t pktsize, TFHEServerParams_t _p) : Fixed<INT_SIZE, FRAC_SIZE>(_p) {
+	Fixed(const char *packet, size_t pktsize, TFHEServerParams_t _p = default_server_params)
+		: Fixed<INT_SIZE, FRAC_SIZE>(_p) {
 		char int_size_from_header = packet[0];
 		char frac_size_from_header = packet[1];
 		assert(int_size_from_header == INT_SIZE);
