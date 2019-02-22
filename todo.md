@@ -15,6 +15,8 @@ To do's
 
 [ ] Add support for arrays
 
+[ ] Add control flow (`if`, `while`, maybe `switch`)
+
 [ ] Fix free_bitspan
 
 [ ] Add support for parallel computing in high-level, expensive operations
