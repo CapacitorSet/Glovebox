@@ -26,7 +26,7 @@ public:
 		char mysize = size;
 		memcpy(header, &mysize, 1);
 		std::ostringstream oss;
-		oss << header;
+		oss.write(header, sizeof(header));
 		serialize(oss, data, p);
 		return oss.str();
 	}

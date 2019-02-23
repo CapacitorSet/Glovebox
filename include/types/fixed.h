@@ -57,7 +57,7 @@ public:
 	std::string exportToString() {
 		char header[2] = {INT_SIZE, FRAC_SIZE};
 		std::ostringstream oss;
-		oss << header;
+		oss.write(header, sizeof(header));
 		serialize(oss, this->data, this->p);
 		return oss.str();
 	}
