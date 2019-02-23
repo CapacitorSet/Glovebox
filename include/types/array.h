@@ -45,12 +45,12 @@ public:
 		char typeID_from_header;
 		uint16_t length_from_header;
 		memcpy(&typeID_from_header, packet, 1);
-		memcpy(&length_from_header, packet + 1, 4);
+		memcpy(&length_from_header, packet + 1, 2);
 		assert(typeID_from_header == T::typeID);
 		assert(length_from_header == Length);
 		// Skip header
-		packet += 5;
-		pktsize -= 5;
+		packet += 3;
+		pktsize -= 3;
 		std::stringstream ss;
 		ss.write(packet, pktsize);
 		deserialize(ss, data, p);
@@ -99,9 +99,9 @@ public:
 	}
 
 	std::string exportToString() {
-		char header[5] = {T::typeID};
+		char header[3] = {T::typeID};
 		uint16_t size = Length;
-		memcpy(header + 1, &size, 4);
+		memcpy(header + 1, &size, 2);
 		std::ostringstream oss;
 		oss.write(header, sizeof(header));
 		serialize(oss, data, p);
