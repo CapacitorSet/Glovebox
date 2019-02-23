@@ -80,7 +80,7 @@ public:
 
 	void get(T dst, native_address_type address) {
 		assert(address < Length);
-		_copy(dst.data, data.subspan(address * WordSize, WordSize));
+		_copy(dst.data, data.subspan(address * WordSize, WordSize), p);
 	}
 
 	/*
