@@ -142,6 +142,7 @@ if (TESTS_ENABLED)
             tests/FHEContext.cpp
             tests/gates.cpp
             tests/int.cpp
+            tests/array.cpp
             tests/fixed.cpp
             tests/serialization.cpp
             )

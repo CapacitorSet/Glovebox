@@ -4,7 +4,7 @@
 #include <cstring>
 #include "array.h"
 #include "int.h"
-
+/*
 // A string of *fixed* length.
 class String : protected Array<Int8> {
 public:
@@ -29,5 +29,6 @@ public:
 		return Array::equals(dst);
 	}
 };
+ */
 
 #endif //FHETOOLS_STRING_H

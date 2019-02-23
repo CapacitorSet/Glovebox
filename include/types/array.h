@@ -7,13 +7,18 @@
 #include "type_ids.h"
 #include "int.h"
 
-template <class T> class Array {
+template <class T, uint16_t Length> class Array {
 protected:
-	uint16_t wordSize;
+	static constexpr uint16_t WordSize = T::_wordSize;
+private:
+	using native_address_type = smallest_uint_t<Length>;
+	using encrypted_address_type = smallest_Int<Length>;
+	static_assert(Length <= 8, "This size is not supported"); // See smallest_Int
+
+	static constexpr uint32_t Bitlength = WordSize * Length;
+
+public:
 	bitspan_t data;
-	// Todo: figure out how to use `span<bitspan_t> words` to encode this
-	// information
-	uint64_t length;
 
 	/*
 	static void getN_thBit(bits_t ret, uint8_t N, uint8_t wordsize,
@@ -22,51 +27,88 @@ protected:
 	                       TFHEServerParams_t p = default_server_params);
 	                       */
 
-public:
 	static const int typeID = ARRAY_TYPE_ID;
-	Array(uint64_t _length, uint16_t _wordSize, TFHEServerParams_t _p = default_server_params)
-			: wordSize(_wordSize), length(_length), p(_p) {
-		data = make_bitspan(_length * _wordSize, p);
+	explicit Array(bool initialize_memory = true, only_TFHEServerParams_t _p = default_server_params)
+			: p(unwrap_only(_p)) {
+		data = make_bitspan(Bitlength, p);
+		if (initialize_memory)
+			zero(data, unwrap_only(_p));
 	}
 
-	void put(T src, Int8 address) {
-		// Todo: check that there are enough address bits
-		assert(src.size() == this->wordSize);
+	explicit Array(bool initialize_memory, TFHEClientParams_t _p) : p(_p) {
+		data = make_bitspan(Bitlength, p);
+		if (initialize_memory)
+			zero(data, _p);
+	}
+
+	Array(const char *packet, size_t pktsize, TFHEServerParams_t _p = default_server_params) : Array(false, _p) {
+		char typeID_from_header;
+		uint16_t length_from_header;
+		memcpy(&typeID_from_header, packet, 1);
+		memcpy(&length_from_header, packet + 1, 4);
+		assert(typeID_from_header == T::typeID);
+		assert(length_from_header == Length);
+		// Skip header
+		packet += 5;
+		pktsize -= 5;
+		std::stringstream ss;
+		ss.write(packet, pktsize);
+		deserialize(ss, data, p);
+	}
+
+	void put(T src, encrypted_address_type address) {
 		bit_t mask = make_bit(p);
 		constant(mask, 1, p);
 
 		putBits(src.data, address.data, 0, mask);
 	}
 
+	void put(T src, native_address_type address) {
+		assert(address < Length);
+		for (uint16_t i = 0; i < WordSize; i++)
+			_copy(data[address * WordSize + i], src.data[i], p);
+	};
+
+	/*
 	maskable_function_t m_put(T src, Int8 address) {
 		// Todo: check that there are enough address bits
-		assert(src.size() == this->wordSize);
 		return [=] (bit_t mask) -> void {
 			putBits(src.data, address.data, 0, mask);
 		};
 	}
+	*/
 
-	void getp(T dst, uint64_t address) {
-		assert(address < this->length);
-		dst._fromBytes(
-				this->data.subspan(address * this->wordSize, this->wordSize));
+	void get(T dst, native_address_type address) {
+		assert(address < Length);
+		_copy(dst.data, data.subspan(address * WordSize, WordSize));
 	}
 
-	maskable_function_t m_getp(T dst, uint64_t address) {
+	/*
+	maskable_function_t m_get(T dst, uint64_t address) {
 		assert(address < this->length);
 		return dst._m_fromBytes(
 				this->data.subspan(address * this->wordSize, this->wordSize));
 	}
+	*/
 
-	void get(T dst, Int8 address) {
-		// Todo: check that there are enough address bits
-		assert(dst.size() == this->wordSize);
+	void get(T dst, encrypted_address_type address) {
 		bit_t mask = make_bit(p);
 		constant(mask, 1, p);
 
 		getBits(dst.data, address.data, 0, mask);
 	}
 
+	std::string exportToString() {
+		char header[5] = {T::typeID};
+		uint16_t size = Length;
+		memcpy(header + 1, &size, 4);
+		std::ostringstream oss;
+		oss.write(header, sizeof(header));
+		serialize(oss, data, p);
+		return oss.str();
+	}
+
+	/*
 	maskable_function_t m_get(T dst, Int8 address) {
 		// Todo: check that there are enough address bits
 		assert(dst.size() == this->wordSize);
@@ -74,22 +116,7 @@ public:
 			getBits(dst.data, address.data, 0, mask);
 		};
 	}
-
-	bit_t equals(Array arr) {
-		bit_t ret = make_bit(p);
-		if (arr.data.size() != data.size()) {
-			// constant(ret, 0, p);
-			return ret;
-		}
-		constant(ret, 1, p);
-		bit_t equal = make_bit(p);
-		for (int i = 0; i < data.size(); i++) {
-			_xnor(equal, data[i], arr.data[i], p);
-			_and(ret, ret, equal, p);
-		}
-		free_bitspan(equal);
-		return ret;
-	}
+	 */
 
 private:
 	TFHEServerParams_t p;
@@ -99,23 +126,23 @@ private:
 		// Writes out of bounds are a no-op. This is necessary for arrays to
 		// work with sizes other than powers of two. Bound checks should be done
 		// at the caller.
-		if (dynamicOffset >= this->length) {
+		if (dynamicOffset >= Length) {
 			// printf("%zu out of bounds.\n", dynamicOffset);
 			return;
 		}
 		if (address.size() == 1) {
 			// printf("Put: %zu out of %li\n", this->wordSize * dynamicOffset + N, this->length * wordSize);
-			size_t offset = wordSize * dynamicOffset;
+			size_t offset = WordSize * dynamicOffset;
 			bit_t lowerMask = make_bit(p);
 			_andyn(lowerMask, mask, address[0], p);
-			for (int i = 0; i < wordSize; i++)
+			for (int i = 0; i < WordSize; i++)
 				_mux(data[offset + i], lowerMask, src[i], data[offset + i], p);
 			free_bitspan(lowerMask);
 
-			offset += wordSize;
+			offset += WordSize;
 			bit_t upperMask = make_bit(p);
 			_and(upperMask, mask, address[0], p);
-			for (int i = 0; i < wordSize; i++)
+			for (int i = 0; i < WordSize; i++)
 				_mux(data[offset + i], upperMask, src[i], data[offset + i], p);
 			free_bitspan(upperMask);
 			return;
@@ -155,23 +182,23 @@ private:
 		// Reads out of bounds are a no-op. This is necessary for arrays to
 		// work with sizes other than powers of two. Bound checks should be done
 		// at the caller.
-		if (dynamicOffset >= this->length) {
+		if (dynamicOffset >= Length) {
 			// printf("%zu out of bounds.\n", dynamicOffset);
 			return;
 		}
 		if (address.size() == 1) {
 			// printf("Put: %zu out of %li\n", this->wordSize * dynamicOffset + N, this->length * wordSize);
-			size_t offset = wordSize * dynamicOffset;
+			size_t offset = WordSize * dynamicOffset;
 			bit_t lowerMask = make_bit(p);
 			_andyn(lowerMask, mask, address[0], p);
-			for (int i = 0; i < wordSize; i++)
+			for (int i = 0; i < WordSize; i++)
 				_mux(dst[i], lowerMask, data[offset + i], dst[i], p);
 			free_bitspan(lowerMask);
 
-			offset += wordSize;
+			offset += WordSize;
 			bit_t upperMask = make_bit(p);
 			_and(upperMask, mask, address[0], p);
-			for (int i = 0; i < wordSize; i++)
+			for (int i = 0; i < WordSize; i++)
 				_mux(dst[i], upperMask, data[offset + i], dst[i], p);
 			free_bitspan(upperMask);
 			return;
@@ -195,70 +222,16 @@ private:
 		 */
 		bit_t lowerMask = make_bit(p);
 		_andyn(lowerMask, mask, address.last(), p);
-		putBits(dst, address.subspan(0, address.size() - 1), dynamicOffset,
+		getBits(dst, address.subspan(0, address.size() - 1), dynamicOffset,
 		        lowerMask);
 		free_bitspan(lowerMask);
 
 		bit_t upperMask = make_bit(p);
 		_and(upperMask, mask, address.last(), p);
-		putBits(dst, address.subspan(0, address.size() - 1),
+		getBits(dst, address.subspan(0, address.size() - 1),
 		        dynamicOffset + (1 << (address.size() - 1)), upperMask);
 		free_bitspan(upperMask);
 	}
-};
-
-template <typename T> class ClientArray : public Array<T> {
-public:
-	ClientArray(uint64_t _length, uint16_t _wordSize, TFHEClientParams_t _p = default_client_params)
-			: Array<T>(_length, _wordSize, _p), p(_p) {}
-
-	// Copies n bytes from src to the given address (with the address given in
-	// bytes).
-	void putp(char *src, uint64_t address, size_t n) {
-		assert((address * 8 + n) < this->length * this->wordSize);
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; j < 8; j++) {
-				char bit = (src[i] >> j) & 1;
-				constant(&this->data[(address + i) * 8 + j], bit, p);
-			}
-		}
-	}
-
-	void putp(T src, uint64_t address) {
-		src._writeTo(
-				this->data.subspan(address * this->wordSize, this->wordSize));
-	}
-
-	/*
-	// Reads one word at the given address (given in words) and puts it into
-	// dst. Note that the pointers are copied, so changes made to dst will be
-	// reflected in the array.
-	void peek(bits_t dst, uint64_t address) {
-	    assert(address < this->length);
-	    memcpy(dst, &this->data[address], this->wordSize);
-	}
-	*/
-
-	// Decrypts one word at the given address (given in words) and puts it into
-	// dst.
-	void getp(char *dst, uint64_t address) {
-		assert(address < this->length);
-		char byte = 0;
-		char bytepos = 0;
-		size_t dstpos = 0;
-		for (int i = 0; i < this->wordSize; i++) {
-			char bit = decrypt(this->data[address * this->wordSize + i], p);
-			byte |= bit << bytepos++;
-			if (bytepos == 8) {
-				bytepos = 0;
-				dst[dstpos++] = byte;
-				byte = 0;
-			}
-		}
-	}
-
-private:
-	TFHEClientParams_t p;
 };
 
 #endif //FHETOOLS_ARRAY_H

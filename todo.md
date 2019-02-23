@@ -13,7 +13,7 @@ To do's
 
 [ ] Implement String, instance from raw bitspan
 
-[ ] Add support for arrays
+[x] Add support for arrays
 
 [ ] Add control flow (`if`, `while`, maybe `switch`)
 

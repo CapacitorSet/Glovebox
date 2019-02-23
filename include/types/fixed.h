@@ -7,7 +7,7 @@
 // Then the size of your fixed is too large.
 #define BASE_INT smallest_Int<INT_SIZE + FRAC_SIZE>
 template <uint8_t INT_SIZE, uint8_t FRAC_SIZE>
-class Fixed : BASE_INT {
+class Fixed : public BASE_INT {
 	static const int SIZE = INT_SIZE + FRAC_SIZE;
 	static_assert(SIZE <= 8, "Size not supported");
 	using native_type_t = smallest_int_t<SIZE>;
@@ -23,6 +23,7 @@ class Fixed : BASE_INT {
 
 public:
 	static const int typeID = FIXED_TYPE_ID;
+	static const int _wordSize = INT_SIZE + FRAC_SIZE;
 
 	explicit Fixed(TFHEServerParams_t _p = default_server_params)
 		: BASE_INT(_p) {};

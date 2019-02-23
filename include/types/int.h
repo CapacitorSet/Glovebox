@@ -16,6 +16,14 @@ using smallest_int_t =
 	int64_t
 >>>;
 
+template<uint8_t N, typename = std::enable_if<N <= 64>>
+using smallest_uint_t =
+	std::conditional_t<(N <= 8), uint8_t,
+	std::conditional<(N <= 16), uint16_t,
+	std::conditional<(N <= 32), uint32_t,
+	uint64_t
+>>>;
+
 template <uint8_t size>
 class Int {
 	using native_type_t = smallest_int_t<size>;
@@ -70,13 +78,14 @@ protected:
 	}
 
 	TFHEServerParams_t p;
+public:
 	fixed_bitspan_t<size> data;
 };
 
 class Int8 : public Int<8> {
-	template <class T> friend class Array; // Int8.data is used to access arrays
 public:
 	static const int typeID = INT_TYPE_ID;
+	static const int _wordSize = 8;
 
 	// Create an Int8, but do not initialize the memory
 	explicit Int8(TFHEServerParams_t _p = default_server_params)
