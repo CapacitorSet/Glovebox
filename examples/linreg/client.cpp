@@ -10,20 +10,24 @@ TFHEClientParams_t default_client_params;
 
 using Q4_4 = Fixed<4, 4>;
 
-Q4_4 *x;
+Array<Q4_4, 2> *xs;
 
 dyad_Stream *s;
 
 void onConnect(dyad_Event *e) {
-	send(s, x);
+	send(s, xs);
 }
 
 void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) {
 	(void) stream;
 	puts("Received:");
-	assert(dataType == Q4_4::typeID);
-	auto y = Q4_4(packet, pktsize);
-	printf("%lf\n", y.toDouble());
+	assert(dataType == (Array<Q4_4, 2>::typeID));
+	auto ys = new Array<Q4_4, 2>(packet, pktsize, default_client_params);
+	for (int i = 0; i < 2; i++) {
+		auto y = Q4_4(0, default_client_params);
+		ys->get(y, i);
+		printf("%lf\n", y.toDouble());
+	}
 }
 
 int main() {
@@ -35,7 +39,11 @@ int main() {
 	default_client_params = makeTFHEClientParams(secret_key);
 	fclose(secret_key);
 
-	x = new Q4_4(1.5);
+	xs = new Array<Q4_4, 2>(false, default_client_params);
+	auto tmp0 = Q4_4(1.0, default_client_params);
+	xs->put(tmp0, 0);
+	auto tmp1 = Q4_4(1.5, default_client_params);
+	xs->put(tmp1, 1);
 
 	dyad_init();
 

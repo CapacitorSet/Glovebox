@@ -10,16 +10,22 @@
 TFHEServerParams_t default_server_params;
 
 using Q4_4 = Fixed<4, 4>;
-Q4_4 *x;
+Array<Q4_4, 2> *xs;
 
 void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) {
 	puts("New packet.");
-	assert(dataType == Q4_4::typeID);
-	x = new Q4_4(packet, pktsize);
+	assert(dataType == (Array<Q4_4, 2>::typeID));
+	xs = new Array<Q4_4, 2>(packet, pktsize);
+	auto ys = new Array<Q4_4, 2>();
 	auto p = Polynomial<Q4_4>({1.0, 2.0});
 	bit_t p_overflow = make_bit();
-	auto y = p.evaluate(p_overflow, *x);
-	send(stream, &y);
+	for (int i = 0; i < 2; i++) {
+		auto x = Q4_4(0);
+		xs->get(x, i);
+		auto y = p.evaluate(p_overflow, x);
+		ys->put(y, i);
+	}
+	send(stream, ys);
 	// send(stream, p_overflow);
 }
 
