@@ -7,6 +7,10 @@
 #if PLAINTEXT
 #warning You are compiling a plaintext binary.
 
+TFHEServerParams_t unwrap_only(only_TFHEServerParams_t) {
+	return TFHEServerParams_t{};
+};
+
 TFHEClientParams_t makeTFHEClientParams(FILE*) {
 	return TFHEClientParams_t{};
 }
@@ -87,6 +91,10 @@ void _copy(bit_t dst, bit_t src, TFHEServerParams_t) {
 }
 
 #else
+
+TFHEServerParams_t unwrap_only(only_TFHEServerParams_t p) {
+	return TFHEServerParams_t{p.params, p.bk};
+};
 
 TFHEClientParams_t makeTFHEClientParams(FILE *secret_key) {
 	TFheGateBootstrappingSecretKeySet *key =

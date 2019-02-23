@@ -52,6 +52,8 @@ typedef struct {
 typedef gsl::span<unsafe_bit_t> bitspan_t;
 typedef gsl::span<unsafe_bit_t, 1> bit_t;
 
+// C++ doesn't allow us to define a conversion operator for only_TFHESrvParam to TFHESrvParam.
+TFHEServerParams_t unwrap_only(only_TFHEServerParams_t p);
 TFHEClientParams_t makeTFHEClientParams(FILE *secret_key);
 TFHEServerParams_t makeTFHEServerParams(FILE *cloud_key);
 void freeTFHEServerParams(only_TFHEServerParams_t p);

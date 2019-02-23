@@ -45,10 +45,15 @@ protected:
 		: p(_p), data(make_fixed_bitspan<size>(_p)) {};
 
 	// Initialize from a plaintext int
-	explicit Int(native_type_t src, TFHEServerParams_t _p = default_server_params)
-		: Int(_p) {
+	explicit Int(native_type_t src, only_TFHEServerParams_t _p = default_server_params)
+		: Int(unwrap_only(_p)) {
 		for (int i = 0; i < size; i++)
 			constant(data[i], (src >> i) & 1, _p);
+	}
+	explicit Int(native_type_t src, TFHEClientParams_t _p)
+		: Int(_p) {
+		for (int i = 0; i < size; i++)
+			encrypt(data[i], (src >> i) & 1, _p);
 	}
 
 	// Initialize from a char*
@@ -77,7 +82,9 @@ public:
 	explicit Int8(TFHEServerParams_t _p = default_server_params)
 		: Int(_p) {};
 	// Initialize from a plaintext int8
-	explicit Int8(int8_t src, TFHEServerParams_t _p = default_server_params)
+	explicit Int8(int8_t src, only_TFHEServerParams_t _p = default_server_params)
+		: Int(src, _p) {};
+	explicit Int8(int8_t src, TFHEClientParams_t _p)
 		: Int(src, _p) {};
 	// Inizialize from a char*
 	Int8(const char *packet, size_t pktsize, TFHEServerParams_t _p = default_server_params)

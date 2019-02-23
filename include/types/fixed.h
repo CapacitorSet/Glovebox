@@ -26,7 +26,9 @@ public:
 
 	explicit Fixed(TFHEServerParams_t _p = default_server_params)
 		: BASE_INT(_p) {};
-	explicit Fixed(double src, TFHEServerParams_t _p = default_server_params)
+	explicit Fixed(double src, only_TFHEServerParams_t _p = default_server_params)
+		: BASE_INT(scale(src), unwrap_only(_p)) {};
+	explicit Fixed(double src, TFHEClientParams_t _p)
 		: BASE_INT(scale(src), _p) {};
 	// Initialize from a char*
 	Fixed(const char *packet, size_t pktsize, TFHEServerParams_t _p = default_server_params)
