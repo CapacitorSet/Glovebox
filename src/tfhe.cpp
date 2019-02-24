@@ -23,29 +23,31 @@ TFHEServerParams_t makeTFHEServerParams(TFHEClientParams_t) {
 	return TFHEServerParams_t{};
 }
 
-void freeTFHEServerParams(TFHEServerParams_t) {
-}
-void freeTFHEClientParams(TFHEClientParams_t) {
-}
+void freeTFHEServerParams(TFHEServerParams_t) {}
+void freeTFHEClientParams(TFHEClientParams_t) {}
 
 int decrypt(bit_t dst, TFHEClientParams_t) {
 	return *dst.data();
 }
 
 bit_t make_bit(TFHEClientParams_t) {
-	return gsl::span<bool, 1>(reinterpret_cast<bool*>(malloc(1)), 1);
+	auto ptr = std::shared_ptr<bool>(reinterpret_cast<bool*>(malloc(1)));
+	return gsl::span<bool, 1>(ptr, 1);
 }
 
 bit_t make_bit(TFHEServerParams_t) {
-	return gsl::span<bool, 1>(reinterpret_cast<bool*>(malloc(1)), 1);
+	auto ptr = std::shared_ptr<bool>(reinterpret_cast<bool*>(malloc(1)));
+	return gsl::span<bool, 1>(ptr, 1);
 }
 
 bitspan_t make_bitspan(int N, TFHEClientParams_t) {
-	return gsl::span<bool>(reinterpret_cast<bool*>(malloc(N)), N);
+	auto ptr = std::shared_ptr<bool>(reinterpret_cast<bool*>(malloc(N)));
+	return gsl::span<bool>(ptr, N);
 }
 
 bitspan_t make_bitspan(int N, TFHEServerParams_t) {
-	return gsl::span<bool>(reinterpret_cast<bool*>(malloc(N)), N);
+	auto ptr = std::shared_ptr<bool>(reinterpret_cast<bool*>(malloc(N)));
+	return gsl::span<bool>(ptr, N);
 }
 
 void encrypt(bit_t dst, bool src, TFHEClientParams_t) {
@@ -77,10 +79,6 @@ BINARY_OPERATOR(orny, !A || B)
 BINARY_OPERATOR(nor, !(A || B))
 BINARY_OPERATOR(xor, A ^ B)
 BINARY_OPERATOR(xnor, !(A ^ B))
-
-void free_bitspan(bitspan_t item) {
-	free(item.data());
-}
 
 void _mux(bit_t dst, bit_t cond, bit_t a, bit_t b, TFHEServerParams_t) {
 	*dst.data() = *cond.data() ? *a.data() : *b.data();
@@ -126,41 +124,47 @@ void freeTFHEClientParams(TFHEClientParams_t p) {
 }
 
 int decrypt(bit_t dst, TFHEClientParams_t p) {
-	return bootsSymDecrypt(dst.data(), p.key);
+	return bootsSymDecrypt(dst.cptr(), p.key);
 }
 
 bit_t make_bit(TFHEClientParams_t p) {
-	return gsl::span<LweSample, 1>(new_gate_bootstrapping_ciphertext(p.params), 1);
+	LweSample *cptr = new_gate_bootstrapping_ciphertext(p.params);
+	auto ptr = std::shared_ptr<LweSample>(cptr);
+	return gsl::span<LweSample, 1>(ptr, 1);
 }
 
 bit_t make_bit(TFHEServerParams_t p) {
-	return gsl::span<LweSample, 1>(new_gate_bootstrapping_ciphertext(p.params), 1);
+	LweSample *cptr = new_gate_bootstrapping_ciphertext(p.params);
+	auto ptr = std::shared_ptr<LweSample>(cptr);
+	return gsl::span<LweSample, 1>(ptr, 1);
 }
 
 bitspan_t make_bitspan(int N, TFHEClientParams_t p) {
-	LweSample *ptr = new_gate_bootstrapping_ciphertext_array(N, p.params);
+	LweSample *cptr = new_gate_bootstrapping_ciphertext(p.params);
+	auto ptr = std::shared_ptr<LweSample>(cptr);
 	return gsl::span<LweSample>(ptr, N);
 }
 
 bitspan_t make_bitspan(int N, TFHEServerParams_t p) {
-	LweSample *ptr = new_gate_bootstrapping_ciphertext_array(N, p.params);
+	LweSample *cptr = new_gate_bootstrapping_ciphertext_array(N, p.params);
+	auto ptr = std::shared_ptr<LweSample>(cptr);
 	return gsl::span<LweSample>(ptr, N);
 }
 
 void encrypt(bit_t dst, bool src, TFHEClientParams_t p) {
-	bootsSymEncrypt(dst.data(), src, p.key);
+	bootsSymEncrypt(dst.cptr(), src, p.key);
 }
 
 void constant(bit_t dst, bool src, only_TFHEServerParams_t p) {
-	bootsCONSTANT(dst.data(), src, p.bk);
+	bootsCONSTANT(dst.cptr(), src, p.bk);
 }
 
 void _not(bit_t dst, bit_t src, TFHEServerParams_t p) {
-	bootsNOT(dst.data(), src.data(), p.bk);
+	bootsNOT(dst.cptr(), src.cptr(), p.bk);
 }
 
 #define BINARY_OPERATOR(LibName, TFHEName) void _ ## LibName(bit_t dst, const bit_t a, const bit_t b, TFHEServerParams_t p) { \
-	boots ## TFHEName(dst.data(), a.data(), b.data(), p.bk); \
+	boots ## TFHEName(dst.cptr(), a.cptr(), b.cptr(), p.bk); \
 }
 
 BINARY_OPERATOR(and, AND)
@@ -174,16 +178,12 @@ BINARY_OPERATOR(nor, NOR)
 BINARY_OPERATOR(xor, XOR)
 BINARY_OPERATOR(xnor, XNOR)
 
-void free_bitspan(bitspan_t item) {
-	free_LweSample_array(item.size(), item.data());
-}
-
 void _mux(bit_t dst, bit_t cond, bit_t a, bit_t b, TFHEServerParams_t p) {
-	bootsMUX(dst.data(), cond.data(), a.data(), b.data(), p.bk);
+	bootsMUX(dst.cptr(), cond.cptr(), a.cptr(), b.cptr(), p.bk);
 }
 
 void _copy(bit_t dst, bit_t src, TFHEServerParams_t p) {
-	bootsCOPY(dst.data(), src.data(), p.bk);
+	bootsCOPY(dst.cptr(), src.cptr(), p.bk);
 }
 
 #endif

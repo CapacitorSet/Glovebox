@@ -14,9 +14,6 @@
         bit_t fhe_out = make_bit(serverParams); \
         _ ## FHEOperand(fhe_out, fhe_A, fhe_B, serverParams); \
         ASSERT_EQ(decrypt(fhe_out, clientParams), out); \
-        free_bitspan(fhe_A); \
-        free_bitspan(fhe_B); \
-        free_bitspan(fhe_out); \
     } \
 }
 

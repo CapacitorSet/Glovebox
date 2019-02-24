@@ -172,18 +172,6 @@ function transpile_module(_) {
 			return `  bitspan_t ${it.value} = make_bitspan(${size});\n`;
 	}
 
-	// Free memory, if we marked this place as the last place the bit is used.
-	function free_if_needed(it, i) {
-		assert(it.type == "identifier");
-		const {type, size, lastDeclared} = metadata[it.value];
-		if (type != "wire")
-			return "";
-		if (lastDeclared != i)
-			return "";
-
-		return `  free_bitspan(${it.value});\n`;
-	}
-
 	const gates = gateList
 		.map((it, i) => {
 			switch (it.gate) {
@@ -194,10 +182,6 @@ function transpile_module(_) {
 				ret += declare_if_needed(it.t, i);
 				ret += declare_if_needed(it.f, i);
 				ret += `  _mux(${transpile_identifier(it.z)}, ${transpile_identifier(it.sel)}, ${transpile_identifier(it.t)}, ${transpile_identifier(it.f)}, p);\n`;
-				ret += free_if_needed(it.z, i);
-				ret += free_if_needed(it.sel, i);
-				ret += free_if_needed(it.t, i);
-				ret += free_if_needed(it.f, i);
 				return ret;
 			}
 			case "copy":
@@ -206,8 +190,6 @@ function transpile_module(_) {
 				ret += declare_if_needed(it.z, i);
 				ret += declare_if_needed(it.a, i);
 				ret += `  _${it.gate}(${transpile_identifier(it.z)}, ${transpile_identifier(it.a)}, p);\n`;
-				ret += free_if_needed(it.z, i);
-				ret += free_if_needed(it.a, i);
 				return ret;
 			}
 			default: {
@@ -216,9 +198,6 @@ function transpile_module(_) {
 				ret += declare_if_needed(it.a, i);
 				ret += declare_if_needed(it.b, i);
 				ret += `  _${it.gate}(${transpile_identifier(it.z)}, ${transpile_identifier(it.a)}, ${transpile_identifier(it.b)}, p);\n`;
-				ret += free_if_needed(it.z, i);
-				ret += free_if_needed(it.a, i);
-				ret += free_if_needed(it.b, i);
 				return ret;
 			}
 			}

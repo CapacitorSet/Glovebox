@@ -17,6 +17,8 @@ To do's
 
 [ ] Add control flow (`if`, `while`, maybe `switch`)
 
-[ ] Fix free_bitspan
+[x] Fix memory management
 
 [ ] Add support for parallel computing in high-level, expensive operations
+
+[ ] Reuse wire IDs in codegen

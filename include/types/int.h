@@ -50,7 +50,7 @@ public:
 protected:
 	// Create an Int8, but do not initialize the memory
 	explicit Int(TFHEServerParams_t _p = default_server_params)
-		: p(_p), data(make_fixed_bitspan<size>(_p)) {};
+		: p(_p), data(make_bitspan<size>(_p)) {};
 
 	// Initialize from a plaintext int
 	explicit Int(native_type_t src, only_TFHEServerParams_t _p = default_server_params)

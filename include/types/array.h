@@ -137,14 +137,12 @@ private:
 			_andyn(lowerMask, mask, address[0], p);
 			for (int i = 0; i < WordSize; i++)
 				_mux(data[offset + i], lowerMask, src[i], data[offset + i], p);
-			free_bitspan(lowerMask);
 
 			offset += WordSize;
 			bit_t upperMask = make_bit(p);
 			_and(upperMask, mask, address[0], p);
 			for (int i = 0; i < WordSize; i++)
 				_mux(data[offset + i], upperMask, src[i], data[offset + i], p);
-			free_bitspan(upperMask);
 			return;
 		}
 		/*
@@ -168,13 +166,11 @@ private:
 		_andyn(lowerMask, mask, address.last(), p);
 		putBits(src, address.subspan(0, address.size() - 1), dynamicOffset,
 		        lowerMask);
-		free_bitspan(lowerMask);
 
 		bit_t upperMask = make_bit(p);
 		_and(upperMask, mask, address.last(), p);
 		putBits(src, address.subspan(0, address.size() - 1),
 		        dynamicOffset + (1 << (address.size() - 1)), upperMask);
-		free_bitspan(upperMask);
 	}
 
 	void getBits(bitspan_t dst, bitspan_t address, size_t dynamicOffset,
@@ -193,14 +189,12 @@ private:
 			_andyn(lowerMask, mask, address[0], p);
 			for (int i = 0; i < WordSize; i++)
 				_mux(dst[i], lowerMask, data[offset + i], dst[i], p);
-			free_bitspan(lowerMask);
 
 			offset += WordSize;
 			bit_t upperMask = make_bit(p);
 			_and(upperMask, mask, address[0], p);
 			for (int i = 0; i < WordSize; i++)
 				_mux(dst[i], upperMask, data[offset + i], dst[i], p);
-			free_bitspan(upperMask);
 			return;
 		}
 		/*
@@ -224,13 +218,11 @@ private:
 		_andyn(lowerMask, mask, address.last(), p);
 		getBits(dst, address.subspan(0, address.size() - 1), dynamicOffset,
 		        lowerMask);
-		free_bitspan(lowerMask);
 
 		bit_t upperMask = make_bit(p);
 		_and(upperMask, mask, address.last(), p);
 		getBits(dst, address.subspan(0, address.size() - 1),
 		        dynamicOffset + (1 << (address.size() - 1)), upperMask);
-		free_bitspan(upperMask);
 	}
 };
 

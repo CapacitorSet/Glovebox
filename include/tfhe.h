@@ -77,19 +77,18 @@ public:
 	explicit fixed_bitspan_t(gsl::span<unsafe_bit_t, size> span) : gsl::span<unsafe_bit_t, size>(span) {};
 };
 template <uint8_t size>
-fixed_bitspan_t<size> make_fixed_bitspan(only_TFHEServerParams_t p = default_server_params) {
+fixed_bitspan_t<size> make_bitspan(only_TFHEServerParams_t p = default_server_params) {
 	// Can this be rewritten in terms of make_bitspan, subspan?
 #if PLAINTEXT
 	(void) p;
-	bool *ptr = reinterpret_cast<bool*>(malloc(size));
+	auto cptr = reinterpret_cast<bool*>(malloc(size));
 #else
-	LweSample *ptr = new_gate_bootstrapping_ciphertext_array(size, p.params);
+	LweSample *cptr = new_gate_bootstrapping_ciphertext_array(size, p.params);
 #endif
+	auto ptr = std::shared_ptr<unsafe_bit_t>(cptr);
 	auto span = gsl::span<unsafe_bit_t, size>(ptr, size);
 	return fixed_bitspan_t<size>(span);
 }
-
-void free_bitspan(bitspan_t item);
 
 int decrypt(bit_t dst,
 #if PLAINTEXT

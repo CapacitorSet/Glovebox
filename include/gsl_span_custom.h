@@ -136,8 +136,7 @@ namespace details
         using value_type = std::remove_cv_t<element_type_>;
         using difference_type = typename Span::index_type;
 
-        using reference = std::conditional_t<IsConst, const element_type_, element_type_>&;
-        using pointer = std::add_pointer_t<reference>;
+        using pointer = std::shared_ptr<std::conditional_t<IsConst, const element_type_, element_type_>>;
 
         span_iterator() = default;
 
@@ -231,7 +230,7 @@ namespace details
             return index_ - rhs.index_;
         }
 
-        constexpr reference operator[](difference_type n) const { return *(*this + n); }
+        constexpr pointer operator[](difference_type n) const { return *(*this + n); }
 
         constexpr friend bool operator==(span_iterator lhs, span_iterator rhs) noexcept
         {
@@ -366,8 +365,7 @@ public:
     using element_type = ElementType;
     using value_type = std::remove_cv_t<ElementType>;
     using index_type = std::ptrdiff_t;
-    using pointer = element_type*;
-    using reference = element_type&;
+    using pointer = std::shared_ptr<element_type>;
 
     using iterator = details::span_iterator<span<ElementType, Extent>, false>;
     using const_iterator = details::span_iterator<span<ElementType, Extent>, true>;
@@ -473,7 +471,7 @@ public:
     constexpr span<element_type, Count> last() const
     {
         Expects(Count >= 0 && size() - Count >= 0);
-        return {data() + (size() - Count), Count};
+        return {data_plus(size() - Count), Count};
     }
 
     template <std::ptrdiff_t Offset, std::ptrdiff_t Count = dynamic_extent>
@@ -484,7 +482,7 @@ public:
         Expects((Offset >= 0 && size() - Offset >= 0) &&
                 (Count == dynamic_extent || (Count >= 0 && Offset + Count <= size())));
 
-        return {data() + Offset, Count == dynamic_extent ? size() - Offset : Count};
+        return {data_plus(Offset), Count == dynamic_extent ? size() - Offset : Count};
     }
 
     constexpr span<element_type, dynamic_extent> first(index_type count) const
@@ -517,13 +515,14 @@ public:
         return span<ElementType, 1>(subspan(idx, 1), 0);
     }
 
-    constexpr reference at(index_type idx) const
+    constexpr pointer at(index_type idx) const
     {
         Expects(CheckRange(idx, storage_.size()));
         return data()[idx];
     }
-    constexpr reference operator()(index_type idx) const { return this->operator[](idx); }
+    constexpr pointer operator()(index_type idx) const { return this->operator[](idx); }
     constexpr pointer data() const noexcept { return storage_.data(); }
+    constexpr element_type* cptr() const noexcept { return storage_.data().get(); }
 
     // [span.iter], span iterator support
     constexpr iterator begin() const noexcept { return {this, 0}; }
@@ -637,11 +636,21 @@ private:
     {
         Expects(offset >= 0 && size() - offset >= 0);
 
-        if (count == dynamic_extent) { return {KnownNotNull{data() + offset}, size() - offset}; }
+        pointer p = data_plus(offset);
+
+        if (count == dynamic_extent) { return {KnownNotNull{p}, size() - offset}; }
 
         Expects(count >= 0 && size() - offset >= count);
-        return {KnownNotNull{data() + offset}, count};
+        return {KnownNotNull{p}, count};
     }
+
+private:
+	// Implements `data() + offset` taking care of ownership.
+	constexpr pointer data_plus(index_type offset) const {
+		Expects(offset >= 0 && size() - offset >= 0);
+
+		return pointer(data(), data().get() + offset); // Uses same ref counter as data()
+	}
 };
 
 #if defined(GSL_USE_STATIC_CONSTEXPR_WORKAROUND)
@@ -771,14 +780,6 @@ template <class Ptr>
 constexpr span<typename Ptr::element_type> make_span(Ptr& cont)
 {
     return span<typename Ptr::element_type>(cont);
-}
-
-// Specialization of gsl::at for span
-template <class ElementType, std::ptrdiff_t Extent>
-constexpr ElementType& at(span<ElementType, Extent> s, index i)
-{
-    // No bounds checking here because it is done in span::operator[] called below
-    return s[i];
 }
 
 } // namespace gsl
