@@ -14,9 +14,12 @@ This tool is very much **experimental**.
 
  * [Yosys](https://github.com/YosysHQ/yosys)
  * [Node.js](https://nodejs.org/en/) 6.0 or higher
+ * Yarn, Typescript (`npm install --global yarn typescript`)
 
 ## Usage
 
+ * Install the Node.js dependencies: `yarn install --production`
+ * Compile: `tsc`
  * Write a Verilog file, eg. `adder.v` containing the module `add8`;
  * Run the following Yosys commands:
 

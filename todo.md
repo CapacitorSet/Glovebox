@@ -21,4 +21,4 @@ To do's
 
 [ ] Add support for parallel computing in high-level, expensive operations
 
-[ ] Reuse wire IDs in codegen
+[x] Reuse wire IDs in codegen
