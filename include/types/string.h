@@ -11,9 +11,9 @@ class String : public Array<Int8, Length> {
 public:
 	static constexpr int typeID = STRING_TYPE_ID;
 
-	explicit String(bool initialize_memory = true, only_TFHEServerParams_t _p = default_server_params)
+	explicit String(char /*disambiguation param*/, bool initialize_memory = true, only_TFHEServerParams_t _p = default_server_params)
 		: Array<Int8, Length>(initialize_memory, _p) {}
-	String(bool initialize_memory, TFHEClientParams_t _p)
+	String(char /*disambiguation param*/, bool initialize_memory, TFHEClientParams_t _p)
 		: Array<Int8, Length>(initialize_memory, _p) {}
 	explicit String(const char *src, only_TFHEServerParams_t _p = default_server_params)
 		: Array<Int8, Length>(true, _p) {
@@ -23,7 +23,7 @@ public:
 			for (int j = 0; j < 8; j++)
 				constant(this->data[i * 8 + j], (src[i] >> j) & 1, _p);
 	}
-	explicit String(const char *src, TFHEClientParams_t _p = default_client_params)
+	explicit String(const char *src, TFHEClientParams_t _p)
 		: Array<Int8, Length>(true, _p) {
 		assert(strlen(src) <= Length);
 		const auto len = strlen(src);

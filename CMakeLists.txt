@@ -64,6 +64,7 @@ target_link_libraries(example_fibonacci_client
         fhetools
         examples_networking
         )
+target_compile_definitions(example_fibonacci_client PRIVATE -DSTRICT_CLIENT_MODE=1)
 add_executable(example_fibonacci_server
         examples/fibonacci/server.cpp
         )
@@ -82,6 +83,7 @@ target_link_libraries(example_oddeven_client
         fhetools
         examples_networking
         )
+target_compile_definitions(example_oddeven_client PRIVATE -DSTRICT_CLIENT_MODE=1)
 add_executable(example_oddeven_server
         examples/oddeven/server.cpp
         )
@@ -100,6 +102,7 @@ target_link_libraries(example_linreg_client
         fhetools
         examples_networking
         )
+target_compile_definitions(example_linreg_client PRIVATE -DSTRICT_CLIENT_MODE=1)
 add_executable(example_linreg_server
         examples/linreg/server.cpp
         )

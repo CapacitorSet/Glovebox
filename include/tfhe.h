@@ -1,6 +1,7 @@
 #ifndef FHETOOLS_TFHE_H
 #define FHETOOLS_TFHE_H
 
+#include <cassert>
 #include <cstdint>
 #include <gsl_span_custom.h>
 #include <tfhe/tfhe.h>
@@ -99,7 +100,20 @@ int decrypt(bit_t dst,
 #endif
 );
 
-void constant(bit_t dst, bool src, only_TFHEServerParams_t p = default_server_params);
+// Forbids client code from using constant() unless explicitly overridden
+#ifndef STRICT_CLIENT_MODE
+#define STRICT_CLIENT_MODE 0
+#endif
+void _internal_constant(bit_t dst, bool src, only_TFHEServerParams_t);
+template<bool override_strict_client_mode = false>
+static void inline constant(bit_t dst, bool src, only_TFHEServerParams_t p = default_server_params) {
+	if constexpr (STRICT_CLIENT_MODE && !override_strict_client_mode) {
+		fprintf(stderr, "constant() was called in strict client mode - exiting.\n");
+		abort();
+	} else {
+		_internal_constant(dst, src, p);
+	}
+}
 void encrypt(bit_t dst, bool src, TFHEClientParams_t p = default_client_params);
 
 void _not(bit_t dst, bit_t a, TFHEServerParams_t p = default_server_params);

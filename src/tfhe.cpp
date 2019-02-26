@@ -54,9 +54,9 @@ void encrypt(bit_t dst, bool src, TFHEClientParams_t) {
 	*dst.data() = src;
 }
 
-void constant(bit_t dst, bool src, only_TFHEServerParams_t) {
+void _internal_constant(bit_t dst, bool src, only_TFHEServerParams_t) {
 	*dst.data() = src;
-}
+};
 
 void _not(bit_t dst, bit_t src, TFHEServerParams_t) {
 	*dst.data() = !*src.data();
@@ -155,9 +155,10 @@ void encrypt(bit_t dst, bool src, TFHEClientParams_t p) {
 	bootsSymEncrypt(dst.cptr(), src, p.key);
 }
 
-void constant(bit_t dst, bool src, only_TFHEServerParams_t p) {
+void _internal_constant(bit_t dst, bool src, only_TFHEServerParams_t p) {
 	bootsCONSTANT(dst.cptr(), src, p.bk);
-}
+};
+
 
 void _not(bit_t dst, bit_t src, TFHEServerParams_t p) {
 	bootsNOT(dst.cptr(), src.cptr(), p.bk);

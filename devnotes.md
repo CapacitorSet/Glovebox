@@ -8,9 +8,9 @@ Client params are automatically cast to server params, removing the need for a l
 
 This makes sense from a theoretical standpoint (the client produces bits that must be kept secret, the server doesn't), but is obviously dangerous in practice. For this reason `only_TFHEServerParams_t` can be used to ensure that the user passes specifically server params, with automatic casts being impossible. You can in turn convert `only_TFHEServerParams_t` to `TFHEServerParams_t` (for functions that only accept the latter) using `unwrap_only`.
 
-You can check for the above issue by compiling with PLAINTEXT=0 and running your code. If you have API misuse it will run instantly, otherwise it will take some time (ranging from seconds to... ages, sigh).
+(A quick check for the above issue by compiling with PLAINTEXT=0 and running your code. If you have API misuse it will run instantly, otherwise it will take some time ranging from seconds to... ages, sigh.)
 
-Todo: add a compile flag like SERVER_USAGE and CLIENT_USAGE, and add the respective warnings in encrypt() and constant()?
+The compile flag `STRICT_CLIENT_MODE` was added to automatically protect against API misuse: it will print an error and crash at runtime if `constant()` is used. For this reason, **it is strongly recommended to enable it in client code**: `-DSTRICT_CLIENT_MODE=1`.
 
 ## Arrays
 
