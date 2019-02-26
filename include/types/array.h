@@ -7,13 +7,24 @@
 #include "type_ids.h"
 #include "int.h"
 
+// Computes ceil(log_2(value)), constexpr
+static constexpr uint8_t ceillog2(uint16_t value) {
+	uint8_t ret = 0;
+	while (value != 0) {
+		value >>= 1;
+		ret++;
+	}
+	return ret;
+}
+
 template <class T, uint16_t Length> class Array {
 protected:
 	static constexpr uint16_t WordSize = T::_wordSize;
+	static constexpr uint8_t AddrBits = ceillog2(Length);
 private:
-	using native_address_type = smallest_uint_t<Length>;
-	using encrypted_address_type = smallest_Int<Length>;
-	static_assert(Length <= 8, "This size is not supported"); // See smallest_Int
+	using native_address_type = smallest_uint_t<AddrBits>;
+	using encrypted_address_type = smallest_Int<AddrBits>;
+	static_assert(AddrBits <= 8, "This size is not supported"); // See smallest_Int
 
 	static constexpr uint32_t Bitlength = WordSize * Length;
 
