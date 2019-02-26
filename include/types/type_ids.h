@@ -7,6 +7,7 @@ enum {
 	INT_TYPE_ID,
 	FIXED_TYPE_ID,
 	ARRAY_TYPE_ID,
+	STRING_TYPE_ID,
 };
 
 #endif //FHETOOLS_TYPE_IDS_H

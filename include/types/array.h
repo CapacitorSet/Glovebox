@@ -129,9 +129,10 @@ public:
 	}
 	 */
 
-private:
+protected:
 	TFHEServerParams_t p;
 
+private:
 	void putBits(bitspan_t src, bitspan_t address, size_t dynamicOffset,
 	             bit_t mask) {
 		// Writes out of bounds are a no-op. This is necessary for arrays to

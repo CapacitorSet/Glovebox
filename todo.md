@@ -9,9 +9,9 @@ To do's
 
 [x] Implement Fixed as a template class, with instances of Q4.4, Q8.8, Q16.16, maybe with Q0.x or Q1.x too?
 
-[x] Drop ClientInt, instance Int/Fixed from raw bitspans
+[x] Drop ClientInt
 
-[ ] Implement String, instance from raw bitspan
+[x] Implement String
 
 [x] Add support for arrays
 

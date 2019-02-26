@@ -143,6 +143,7 @@ if (TESTS_ENABLED)
             tests/gates.cpp
             tests/int.cpp
             tests/array.cpp
+            tests/string.cpp
             tests/fixed.cpp
             tests/serialization.cpp
             )
