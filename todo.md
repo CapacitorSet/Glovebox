@@ -20,3 +20,5 @@ To do's
 [ ] Add support for parallel computing in high-level, expensive operations
 
 [x] Reuse wire IDs in codegen
+
+[ ] Add const annotations where possible
