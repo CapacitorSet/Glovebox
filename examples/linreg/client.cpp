@@ -14,12 +14,11 @@ Array<Q4_4, 2> *xs;
 
 dyad_Stream *s;
 
-void onConnect(dyad_Event *e) {
+void onConnect(dyad_Event*) {
 	send(s, xs);
 }
 
-void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) {
-	(void) stream;
+void onPacket(dyad_Stream*, char *packet, size_t pktsize, char dataType) {
 	puts("Received:");
 	assert(dataType == (Array<Q4_4, 2>::typeID));
 	auto ys = new Array<Q4_4, 2>(packet, pktsize, default_client_params);
@@ -28,6 +27,7 @@ void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) 
 		ys->get(y, i);
 		printf("%lf\n", y.toDouble());
 	}
+	delete ys;
 }
 
 int main() {

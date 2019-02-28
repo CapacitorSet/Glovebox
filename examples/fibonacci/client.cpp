@@ -9,7 +9,6 @@
 Int8 *a;
 Int8 *b;
 TFHEClientParams_t default_client_params;
-TFHEServerParams_t default_server_params;
 
 dyad_Stream *s;
 
@@ -22,7 +21,7 @@ void onConnect(dyad_Event *e) {
 void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) {
 	puts("Received:");
 	assert(dataType == Int8::typeID);
-	Int8 output = Int8(packet, pktsize);
+	Int8 output = Int8(packet, pktsize, default_client_params);
 	printf("%i\n", output.toInt());
 }
 
@@ -35,8 +34,8 @@ int main() {
 	default_client_params = makeTFHEClientParams(secret_key);
 	fclose(secret_key);
 
-	a = new Int8(1);
-	b = new Int8(1);
+	a = new Int8(1, default_client_params);
+	b = new Int8(1, default_client_params);
 
 	dyad_init();
 
