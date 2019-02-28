@@ -93,6 +93,25 @@ target_link_libraries(example_linreg_server
         examples_networking
         )
 
+# Health data
+add_executable(example_health_client
+        examples/health/client.cpp
+        examples/health/patient.h)
+target_link_libraries(example_health_client
+        PRIVATE
+        fhetools
+        examples_networking
+        )
+target_compile_definitions(example_health_client PRIVATE -DSTRICT_CLIENT_MODE=1)
+add_executable(example_health_server
+        examples/health/server.cpp
+        examples/health/patient.h)
+target_link_libraries(example_health_server
+        PRIVATE
+        fhetools
+        examples_networking
+        )
+
 if (TESTS_ENABLED)
     # http://www.kaizou.org/2014/11/gtest-cmake/
     ############# start

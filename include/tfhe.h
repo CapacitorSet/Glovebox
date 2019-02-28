@@ -72,6 +72,11 @@ class fixed_bitspan_t : public gsl::span<unsafe_bit_t, size> {
 public:
 	// Seemingly required to instance the inner span
 	explicit fixed_bitspan_t(gsl::span<unsafe_bit_t, size> span) : gsl::span<unsafe_bit_t, size>(span) {};
+	// Checks at runtime that this conversion is possible.
+	// This operator is explicit so that we can do semmingly-unsafe conversions anyway
+	explicit fixed_bitspan_t(gsl::span<unsafe_bit_t> span) : gsl::span<unsafe_bit_t, size>(span) {
+		assert(span.size() == size);
+	};
 };
 template <uint8_t size>
 fixed_bitspan_t<size> make_bitspan(TFHEServerParams_t p = default_server_params) {

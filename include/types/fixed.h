@@ -27,10 +27,16 @@ public:
 
 	explicit Fixed(TFHEServerParams_t _p = default_server_params)
 		: BASE_INT(_p) {};
+	explicit Fixed(StructHelper &helper, TFHEServerParams_t _p = default_server_params)
+		: BASE_INT(helper, _p) {};
 	explicit Fixed(double src, only_TFHEServerParams_t _p = default_server_params)
 		: BASE_INT(scale(src), unwrap_only(_p)) {};
+	explicit Fixed(double src, StructHelper &helper, only_TFHEServerParams_t _p = default_server_params)
+		: BASE_INT(scale(src), helper, unwrap_only(_p)) {};
 	explicit Fixed(double src, TFHEClientParams_t _p)
 		: BASE_INT(scale(src), _p) {};
+	explicit Fixed(double src, StructHelper &helper, TFHEClientParams_t _p)
+		: BASE_INT(scale(src), helper, _p) {};
 	// Initialize from a char*
 	Fixed(const char *packet, size_t pktsize, TFHEServerParams_t _p = default_server_params)
 		: Fixed<INT_SIZE, FRAC_SIZE>(_p) {

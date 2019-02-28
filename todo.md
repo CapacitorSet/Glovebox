@@ -1,8 +1,6 @@
 To do's
 =======
 
-[ ] Add support for constructing types from client params; change TFHEServerParams_t to only_TFHEServerParams_t in constructors to avoid insecure usages
-
 [x] Implement Int as a template class, with instances of Int8, Int16, Int32
 
 [x] Drop Varint

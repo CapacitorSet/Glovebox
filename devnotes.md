@@ -14,7 +14,7 @@ The compile flag `STRICT_CLIENT_MODE` was added to automatically protect against
 
 ## Arrays
 
-All types that can be put into an array must have a `static int wordSize` representing that type's size in bits and expose `data`.
+All types that can be put into an array must have a `static int wordSize` representing that type's size in bits and expose `data`. Furthermore, if you want to serialize arrays (which is almost always the case) the type must also implement `static char typeID`. It can be any value you want, it's just used as a sanity check when transmitting data.
 
 You can put a value into an array with `void put(T, int)` or `void put(T, Int)` (todo: figure out how to support multiple ints. perhaps with `smallest_Int<N>`?), with the former being definitely recommended for addresses known at compile time.
 

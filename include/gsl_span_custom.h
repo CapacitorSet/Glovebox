@@ -485,6 +485,15 @@ public:
         return {data_plus(Offset), Count == dynamic_extent ? size() - Offset : Count};
     }
 
+    template <std::ptrdiff_t Count>
+    constexpr span<element_type, Count> subspan(std::ptrdiff_t offset) const
+    {
+        Expects((offset >= 0 && size() - offset >= 0) &&
+                (Count == dynamic_extent || (Count >= 0 && offset + Count <= size())));
+
+        return {data_plus(offset), Count == dynamic_extent ? size() - offset : Count};
+    }
+
     constexpr span<element_type, dynamic_extent> first(index_type count) const
     {
         Expects(count >= 0 && count <= size());

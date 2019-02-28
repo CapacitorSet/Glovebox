@@ -6,6 +6,7 @@
 #include <tfhe.h>
 #include <types/type_ids.h>
 #include <serialization.h>
+#include <structhelper.h>
 
 // Template programming is ugly.
 template<uint8_t N, typename = std::enable_if<N <= 64>>
@@ -48,9 +49,11 @@ public:
 		return ret;
 	}
 protected:
-	// Create an Int8, but do not initialize the memory
+	// Create an Int, but do not initialize the memory
 	explicit Int(TFHEServerParams_t _p = default_server_params)
 		: p(_p), data(make_bitspan<size>(_p)) {};
+	explicit Int(StructHelper &helper, TFHEServerParams_t _p)
+		: p(_p), data(helper.make_bitspan<size>(p)) {};
 
 	// Initialize from a plaintext int
 	explicit Int(native_type_t src, only_TFHEServerParams_t _p = default_server_params)
@@ -58,8 +61,18 @@ protected:
 		for (int i = 0; i < size; i++)
 			constant(data[i], (src >> i) & 1, _p);
 	}
+	explicit Int(native_type_t src, StructHelper &helper, only_TFHEServerParams_t _p = default_server_params)
+		: Int(helper, unwrap_only(_p)) {
+		for (int i = 0; i < size; i++)
+			constant(data[i], (src >> i) & 1, _p);
+	}
 	explicit Int(native_type_t src, TFHEClientParams_t _p)
 		: Int(_p) {
+		for (int i = 0; i < size; i++)
+			encrypt(data[i], (src >> i) & 1, _p);
+	}
+	explicit Int(native_type_t src, StructHelper &helper, TFHEClientParams_t _p)
+		: Int(helper, _p) {
 		for (int i = 0; i < size; i++)
 			encrypt(data[i], (src >> i) & 1, _p);
 	}
@@ -90,11 +103,18 @@ public:
 	// Create an Int8, but do not initialize the memory
 	explicit Int8(TFHEServerParams_t _p = default_server_params)
 		: Int(_p) {};
+	explicit Int8(StructHelper &helper, TFHEServerParams_t _p)
+			: Int(helper, _p) {};
+
 	// Initialize from a plaintext int8
 	explicit Int8(int8_t src, only_TFHEServerParams_t _p = default_server_params)
 		: Int(src, _p) {};
+	explicit Int8(int8_t src, StructHelper &helper, only_TFHEServerParams_t _p = default_server_params)
+		: Int(src, helper, _p) {};
 	explicit Int8(int8_t src, TFHEClientParams_t _p)
 		: Int(src, _p) {};
+	explicit Int8(int8_t src, StructHelper &helper, TFHEClientParams_t _p)
+		: Int(src, helper, _p) {};
 	// Inizialize from a char*
 	Int8(const char *packet, size_t pktsize, TFHEServerParams_t _p = default_server_params)
 		: Int(packet, pktsize, _p) {};

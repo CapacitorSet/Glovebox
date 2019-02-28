@@ -5,6 +5,7 @@
 
 #include "tfhe.h"
 #include "primitives.h"
+#include "structhelper.h"
 #include "flow_control.h"
 
 #include <types/int.h>

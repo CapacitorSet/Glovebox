@@ -1,0 +1,1 @@
+Data from *Statistical rethinking*, Richard McElreath: https://github.com/rmcelreath/rethinking/blob/master/data/Howell1.csv
