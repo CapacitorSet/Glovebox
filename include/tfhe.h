@@ -64,12 +64,8 @@ extern TFHEServerParams_t default_server_params;
 extern TFHEClientParams_t default_client_params;
 bit_t make_bit(TFHEServerParams_t p = default_server_params);
 bit_t make_bit(TFHEClientParams_t p);
-bit_t make_server_bit(only_TFHEServerParams_t p = default_server_params);
-bit_t make_client_bit(TFHEClientParams_t p = default_client_params);
 bitspan_t make_bitspan(int N, TFHEClientParams_t p);
 bitspan_t make_bitspan(int N, TFHEServerParams_t p = default_server_params);
-bitspan_t make_client_bitspan(int N, TFHEClientParams_t p = default_client_params);
-bitspan_t make_server_bitspan(int N, only_TFHEServerParams_t p = default_server_params);
 
 template <uint8_t size>
 class fixed_bitspan_t : public gsl::span<unsafe_bit_t, size> {
@@ -78,7 +74,7 @@ public:
 	explicit fixed_bitspan_t(gsl::span<unsafe_bit_t, size> span) : gsl::span<unsafe_bit_t, size>(span) {};
 };
 template <uint8_t size>
-fixed_bitspan_t<size> make_bitspan(only_TFHEServerParams_t p = default_server_params) {
+fixed_bitspan_t<size> make_bitspan(TFHEServerParams_t p = default_server_params) {
 	// Can this be rewritten in terms of make_bitspan, subspan?
 #if PLAINTEXT
 	(void) p;
