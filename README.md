@@ -14,6 +14,7 @@ Check out the examples folder to see it in action.
  * `cd ../..`
  * Install TFHE v1 (https://github.com/tfhe/tfhe/tree/v1.0.1)
  * Install the GSL
+ * Install rpclib
  * `cmake . -DPLAINTEXT=0` (PLAINTEXT=1 uses a mock implementation and enables debug flags)
  * `make`
 
