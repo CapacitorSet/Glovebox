@@ -74,26 +74,7 @@ target_link_libraries(example_fibonacci_server
         examples_networking
         )
 
-# Odd/even [not yet implemented]
-add_executable(example_oddeven_client
-        examples/oddeven/client.cpp
-        )
-target_link_libraries(example_oddeven_client
-        PRIVATE
-        fhetools
-        examples_networking
-        )
-target_compile_definitions(example_oddeven_client PRIVATE -DSTRICT_CLIENT_MODE=1)
-add_executable(example_oddeven_server
-        examples/oddeven/server.cpp
-        )
-target_link_libraries(example_oddeven_server
-        PRIVATE
-        fhetools
-        examples_networking
-        )
-
-# Linear regression [not yet implemented]
+# Linear regression
 add_executable(example_linreg_client
         examples/linreg/client.cpp
         )
