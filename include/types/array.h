@@ -17,9 +17,8 @@ static constexpr uint8_t ceillog2(uint16_t value) {
 	return ret;
 }
 
-template <class T, uint16_t Length> class Array {
+template <class T, uint16_t Length, uint16_t WordSize = T::_wordSize> class Array {
 protected:
-	static constexpr uint16_t WordSize = T::_wordSize;
 	static constexpr uint8_t AddrBits = ceillog2(Length);
 private:
 	using native_address_type = smallest_uint_t<AddrBits>;
@@ -27,7 +26,6 @@ private:
 	static_assert(AddrBits <= 8, "This size is not supported"); // See smallest_Int
 
 	static constexpr uint32_t Bitlength = WordSize * Length;
-
 public:
 	bitspan_t data;
 
