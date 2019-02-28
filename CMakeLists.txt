@@ -31,50 +31,25 @@ else()
     target_link_options(fhetools PUBLIC -D_FORTIFY_SOURCE=2 -O2 -fstack-protector-strong -pie -Wl,-z,relro -Wl,-z,now)
 endif()
 
-target_include_directories(fhetools
-        PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
-        )
+target_include_directories(fhetools PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 # Create executables
 
-add_executable(keygen
-        examples/keygen/main.cpp
-        )
+add_executable(keygen examples/keygen/main.cpp)
 target_link_libraries(keygen PRIVATE fhetools)
 
-add_library(examples_networking OBJECT
-        examples/dyad.c
-        examples/dyad.h
-        examples/networking.cpp
-        examples/networking.h
-        )
-
-target_include_directories(examples_networking
-        PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
-        )
-
 # Fibonacci
-add_executable(example_fibonacci_client
-        examples/fibonacci/client.cpp
-        )
+add_executable(example_fibonacci_client examples/fibonacci/client.cpp)
 target_link_libraries(example_fibonacci_client PRIVATE fhetools rpc pthread)
 target_compile_definitions(example_fibonacci_client PRIVATE -DSTRICT_CLIENT_MODE=1)
-add_executable(example_fibonacci_server
-        examples/fibonacci/server.cpp
-        )
+add_executable(example_fibonacci_server examples/fibonacci/server.cpp)
 target_link_libraries(example_fibonacci_server PRIVATE fhetools rpc pthread)
 
 # Linear regression
-add_executable(example_linreg_client
-        examples/linreg/client.cpp
-        )
+add_executable(example_linreg_client examples/linreg/client.cpp)
 target_link_libraries(example_linreg_client PRIVATE fhetools rpc pthread)
 target_compile_definitions(example_linreg_client PRIVATE -DSTRICT_CLIENT_MODE=1)
-add_executable(example_linreg_server
-        examples/linreg/server.cpp
-        )
+add_executable(example_linreg_server examples/linreg/server.cpp)
 target_link_libraries(example_linreg_server PRIVATE fhetools rpc pthread)
 
 # Health data
