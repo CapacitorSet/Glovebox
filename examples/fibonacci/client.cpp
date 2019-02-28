@@ -2,30 +2,14 @@
 #include <cstdio>
 #include <cstring>
 #include <fhe-tools.h>
-#include "../networking.h"
+#include <rpc/client.h>
+#include <rpc/rpc_error.h>
+#include <iostream>
 
-#include "../dyad.h"
-
-Int8 *a;
-Int8 *b;
 TFHEClientParams_t default_client_params;
 
-dyad_Stream *s;
-
-void onConnect(dyad_Event *e) {
-	puts("Sending...");
-	send(s, a);
-	send(s, b);
-}
-
-void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) {
-	puts("Received:");
-	assert(dataType == Int8::typeID);
-	Int8 output = Int8(packet, pktsize, default_client_params);
-	printf("%i\n", output.toInt());
-}
-
 int main() {
+	puts("Initializing TFHE...");
 	FILE *secret_key = fopen("secret.key", "rb");
 	if (secret_key == nullptr) {
 		puts("secret.key not found: run ./keygen first.");
@@ -34,26 +18,16 @@ int main() {
 	default_client_params = makeTFHEClientParams(secret_key);
 	fclose(secret_key);
 
-	a = new Int8(1, default_client_params);
-	b = new Int8(1, default_client_params);
+	puts("Constructing values...");
+	Int8 a(1, default_client_params);
+	Int8 b(1, default_client_params);
 
-	dyad_init();
+	puts("Connecting to server...");
+	rpc::client client("127.0.0.1", 8000);
+	puts("Awaiting result...");
+	std::string result = client.call("fibonacci", 3, a.exportToString(), b.exportToString()).as<std::string>();
+	Int8 output(result.c_str(), result.size(), default_client_params);
+	printf("Result: %i\n", output.toInt());
 
-	s = dyad_newStream();
-	dyad_addListener(s, DYAD_EVENT_CONNECT, onConnect, nullptr);
-	dyad_addListener(s, DYAD_EVENT_DATA, onData, nullptr);
-	puts("Connecting...");
-	dyad_connect(s, "127.0.0.1", 8000);
-
-	while (dyad_getStreamCount() > 0) {
-		dyad_update();
-	}
-
-	puts("No more connections, closing.");
-
-	dyad_shutdown();
-	freeTFHEClientParams(default_client_params);
-	delete a;
-	delete b;
 	return 0;
 }

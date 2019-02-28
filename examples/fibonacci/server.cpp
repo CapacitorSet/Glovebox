@@ -2,61 +2,40 @@
 #include <cstdio>
 #include <cstring>
 #include <fhe-tools.h>
-#include "../networking.h"
+#include <rpc/server.h>
 
-#include "../dyad.h"
-
-TFHEClientParams_t default_client_params;
 TFHEServerParams_t default_server_params;
 
-Int8* first;
-Int8* second;
-
-void onPacket(dyad_Stream *stream, char *packet, size_t pktsize, char dataType) {
-	puts("New packet.");
-	assert(dataType == INT_TYPE_ID);
-	auto tmp = new Int8(packet, pktsize);
-	if (first == nullptr) {
-		first = tmp;
-	} else if (second == nullptr) {
-		second = tmp;
-
-		Int8 x;
-		for (int i = 0; i < 3; i++) {
-			printf("Iteration %d\n", i);
-			x.add(*first, *second);
-			// todo: document that this is buggy af because it will result in ptrs being reused
-			// first = second;
-			// second = x;
-			first->copy(*second);
-			second->copy(x);
-		}
-		send(stream, &x);
-	}
-}
-
 int main() {
+	puts("Initializing TFHE...");
 	FILE *cloud_key = fopen("cloud.key", "rb");
 	if (cloud_key == nullptr) {
 		puts("cloud.key not found: run ./keygen first.");
 		return 1;
 	}
-	puts("Initializing TFHE...");
 	default_server_params = makeTFHEServerParams(cloud_key);
 	fclose(cloud_key);
 
-	dyad_init();
+	rpc::server srv(8000);
 
-	auto stream = dyad_newStream();
-	dyad_addListener(stream, DYAD_EVENT_ACCEPT, onAccept, nullptr);
-	dyad_listen(stream, 8000);
-	printf("Listening: %s:%d\n", dyad_getAddress(stream), dyad_getPort(stream));
+	srv.bind("fibonacci", [](int times, std::string a, std::string b) {
+		puts("Received request.");
+		Int8 first(a.c_str(), a.size());
+		Int8 second(b.c_str(), a.size());
+		Int8 ret(0);
+		for (int i = 0; i < times; i++) {
+			printf("Iteration %d\n", i);
+			ret.add(first, second);
+			// todo: document that this is buggy af because it will result in ptrs being reused
+			// first = second;
+			// second = x;
+			first.copy(second);
+			second.copy(ret);
+		}
+		return ret.exportToString();
+	});
 
-	while (dyad_getStreamCount() > 0) {
-		dyad_update();
-	}
+	srv.run();
 
-	puts("Exiting gracefully.");
-	dyad_shutdown();
 	return 0;
 }

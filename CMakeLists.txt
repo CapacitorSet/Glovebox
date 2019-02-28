@@ -59,20 +59,12 @@ target_include_directories(examples_networking
 add_executable(example_fibonacci_client
         examples/fibonacci/client.cpp
         )
-target_link_libraries(example_fibonacci_client
-        PRIVATE
-        fhetools
-        examples_networking
-        )
+target_link_libraries(example_fibonacci_client PRIVATE fhetools rpc)
 target_compile_definitions(example_fibonacci_client PRIVATE -DSTRICT_CLIENT_MODE=1)
 add_executable(example_fibonacci_server
         examples/fibonacci/server.cpp
         )
-target_link_libraries(example_fibonacci_server
-        PRIVATE
-        fhetools
-        examples_networking
-        )
+target_link_libraries(example_fibonacci_server PRIVATE fhetools rpc)
 
 # Linear regression
 add_executable(example_linreg_client
