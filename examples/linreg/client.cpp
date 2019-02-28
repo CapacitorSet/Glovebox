@@ -28,7 +28,7 @@ int main() {
 	rpc::client client("127.0.0.1", 8000);
 	puts("Awaiting result...");
 	std::string result = client.call("polyeval", xs.exportToString()).as<std::string>();
-	Array<Q4_4, 2> ys(result.c_str(), result.size(), default_client_params);
+	Array<Q4_4, 2> ys(result, default_client_params);
 	for (int i = 0; i < 2; i++) {
 		Q4_4 y(0, default_client_params);
 		ys.get(y, i);

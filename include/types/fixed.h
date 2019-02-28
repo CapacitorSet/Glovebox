@@ -37,18 +37,15 @@ public:
 		: BASE_INT(scale(src), _p) {};
 	explicit Fixed(double src, StructHelper &helper, TFHEClientParams_t _p)
 		: BASE_INT(scale(src), helper, _p) {};
-	// Initialize from a char*
-	Fixed(const char *packet, size_t pktsize, TFHEServerParams_t _p = default_server_params)
+
+	Fixed(const std::string &packet, TFHEServerParams_t _p = default_server_params)
 		: Fixed<INT_SIZE, FRAC_SIZE>(_p) {
 		char int_size_from_header = packet[0];
 		char frac_size_from_header = packet[1];
 		assert(int_size_from_header == INT_SIZE);
 		assert(frac_size_from_header == FRAC_SIZE);
 		// Skip header
-		packet += 2;
-		pktsize -= 2;
-		std::stringstream ss;
-		ss.write(packet, pktsize);
+		std::stringstream ss(packet.substr(2));
 		deserialize(ss, this->data, this->p);
 	}
 

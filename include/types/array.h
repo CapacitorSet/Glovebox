@@ -50,18 +50,14 @@ public:
 			zero(data, _p);
 	}
 
-	Array(const char *packet, size_t pktsize, TFHEServerParams_t _p = default_server_params) : Array(false, _p) {
-		char typeID_from_header;
+	Array(const std::string &packet, TFHEServerParams_t _p = default_server_params) : Array(false, _p) {
+		char typeID_from_header = packet[0];
 		uint16_t length_from_header;
-		memcpy(&typeID_from_header, packet, 1);
-		memcpy(&length_from_header, packet + 1, 2);
+		memcpy(&length_from_header, &packet[1], 2);
 		assert(typeID_from_header == T::typeID);
 		assert(length_from_header == Length);
 		// Skip header
-		packet += 3;
-		pktsize -= 3;
-		std::stringstream ss;
-		ss.write(packet, pktsize);
+		std::stringstream ss(packet.substr(3));
 		deserialize(ss, data, p);
 	}
 

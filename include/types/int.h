@@ -1,3 +1,5 @@
+#include <utility>
+
 #ifndef FHETOOLS_INT_H
 #define FHETOOLS_INT_H
 
@@ -77,16 +79,11 @@ protected:
 			encrypt(data[i], (src >> i) & 1, _p);
 	}
 
-	// Initialize from a char*
-	Int(const char *packet, size_t pktsize, TFHEServerParams_t _p) : Int(_p) {
-		char size_from_header;
-		memcpy(&size_from_header, packet, 1);
+	Int(const std::string &packet, TFHEServerParams_t _p = default_server_params) : Int(_p) {
+		char size_from_header = packet[0];
 		assert(size_from_header == size);
 		// Skip header
-		packet += 1;
-		pktsize -= 1;
-		std::stringstream ss;
-		ss.write(packet, pktsize);
+		std::stringstream ss(packet.substr(1));
 		deserialize(ss, data, p);
 	}
 
@@ -116,8 +113,8 @@ public:
 	explicit Int8(int8_t src, StructHelper &helper, TFHEClientParams_t _p)
 		: Int(src, helper, _p) {};
 	// Inizialize from a char*
-	Int8(const char *packet, size_t pktsize, TFHEServerParams_t _p = default_server_params)
-		: Int(packet, pktsize, _p) {};
+	Int8(const std::string &packet, TFHEServerParams_t _p = default_server_params)
+		: Int(packet, _p) {};
 
 	void add(bit_t overflow, Int8 a, Int8 b);
 	// Add and do not be notified if overflow happens

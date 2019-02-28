@@ -26,7 +26,7 @@ int main() {
 	rpc::client client("127.0.0.1", 8000);
 	puts("Awaiting result...");
 	std::string result = client.call("fibonacci", 3, a.exportToString(), b.exportToString()).as<std::string>();
-	Int8 output(result.c_str(), result.size(), default_client_params);
+	Int8 output(result, default_client_params);
 	printf("Result: %i\n", output.toInt());
 
 	return 0;

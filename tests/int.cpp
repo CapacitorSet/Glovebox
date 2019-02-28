@@ -15,8 +15,7 @@ TEST_F(Int8Test, Serialization) {
 	::rc::detail::checkGTest([=](int8_t plaintext_num) {
 		auto in = Int8(plaintext_num, clientParams);
 		auto tmp = in.exportToString();
-		auto tmp_cstr = tmp.c_str();
-		auto out = Int8(tmp_cstr, tmp.length(), serverParams);
+		auto out = Int8(tmp, serverParams);
 		RC_ASSERT(out.toInt(clientParams) == plaintext_num);
 	});
 }

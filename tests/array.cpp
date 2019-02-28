@@ -39,9 +39,8 @@ TEST_F(ArrayTest, Serialization) {
 		input_arr.put(elem, 0);
 
 		auto tmp = input_arr.exportToString();
-		auto tmp_cstr = tmp.c_str();
 
-		auto output_arr = Array<Int8, 1>(tmp_cstr, tmp.length(), serverParams);
+		auto output_arr = Array<Int8, 1>(tmp, serverParams);
 		auto out = Int8(clientParams);
 		output_arr.get(out, 0);
 		RC_ASSERT(out.toInt(clientParams) == plaintext_num);

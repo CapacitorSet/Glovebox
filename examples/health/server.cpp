@@ -24,7 +24,7 @@ int main() {
 
 	srv.bind("uploadDatabase", [&](std::string _db) {
 		puts("Receiving database...");
-		database = Array<Patient, 10>(_db.c_str(), _db.size());
+		database = _db;
 		puts("Database received.");
 	});
 

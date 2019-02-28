@@ -20,8 +20,9 @@ int main() {
 
 	srv.bind("fibonacci", [](int times, std::string a, std::string b) {
 		puts("Received request.");
-		Int8 first(a.c_str(), a.size());
-		Int8 second(b.c_str(), a.size());
+		// Note the elegance in automatic deserialization.
+		Int8 first = a;
+		Int8 second = b;
 		Int8 ret(0);
 		for (int i = 0; i < times; i++) {
 			printf("Iteration %d\n", i);

@@ -15,7 +15,8 @@ public:
 		: Array<Int8, Length>(initialize_memory, _p) {}
 	String(char /*disambiguation param*/, bool initialize_memory, TFHEClientParams_t _p)
 		: Array<Int8, Length>(initialize_memory, _p) {}
-	explicit String(const char *src, only_TFHEServerParams_t _p = default_server_params)
+	// The bool disambiguates against the deserialization ctor
+	explicit String(const char *src, bool, only_TFHEServerParams_t _p = default_server_params)
 		: Array<Int8, Length>(true, _p) {
 		assert(strlen(src) <= Length);
 		const auto len = strlen(src);
@@ -23,7 +24,7 @@ public:
 			for (int j = 0; j < 8; j++)
 				constant(this->data[i * 8 + j], (src[i] >> j) & 1, _p);
 	}
-	explicit String(const char *src, TFHEClientParams_t _p)
+	explicit String(const char *src, bool, TFHEClientParams_t _p)
 		: Array<Int8, Length>(true, _p) {
 		assert(strlen(src) <= Length);
 		const auto len = strlen(src);
@@ -31,16 +32,14 @@ public:
 			for (int j = 0; j < 8; j++)
 				encrypt(this->data[i * 8 + j], (src[i] >> j) & 1, _p);
 	}
-	String(const char *packet, size_t pktsize, TFHEServerParams_t _p)
+
+	String(const std::string &packet, TFHEServerParams_t _p = default_server_params)
 		: Array<Int8, Length>(false, _p) {
 		uint16_t length_from_header;
-		memcpy(&length_from_header, packet, 2);
+		memcpy(&length_from_header, &packet[0], 2);
 		assert(length_from_header == Length);
 		// Skip header
-		packet += 2;
-		pktsize -= 2;
-		std::stringstream ss;
-		ss.write(packet, pktsize);
+		std::stringstream ss(packet.substr(2));
 		deserialize(ss, this->data, this->p);
 	}
 

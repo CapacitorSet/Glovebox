@@ -25,7 +25,7 @@ int main() {
 
 	srv.bind("polyeval", [&](std::string _xs) {
 		puts("Received request.");
-		Array<Q4_4, 2> xs(_xs.c_str(), _xs.size());
+		Array<Q4_4, 2> xs = _xs;
 		auto ys = Array<Q4_4, 2>();
 		bit_t p_overflow = make_bit();
 		for (int i = 0; i < 2; i++) {

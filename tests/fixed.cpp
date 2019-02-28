@@ -29,8 +29,7 @@ TEST_F(Q4_4Test, Serialization) {
 		double plaintext_num = rescale(_plaintext_num);
 		auto in = Q4_4(plaintext_num, clientParams);
 		auto tmp = in.exportToString();
-		auto tmp_cstr = tmp.c_str();
-		auto out = Q4_4(tmp_cstr, tmp.length(), serverParams);
+		auto out = Q4_4(tmp, serverParams);
 		RC_ASSERT(quantize(out.toDouble(clientParams)) == quantize(plaintext_num));
 	});
 }

@@ -9,7 +9,7 @@ constexpr uint16_t TEST_SIZE = 1;
 TEST_F(StringTest, Decrypt) {
 	::rc::detail::checkGTest([=](std::string plaintext_str) {
 		plaintext_str.resize(TEST_SIZE);
-		auto a = String<TEST_SIZE>(plaintext_str.c_str(), clientParams);
+		auto a = String<TEST_SIZE>(plaintext_str.c_str(), true, clientParams);
 		char str[TEST_SIZE];
 		a.toCStr(str, clientParams);
 		// Compare the whole string, but at most TEST_SIZE bytes.
@@ -21,10 +21,9 @@ TEST_F(StringTest, Decrypt) {
 TEST_F(StringTest, Serialization) {
 	::rc::detail::checkGTest([=](std::string plaintext_str) {
 		plaintext_str.resize(TEST_SIZE);
-		auto in = String<TEST_SIZE>(plaintext_str.c_str(), clientParams);
+		auto in = String<TEST_SIZE>(plaintext_str.c_str(), true, clientParams);
 		auto tmp = in.exportToString();
-		auto tmp_cstr = tmp.c_str();
-		auto out = String<TEST_SIZE>(tmp_cstr, tmp.length(), serverParams);
+		auto out = String<TEST_SIZE>(tmp, serverParams);
 		char str[TEST_SIZE];
 		out.toCStr(str, clientParams);
 		// Compare the whole string, but at most TEST_SIZE bytes.
