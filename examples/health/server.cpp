@@ -34,17 +34,9 @@ int main() {
 
 	srv.bind("countM", [&]() {
 		puts("Counting men...");
-		Int8 ret = 0;
-		Int8 incrementer = 0;
-		for (int i = 0; i < 10; i++) {
-			Patient p(default_server_params);
-			database.get(p, i);
-			// todo: replace with more efficient implementation
-			_copy(incrementer.data[0], p.isMale);
-			ret.add(ret, incrementer);
-		}
-
-		return ret.exportToString();
+		return database.count_if([](Patient p) {
+			return p.isMale;
+		}).exportToString();
 	});
 
 	srv.run();

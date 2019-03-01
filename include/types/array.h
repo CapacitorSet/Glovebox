@@ -122,13 +122,26 @@ public:
 			getBits(dst.data, address.data, 0, mask);
 		};
 	}
-	 */
+	*/
 
+	// Count the number of items satisfying cond
+	encrypted_address_type count_if(std::function<bit_t (T)> cond) {
+		encrypted_address_type ret = 0;
+		encrypted_address_type incrementer = 0;
+		for (native_address_type i = 0; i < Length; i++) {
+			T item(p);
+			this->get(item, i);
+			bit_t result = cond(item);
+			_copy(incrementer.data[0], result);
+			ret.add(ret, incrementer);
+		}
+		return ret;
+	}
 protected:
 	TFHEServerParams_t p;
 
 private:
-	void putBits(bitspan_t src, bitspan_t address, size_t dynamicOffset,
+	void putBits(const bitspan_t &src, const bitspan_t &address, size_t dynamicOffset,
 	             bit_t mask) {
 		// Writes out of bounds are a no-op. This is necessary for arrays to
 		// work with sizes other than powers of two. Bound checks should be done
@@ -180,7 +193,7 @@ private:
 		        dynamicOffset + (1 << (address.size() - 1)), upperMask);
 	}
 
-	void getBits(bitspan_t dst, bitspan_t address, size_t dynamicOffset,
+	void getBits(const bitspan_t &dst, const bitspan_t &address, size_t dynamicOffset,
 	             bit_t mask) {
 		// Reads out of bounds are a no-op. This is necessary for arrays to
 		// work with sizes other than powers of two. Bound checks should be done
