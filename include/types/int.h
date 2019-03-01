@@ -133,18 +133,6 @@ public:
 	void mul(bit_t overflow, Int8 a, Int8 b, uint8_t truncate_from = 0);
 	void mul(Int8 a, Int8 b, uint8_t truncate_from = 0);
 
-	// Used for array stuff; to be implemented later
-	/*
-	void _writeTo(bitspan_t dst) { _copy(dst, data, p); }
-	void _fromBytes(bitspan_t dst) { _copy(data, dst, p); }
-	maskable_function_t _m_fromBytes(bitspan_t dst) {
-		return [=] (bit_t mask) -> void {
-			for (int i = 0; i < data.size(); i++)
-				_mux(data[i], mask, dst[i], data[i], p);
-		};
-	}
-	*/
-
 	void copy(Int8 src);
 };
 
