@@ -101,7 +101,7 @@ public:
 	explicit Int8(TFHEServerParams_t _p = default_server_params)
 		: Int(_p) {};
 	explicit Int8(StructHelper &helper, TFHEServerParams_t _p)
-			: Int(helper, _p) {};
+		: Int(helper, _p) {};
 
 	// Initialize from a plaintext int8
 	explicit Int8(int8_t src, only_TFHEServerParams_t _p = default_server_params)
