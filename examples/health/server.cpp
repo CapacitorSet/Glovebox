@@ -22,7 +22,7 @@ int main() {
 	default_server_params = makeTFHEServerParams(cloud_key);
 	fclose(cloud_key);
 
-	Array<Patient, 10> database;
+	Array<Patient, 10> database(false);
 
 	rpc::server srv(8000);
 
@@ -34,8 +34,8 @@ int main() {
 
 	srv.bind("countM", [&]() {
 		puts("Counting men...");
-		Int8 ret(0);
-		Int8 incrementer(0);
+		Int8 ret = 0;
+		Int8 incrementer = 0;
 		for (int i = 0; i < 10; i++) {
 			Patient p(default_server_params);
 			database.get(p, i);

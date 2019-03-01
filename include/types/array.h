@@ -37,14 +37,15 @@ public:
 	                       */
 
 	static const int typeID = ARRAY_TYPE_ID;
+
+	Array() = delete;
 	explicit Array(bool initialize_memory = true, only_TFHEServerParams_t _p = default_server_params)
 			: p(unwrap_only(_p)) {
 		data = make_bitspan(Bitlength, p);
 		if (initialize_memory)
 			zero(data, unwrap_only(_p));
 	}
-
-	explicit Array(bool initialize_memory, TFHEClientParams_t _p) : p(_p) {
+	Array(bool initialize_memory, TFHEClientParams_t _p) : p(_p) {
 		data = make_bitspan(Bitlength, p);
 		if (initialize_memory)
 			zero(data, _p);

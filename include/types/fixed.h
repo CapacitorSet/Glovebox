@@ -25,17 +25,18 @@ public:
 	static const int typeID = FIXED_TYPE_ID;
 	static const int _wordSize = INT_SIZE + FRAC_SIZE;
 
-	explicit Fixed(TFHEServerParams_t _p = default_server_params)
+	Fixed() = delete;
+	explicit Fixed(TFHEServerParams_t _p)
 		: BASE_INT(_p) {};
 	explicit Fixed(StructHelper &helper, TFHEServerParams_t _p = default_server_params)
 		: BASE_INT(helper, _p) {};
-	explicit Fixed(double src, only_TFHEServerParams_t _p = default_server_params)
+	Fixed(double src, only_TFHEServerParams_t _p = default_server_params)
 		: BASE_INT(scale(src), unwrap_only(_p)) {};
-	explicit Fixed(double src, StructHelper &helper, only_TFHEServerParams_t _p = default_server_params)
+	Fixed(double src, StructHelper &helper, only_TFHEServerParams_t _p = default_server_params)
 		: BASE_INT(scale(src), helper, unwrap_only(_p)) {};
-	explicit Fixed(double src, TFHEClientParams_t _p)
+	Fixed(double src, TFHEClientParams_t _p)
 		: BASE_INT(scale(src), _p) {};
-	explicit Fixed(double src, StructHelper &helper, TFHEClientParams_t _p)
+	Fixed(double src, StructHelper &helper, TFHEClientParams_t _p)
 		: BASE_INT(scale(src), helper, _p) {};
 
 	Fixed(const std::string &packet, TFHEServerParams_t _p = default_server_params)
@@ -47,6 +48,13 @@ public:
 		// Skip header
 		std::stringstream ss(packet.substr(2));
 		deserialize(ss, this->data, this->p);
+	}
+
+	void encrypt(double src, TFHEClientParams_t _p) {
+		BASE_INT::encrypt(scale(src), _p);
+	}
+	void constant(double src, only_TFHEServerParams_t _p) {
+		BASE_INT::constant(scale(src), _p);
 	}
 
 	void add(bit_t overflow, Fixed<INT_SIZE, FRAC_SIZE> a, Fixed<INT_SIZE, FRAC_SIZE> b) {

@@ -29,8 +29,56 @@ using smallest_uint_t =
 
 template <uint8_t size>
 class Int {
+private:
 	using native_type_t = smallest_int_t<size>;
+
+protected:
+	TFHEServerParams_t p;
+
+	Int() = delete;
+	// Create an Int, allocate memory, but do not initialize it
+	explicit Int(TFHEServerParams_t _p)
+		: p(_p), data(make_bitspan<size>(_p)) {};
+	Int(StructHelper &helper, TFHEServerParams_t _p)
+		: p(_p), data(helper.make_bitspan<size>(p)) {};
+
+	// Initialize from a plaintext int
+	Int(native_type_t src, only_TFHEServerParams_t _p = default_server_params)
+		: Int(unwrap_only(_p)) {
+		constant(src, _p);
+	}
+	Int(native_type_t src, StructHelper &helper, only_TFHEServerParams_t _p = default_server_params)
+		: Int(helper, unwrap_only(_p)) {
+		constant(src, _p);
+	}
+	Int(native_type_t src, TFHEClientParams_t _p) : Int(_p) {
+		encrypt(src, _p);
+	}
+	Int(native_type_t src, StructHelper &helper, TFHEClientParams_t _p)
+		: Int(helper, _p) {
+		encrypt(src, _p);
+	}
+
+	Int(const std::string &packet, TFHEServerParams_t _p = default_server_params) : Int(_p) {
+		char size_from_header = packet[0];
+		assert(size_from_header == size);
+		// Skip header
+		std::stringstream ss(packet.substr(1));
+		deserialize(ss, data, p);
+	}
+
 public:
+	void encrypt(native_type_t src, TFHEClientParams_t _p = default_client_params) {
+		for (int i = 0; i < size; i++)
+			::encrypt(data[i], (src >> i) & 1, _p);
+	}
+	// The only_TFHEServerParams_t param is not strictly necessary, but it helps
+	// against accidental API misuse.
+	void constant(native_type_t src, only_TFHEServerParams_t _p = default_server_params) {
+		for (int i = 0; i < size; i++)
+			::constant(data[i], (src >> i) & 1, _p);
+	}
+
 	std::string exportToString() {
 		// Todo: header should have >1 byte for size
 		char header[1];
@@ -50,44 +98,6 @@ public:
 			ret |= (::decrypt(data[i], p) & 1) << i;
 		return ret;
 	}
-protected:
-	// Create an Int, but do not initialize the memory
-	explicit Int(TFHEServerParams_t _p = default_server_params)
-		: p(_p), data(make_bitspan<size>(_p)) {};
-	explicit Int(StructHelper &helper, TFHEServerParams_t _p)
-		: p(_p), data(helper.make_bitspan<size>(p)) {};
-
-	// Initialize from a plaintext int
-	explicit Int(native_type_t src, only_TFHEServerParams_t _p = default_server_params)
-		: Int(unwrap_only(_p)) {
-		for (int i = 0; i < size; i++)
-			constant(data[i], (src >> i) & 1, _p);
-	}
-	explicit Int(native_type_t src, StructHelper &helper, only_TFHEServerParams_t _p = default_server_params)
-		: Int(helper, unwrap_only(_p)) {
-		for (int i = 0; i < size; i++)
-			constant(data[i], (src >> i) & 1, _p);
-	}
-	explicit Int(native_type_t src, TFHEClientParams_t _p)
-		: Int(_p) {
-		for (int i = 0; i < size; i++)
-			encrypt(data[i], (src >> i) & 1, _p);
-	}
-	explicit Int(native_type_t src, StructHelper &helper, TFHEClientParams_t _p)
-		: Int(helper, _p) {
-		for (int i = 0; i < size; i++)
-			encrypt(data[i], (src >> i) & 1, _p);
-	}
-
-	Int(const std::string &packet, TFHEServerParams_t _p = default_server_params) : Int(_p) {
-		char size_from_header = packet[0];
-		assert(size_from_header == size);
-		// Skip header
-		std::stringstream ss(packet.substr(1));
-		deserialize(ss, data, p);
-	}
-
-	TFHEServerParams_t p;
 public:
 	fixed_bitspan_t<size> data;
 };
@@ -97,20 +107,20 @@ public:
 	static const int typeID = INT_TYPE_ID;
 	static const int _wordSize = 8;
 
-	// Create an Int8, but do not initialize the memory
-	explicit Int8(TFHEServerParams_t _p = default_server_params)
-		: Int(_p) {};
-	explicit Int8(StructHelper &helper, TFHEServerParams_t _p)
+	Int8() = delete;
+	// Create an Int8, allocate memory, but do not initialize it
+	explicit Int8(TFHEServerParams_t _p) : Int(_p) {};
+	Int8(StructHelper &helper, TFHEServerParams_t _p)
 		: Int(helper, _p) {};
 
 	// Initialize from a plaintext int8
-	explicit Int8(int8_t src, only_TFHEServerParams_t _p = default_server_params)
+	Int8(int8_t src, only_TFHEServerParams_t _p = default_server_params)
 		: Int(src, _p) {};
-	explicit Int8(int8_t src, StructHelper &helper, only_TFHEServerParams_t _p = default_server_params)
+	Int8(int8_t src, StructHelper &helper, only_TFHEServerParams_t _p = default_server_params)
 		: Int(src, helper, _p) {};
-	explicit Int8(int8_t src, TFHEClientParams_t _p)
+	Int8(int8_t src, TFHEClientParams_t _p)
 		: Int(src, _p) {};
-	explicit Int8(int8_t src, StructHelper &helper, TFHEClientParams_t _p)
+	Int8(int8_t src, StructHelper &helper, TFHEClientParams_t _p)
 		: Int(src, helper, _p) {};
 	// Inizialize from a char*
 	Int8(const std::string &packet, TFHEServerParams_t _p = default_server_params)

@@ -20,7 +20,7 @@ void Int8::mul(bit_t overflow, Int8 a, Int8 b, uint8_t truncate_from) {
 	::mul8(tmp, dummy, a.data, b.data, p);
 	_copy(data, tmp.subspan(truncate_from, 8), p);
 	// todo: compute overflow (= if any of the truncated bits are set to 0)
-	constant(overflow, false, p);
+	::constant(overflow, false, p);
 }
 
 void Int8::mul(Int8 a, Int8 b, uint8_t truncate_from) {

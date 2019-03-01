@@ -11,12 +11,13 @@ class String : public Array<Int8, Length> {
 public:
 	static constexpr int typeID = STRING_TYPE_ID;
 
+	String() = delete;
 	explicit String(char /*disambiguation param*/, bool initialize_memory = true, only_TFHEServerParams_t _p = default_server_params)
 		: Array<Int8, Length>(initialize_memory, _p) {}
 	String(char /*disambiguation param*/, bool initialize_memory, TFHEClientParams_t _p)
 		: Array<Int8, Length>(initialize_memory, _p) {}
 	// The bool disambiguates against the deserialization ctor
-	explicit String(const char *src, bool, only_TFHEServerParams_t _p = default_server_params)
+	String(const char *src, bool, only_TFHEServerParams_t _p = default_server_params)
 		: Array<Int8, Length>(true, _p) {
 		assert(strlen(src) <= Length);
 		const auto len = strlen(src);
@@ -24,7 +25,7 @@ public:
 			for (int j = 0; j < 8; j++)
 				constant(this->data[i * 8 + j], (src[i] >> j) & 1, _p);
 	}
-	explicit String(const char *src, bool, TFHEClientParams_t _p)
+	String(const char *src, bool, TFHEClientParams_t _p)
 		: Array<Int8, Length>(true, _p) {
 		assert(strlen(src) <= Length);
 		const auto len = strlen(src);
