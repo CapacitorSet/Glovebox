@@ -5,7 +5,7 @@
 #include "fixed.h"
 
 template <class BaseClass>
-class Polynomial : BaseClass {
+class Polynomial {
 public:
 	explicit Polynomial(std::vector<BaseClass> _factors, TFHEServerParams_t _p = default_server_params)
 	: factors(std::move(_factors)), p(_p) {}
