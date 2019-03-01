@@ -9,6 +9,10 @@
 TFHEServerParams_t default_server_params;
 
 int main() {
+	if (PLAINTEXT)
+		puts("Plaintext mode.");
+	else
+		puts("Ciphertext mode.");
 	puts("Initializing TFHE...");
 	FILE *cloud_key = fopen("cloud.key", "rb");
 	if (cloud_key == nullptr) {
@@ -26,6 +30,21 @@ int main() {
 		puts("Receiving database...");
 		database = _db;
 		puts("Database received.");
+	});
+
+	srv.bind("countM", [&]() {
+		puts("Counting men...");
+		Int8 ret(0);
+		Int8 incrementer(0);
+		for (int i = 0; i < 10; i++) {
+			Patient p(default_server_params);
+			database.get(p, i);
+			// todo: replace with more efficient implementation
+			_copy(incrementer.data[0], p.isMale);
+			ret.add(ret, incrementer);
+		}
+
+		return ret.exportToString();
 	});
 
 	srv.run();

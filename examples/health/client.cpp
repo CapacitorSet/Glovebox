@@ -11,9 +11,12 @@
 TFHEClientParams_t default_client_params;
 
 constexpr int NUM_PATIENTS = 10;
-Array<Patient, NUM_PATIENTS>* records;
 
 int main() {
+	if (PLAINTEXT)
+		puts("Plaintext mode.");
+	else
+		puts("Ciphertext mode.");
 	puts("Initializing TFHE...");
 	FILE *secret_key = fopen("secret.key", "rb");
 	if (secret_key == nullptr) {
@@ -48,6 +51,11 @@ int main() {
 	rpc::client client("127.0.0.1", 8000);
 	puts("Uploading database...");
 	client.call("uploadDatabase", records.exportToString());
+
+	puts("Counting...");
+	std::string countMStr = client.call("countM").as<std::string>();
+	Int8 countM(countMStr, default_client_params);
+	printf("Output: %d\n", countM.toInt());
 
 	return 0;
 }
