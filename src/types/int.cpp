@@ -14,6 +14,12 @@ void Int8::add(Int8 a, Int8 b) {
 	this->add(overflow, a, b);
 }
 
+void Int8::increment_if(bit_t cond) {
+	auto tmp = make_bitspan<8>(p);
+	::incr8_if(tmp, cond, data, p);
+	_copy<8>(data, tmp, p);
+}
+
 void Int8::mul(bit_t overflow, Int8 a, Int8 b, uint8_t truncate_from) {
 	auto tmp = make_bitspan<16>(p);
 	bit_t dummy = make_bit(p);

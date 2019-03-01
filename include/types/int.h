@@ -129,6 +129,7 @@ public:
 	void add(bit_t overflow, Int8 a, Int8 b);
 	// Add and do not be notified if overflow happens
 	void add(Int8 a, Int8 b);
+	void increment_if(bit_t cond);
 	// In case of overflow the output will be *truncated* to the 8 LSBs!
 	void mul(bit_t overflow, Int8 a, Int8 b, uint8_t truncate_from = 0);
 	void mul(Int8 a, Int8 b, uint8_t truncate_from = 0);
