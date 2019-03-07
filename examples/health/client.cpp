@@ -52,7 +52,7 @@ int main() {
 	puts("Uploading database...");
 	client.call("uploadDatabase", records.exportToString());
 
-	puts("Counting...");
+	puts("Counting men...");
 	std::string countMStr = client.call("countM").as<std::string>();
 	Int8 countM(countMStr, default_client_params);
 	printf("Output: %d\n", countM.toInt());

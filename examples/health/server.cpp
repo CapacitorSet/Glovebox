@@ -34,7 +34,7 @@ int main() {
 
 	srv.bind("countM", [&]() {
 		puts("Counting men...");
-		return database.count_if([](Patient p) {
+		return database.countIf([](Patient p) {
 			return p.isMale;
 		}).exportToString();
 	});

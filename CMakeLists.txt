@@ -27,7 +27,7 @@ add_library(fhetools STATIC
 
 if (PLAINTEXT)
     add_definitions(-DPLAINTEXT=1)
-    target_compile_options(fhetools PUBLIC -O0 -Wall -Wextra -Wformat -Wformat-security -Werror=format-security -fsanitize=undefined -fsanitize-trap=bool)
+    target_compile_options(fhetools PUBLIC -O0 -Wall -Wextra -Wformat -Wformat-security -Werror=format-security -fsanitize=undefined -fsanitize-trap=bool -ferror-limit=1)
     target_link_options(fhetools PUBLIC -O0 -Wall -Wextra -fsanitize=undefined -fsanitize-trap=bool)
 else()
     add_definitions(-DPLAINTEXT=0)
