@@ -16,8 +16,16 @@ class Fixed : public BASE_INT {
 	static native_type_t scale(double src) {
 		double scaled = round(src * double(1 << FRAC_SIZE));
 		// Assert that the scaled number fits
-		assert(scaled <= double(std::numeric_limits<native_type_t>::max()));
-		assert(scaled >= double(std::numeric_limits<native_type_t>::min()));
+		if (scaled > double(std::numeric_limits<native_type_t>::max())) {
+			double upper_limit = std::numeric_limits<native_type_t>::max() >> FRAC_SIZE;
+			fprintf(stderr, "Value is too high: Fixed<%d,%d> was initialized with %lf, but maximum is %lf\n", INT_SIZE, FRAC_SIZE, src, upper_limit);
+			abort();
+		}
+		if (scaled < double(std::numeric_limits<native_type_t>::min())) {
+			double lower_limit = std::numeric_limits<native_type_t>::min() >> FRAC_SIZE;
+			fprintf(stderr, "Value is too low: Fixed<%d,%d> was initialized with %lf, but minimum is %lf\n", INT_SIZE, FRAC_SIZE, src, lower_limit);
+			abort();
+		}
 		return native_type_t(scaled);
 	}
 
