@@ -43,7 +43,7 @@ TEST_F(Q4_4Test, SumOverflow) {
 		auto overflow = make_bit(serverParams);
 		auto sum = Q4_4(serverParams);
 		sum.add(overflow, a, b);
-		int16_t plaintext_sum = plaintext_a + plaintext_b;
+		double plaintext_sum = plaintext_a + plaintext_b;
 		bool plaintext_overflow = plaintext_sum > Q4_4::max;
 		bool plaintext_underflow = plaintext_sum < Q4_4::min;
 		RC_ASSERT((plaintext_overflow || plaintext_underflow) == decrypt(overflow, clientParams));
