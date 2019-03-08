@@ -57,5 +57,11 @@ int main() {
 	Int8 countM(countMStr, default_client_params);
 	printf("Output: %d\n", countM.toInt());
 
+	puts("Computing average weight:");
+	std::string sumStr = client.call("sumWeight").as<std::string>();
+	Fixed<11, 1> sum(sumStr, default_client_params);
+	// The division is made client-side for performance reasons.
+	printf("Output: %lf\n", sum.toDouble() / 10.0);
+
 	return 0;
 }

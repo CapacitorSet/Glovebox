@@ -39,6 +39,15 @@ int main() {
 		}).exportToString();
 	});
 
+	srv.bind("sumWeight", [&]() {
+		puts("Calculating sum of weights...");
+		auto weights = database.map<Q7_1>([](Patient p) {
+			return p.weight;
+		});
+		auto sumW = sum(weights);
+		return sumW.exportToString();
+	});
+
 	srv.run();
 
 	return 0;
