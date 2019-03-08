@@ -43,3 +43,47 @@ TEST_F(Int8Test, SumOverflow) {
 		RC_ASSERT((plaintext_overflow || plaintext_underflow) == decrypt(overflow, clientParams));
 	});
 }
+
+/*******************/
+
+using Int16Test = FHEContext;
+
+TEST_F(Int16Test, Decrypt) {
+	::rc::detail::checkGTest([=](int16_t plaintext_num) {
+		auto a = Int16(plaintext_num, clientParams);
+		RC_ASSERT(a.toInt(clientParams) == plaintext_num);
+	});
+}
+
+TEST_F(Int16Test, Serialization) {
+	::rc::detail::checkGTest([=](int16_t plaintext_num) {
+		auto in = Int16(plaintext_num, clientParams);
+		auto tmp = in.exportToString();
+		auto out = Int16(tmp, serverParams);
+		RC_ASSERT(out.toInt(clientParams) == plaintext_num);
+	});
+}
+
+TEST_F(Int16Test, Sum) {
+	::rc::detail::checkGTest([=](int16_t plaintext_a, int16_t plaintext_b) {
+		auto a = Int16(plaintext_a, clientParams);
+		auto b = Int16(plaintext_b, clientParams);
+		auto sum = Int16(serverParams);
+		sum.add(a, b);
+		RC_ASSERT(sum.toInt(clientParams) == int16_t(plaintext_a + plaintext_b));
+	});
+}
+
+TEST_F(Int16Test, SumOverflow) {
+	::rc::detail::checkGTest([=](int16_t plaintext_a, int16_t plaintext_b) {
+		auto a = Int16(plaintext_a, clientParams);
+		auto b = Int16(plaintext_b, clientParams);
+		auto overflow = make_bit(serverParams);
+		auto sum = Int16(serverParams);
+		sum.add(overflow, a, b);
+		int32_t plaintext_sum = plaintext_a + plaintext_b;
+		bool plaintext_overflow = plaintext_sum > std::numeric_limits<int16_t>::max();
+		bool plaintext_underflow = plaintext_sum < std::numeric_limits<int16_t>::min();
+		RC_ASSERT((plaintext_overflow || plaintext_underflow) == decrypt(overflow, clientParams));
+	});
+}

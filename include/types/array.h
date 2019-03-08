@@ -8,7 +8,7 @@
 #include "int.h"
 
 // Computes ceil(log_2(value)), constexpr
-static constexpr uint8_t ceillog2(uint16_t value) {
+static constexpr uint8_t ceillog2(uint64_t value) {
 	uint8_t ret = 0;
 	while (value != 0) {
 		value >>= 1;
@@ -20,7 +20,6 @@ static constexpr uint8_t ceillog2(uint16_t value) {
 template <class T, uint16_t Length, uint16_t WordSize = T::_wordSize> class Array {
 protected:
 	static constexpr uint8_t AddrBits = ceillog2(Length);
-private:
 	using native_address_type = smallest_uint_t<AddrBits>;
 	using encrypted_address_type = smallest_Int<AddrBits>;
 	static_assert(AddrBits <= 8, "This size is not supported"); // See smallest_Int
@@ -134,10 +133,21 @@ public:
 		}
 		return ret;
 	}
+
+	// Create a new array with the result of calling f
+	template<class TNew, uint16_t WordSizeNew = TNew::_wordSize>
+	Array<TNew, Length, WordSizeNew> map(std::function<TNew(T)> f) {
+		Array<TNew, Length, WordSizeNew> ret(false);
+		for (native_address_type i = 0; i < Length; i++) {
+			T item(p);
+			this->get(item, i);
+			ret.put(f(item), i);
+		}
+		return ret;
+	}
 protected:
 	TFHEServerParams_t p;
 
-private:
 	void putBits(const bitspan_t &src, const bitspan_t &address, size_t dynamicOffset,
 	             bit_t mask) {
 		// Writes out of bounds are a no-op. This is necessary for arrays to
@@ -243,4 +253,37 @@ private:
 	}
 };
 
+// Sum over Array<Int>
+#define RETURN_TYPE smallest_Int<ceillog2(Length * WordSize)>
+template<class T, uint16_t Length, uint16_t WordSize>
+std::enable_if_t<T::typeID == INT_TYPE_ID, RETURN_TYPE>
+sum(Array<T, Length, WordSize> &arr, TFHEServerParams_t p = default_server_params) {
+	printf("Sum of %s\n", typeid(T).name());
+	RETURN_TYPE ret = 0;
+	for (uint16_t i = 0; i < Length; i++) {
+		T item(p);
+		arr.get(item, i);
+		ret.add(ret, item);
+	}
+	return ret;
+}
+#undef RETURN_TYPE
+
+// Sum over Array<Fixed>
+#define NEW_INT_SIZE (ceillog2(Length) + T::_INT_SIZE)
+#define RETURN_TYPE Fixed<NEW_INT_SIZE, T::_FRAC_SIZE>
+template<class T, uint16_t Length, uint16_t WordSize>
+std::enable_if_t<T::typeID == FIXED_TYPE_ID, RETURN_TYPE>
+sum(Array<T, Length, WordSize> &arr, TFHEServerParams_t p = default_server_params) {
+	RETURN_TYPE ret = 0;
+	bit_t overflow = make_bit();
+	for (uint16_t i = 0; i < Length; i++) {
+		T item(p);
+		arr.get(item, i);
+		auto upcast_item = fixed_extend<NEW_INT_SIZE, T::_INT_SIZE, T::_FRAC_SIZE>(item, p);
+		ret.add(overflow, ret, upcast_item);
+	}
+	return ret;
+}
+#undef RETURN_TYPE
 #endif //FHETOOLS_ARRAY_H

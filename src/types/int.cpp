@@ -22,11 +22,8 @@ void Int8::increment_if(bit_t cond) {
 
 void Int8::mul(bit_t overflow, Int8 a, Int8 b, uint8_t truncate_from) {
 	auto tmp = make_bitspan<16>(p);
-	bit_t dummy = make_bit(p);
-	::mul8(tmp, dummy, a.data, b.data, p);
+	::mul8(tmp, overflow, a.data, b.data, p);
 	_copy(data, tmp.subspan(truncate_from, 8), p);
-	// todo: compute overflow (= if any of the truncated bits are set to 0)
-	::constant(overflow, false, p);
 }
 
 void Int8::mul(Int8 a, Int8 b, uint8_t truncate_from) {
@@ -36,5 +33,36 @@ void Int8::mul(Int8 a, Int8 b, uint8_t truncate_from) {
 
 void Int8::copy(Int8 src) {
 	for (int i = 0; i < 8; i++)
+		_copy(data[i], src.data[i], p);
+}
+
+void Int16::add(bit_t overflow, Int16 a, Int16 b) {
+	::add16(data, overflow, a.data, b.data, p);
+}
+
+void Int16::add(Int16 a, Int16 b) {
+	bit_t overflow = make_bit(p);
+	this->add(overflow, a, b);
+}
+
+void Int16::increment_if(bit_t cond) {
+	auto tmp = make_bitspan<16>(p);
+	::incr16_if(tmp, cond, data, p);
+	_copy<16>(data, tmp, p);
+}
+
+void Int16::mul(bit_t overflow, Int16 a, Int16 b, uint16_t truncate_from) {
+	auto tmp = make_bitspan<32>(p);
+	::mul16(tmp, overflow, a.data, b.data, p);
+	_copy(data, tmp.subspan(truncate_from, 16), p);
+}
+
+void Int16::mul(Int16 a, Int16 b, uint16_t truncate_from) {
+	bit_t over_or_underflow = make_bit(p);
+	this->mul(over_or_underflow, a, b, truncate_from);
+}
+
+void Int16::copy(Int16 src) {
+	for (int i = 0; i < 16; i++)
 		_copy(data[i], src.data[i], p);
 }

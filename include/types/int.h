@@ -14,16 +14,16 @@
 template<uint8_t N, typename = std::enable_if<N <= 64>>
 using smallest_int_t =
 	std::conditional_t<(N <= 8), int8_t,
-	std::conditional<(N <= 16), int16_t,
-	std::conditional<(N <= 32), int32_t,
+	std::conditional_t<(N <= 16), int16_t,
+	std::conditional_t<(N <= 32), int32_t,
 	int64_t
 >>>;
 
 template<uint8_t N, typename = std::enable_if<N <= 64>>
 using smallest_uint_t =
 	std::conditional_t<(N <= 8), uint8_t,
-	std::conditional<(N <= 16), uint16_t,
-	std::conditional<(N <= 32), uint32_t,
+	std::conditional_t<(N <= 16), uint16_t,
+	std::conditional_t<(N <= 32), uint32_t,
 	uint64_t
 >>>;
 
@@ -137,11 +137,46 @@ public:
 	void copy(Int8 src);
 };
 
+class Int16 : public Int<16> {
+public:
+	static const int typeID = INT_TYPE_ID;
+	static const int _wordSize = 16;
+
+	Int16() = delete;
+	// Create an Int16, allocate memory, but do not initialize it
+	explicit Int16(TFHEServerParams_t _p) : Int(_p) {};
+	Int16(StructHelper &helper, TFHEServerParams_t _p)
+		: Int(helper, _p) {};
+
+	// Initialize from a plaintext int16
+	Int16(int16_t src, only_TFHEServerParams_t _p = default_server_params)
+		: Int(src, _p) {};
+	Int16(int16_t src, StructHelper &helper, only_TFHEServerParams_t _p = default_server_params)
+		: Int(src, helper, _p) {};
+	Int16(int16_t src, TFHEClientParams_t _p)
+		: Int(src, _p) {};
+	Int16(int16_t src, StructHelper &helper, TFHEClientParams_t _p)
+		: Int(src, helper, _p) {};
+	// Inizialize from a char*
+	Int16(const std::string &packet, TFHEServerParams_t _p = default_server_params)
+		: Int(packet, _p) {};
+
+	void add(bit_t overflow, Int16 a, Int16 b);
+	// Add and do not be notified if overflow happens
+	void add(Int16 a, Int16 b);
+	void increment_if(bit_t cond);
+	// In case of overflow the output will be *truncated* to the 16 LSBs!
+	void mul(bit_t overflow, Int16 a, Int16 b, uint16_t truncate_from = 0);
+	void mul(Int16 a, Int16 b, uint16_t truncate_from = 0);
+
+	void copy(Int16 src);
+};
+
 // The smallest Int class with at least N bits
-template<uint8_t N, typename = std::enable_if<N <= 8>>
-using smallest_Int = std::conditional_t<(N <= 8), Int8, /* error! */ void>;
-// When Int16, etc. are implemented it will have several std::conditional
-// clauses, one for each
+template<uint8_t N>
+using smallest_Int = typename std::enable_if<N <= 16,
+	std::conditional_t<(N <= 8), Int8, Int16>
+>::type; // If you're reading this, you're requesting too large of an Int.
 
 /*
 class Int16 : Int<16> {

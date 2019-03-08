@@ -9,7 +9,7 @@
 template <uint8_t INT_SIZE, uint8_t FRAC_SIZE>
 class Fixed : public BASE_INT {
 	static const int SIZE = INT_SIZE + FRAC_SIZE;
-	static_assert(SIZE <= 8, "Size not supported");
+	static_assert(SIZE <= 16, "Size not supported");
 	using native_type_t = smallest_int_t<SIZE>;
 	// Numeric limits of underlying storage
 	static constexpr int64_t native_max = std::numeric_limits<native_type_t>::max();
@@ -38,6 +38,10 @@ public:
 	// Numeric limits of representable fixeds
 	static constexpr double max = undo_scale(native_max);
 	static constexpr double min = undo_scale(native_min);
+
+	// todo: rewrite as type traits
+	static const int _INT_SIZE = INT_SIZE;
+	static const int _FRAC_SIZE = FRAC_SIZE;
 	static const int typeID = FIXED_TYPE_ID;
 	static const int _wordSize = INT_SIZE + FRAC_SIZE;
 
