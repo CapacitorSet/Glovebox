@@ -97,4 +97,19 @@ public:
 	}
 };
 
+// Sign-extend a fixed into a larger one
+template<uint8_t INT_NEW, uint8_t INT_OLD, uint8_t FRAC_SIZE>
+Fixed<INT_NEW, FRAC_SIZE> fixed_extend(Fixed<INT_OLD, FRAC_SIZE> src, TFHEServerParams_t _p) {
+	static_assert(INT_NEW >= INT_OLD);
+	Fixed<INT_NEW, FRAC_SIZE> ret(_p);
+	bit_t sign = src.data.last();
+	for (int i = 0; i < ret.data.size(); i++) {
+		if (i < src.data.size())
+			_copy(ret.data[i], src.data[i], _p);
+		else
+			_copy(ret.data[i], sign, _p);
+	}
+	return ret;
+}
+
 #endif //FHETOOLS_FIXED32_H

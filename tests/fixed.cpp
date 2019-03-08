@@ -49,3 +49,12 @@ TEST_F(Q4_4Test, SumOverflow) {
 		RC_ASSERT((plaintext_overflow || plaintext_underflow) == decrypt(overflow, clientParams));
 	});
 }
+
+TEST_F(Q4_4Test, UpscaleToQ8_4) {
+	::rc::detail::checkGTest([=](int16_t _plaintext_num) {
+		double plaintext_num = rescale(_plaintext_num);
+		auto num = Q4_4(plaintext_num, clientParams);
+		auto upscaled = fixed_extend<8, 4, 4>(num, clientParams);
+		RC_ASSERT(quantize(upscaled.toDouble(clientParams)) == quantize(plaintext_num));
+	});
+}
