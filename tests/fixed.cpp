@@ -34,7 +34,7 @@ TEST_F(Q4_4Test, Serialization) {
 	});
 }
 
-TEST_F(Q4_4Test, SumOverflow) {
+TEST_F(Q4_4Test, Sum) {
 	::rc::detail::checkGTest([=](int16_t _plaintext_a, int16_t _plaintext_b) {
 		double plaintext_a = rescale(_plaintext_a);
 		double plaintext_b = rescale(_plaintext_b);
@@ -43,10 +43,14 @@ TEST_F(Q4_4Test, SumOverflow) {
 		auto overflow = make_bit(serverParams);
 		auto sum = Q4_4(serverParams);
 		sum.add(overflow, a, b);
-		double plaintext_sum = plaintext_a + plaintext_b;
+		// Quantization errors can add up, and I'm too lazy to implement the actual
+		// check (which is abs(quantize(sum) - quantize(plaintext_sum)) <= 2*resolution)
+		double plaintext_sum = quantize(plaintext_a) + quantize(plaintext_b);
 		bool plaintext_overflow = plaintext_sum > Q4_4::max;
 		bool plaintext_underflow = plaintext_sum < Q4_4::min;
 		RC_ASSERT((plaintext_overflow || plaintext_underflow) == decrypt(overflow, clientParams));
+		if (!plaintext_overflow && !plaintext_underflow)
+			RC_ASSERT(quantize(sum.toDouble(clientParams)) == quantize(plaintext_sum));
 	});
 }
 
