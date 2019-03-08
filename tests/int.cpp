@@ -45,6 +45,17 @@ TEST_F(Int8Test, Mul) {
 	});
 }
 
+TEST_F(Int8Test, Div) {
+	::rc::detail::checkGTest([=](int8_t plaintext_a, int8_t plaintext_b) {
+		RC_PRE(plaintext_b != 0);
+		auto a = Int8(plaintext_a, clientParams);
+		auto b = Int8(plaintext_b, clientParams);
+		auto sum = Int8(serverParams);
+		sum.div(a, b);
+		RC_ASSERT(sum.toInt(clientParams) == int8_t(plaintext_a / plaintext_b));
+	});
+}
+
 /*******************/
 
 using Int16Test = FHEContext;
@@ -87,5 +98,16 @@ TEST_F(Int16Test, Mul) {
 		auto sum = Int16(serverParams);
 		sum.mul(a, b);
 		RC_ASSERT(sum.toInt(clientParams) == int16_t(plaintext_a * plaintext_b));
+	});
+}
+
+TEST_F(Int16Test, Div) {
+	::rc::detail::checkGTest([=](int16_t plaintext_a, int16_t plaintext_b) {
+		RC_PRE(plaintext_b != 0);
+		auto a = Int16(plaintext_a, clientParams);
+		auto b = Int16(plaintext_b, clientParams);
+		auto sum = Int16(serverParams);
+		sum.div(a, b);
+		RC_ASSERT(sum.toInt(clientParams) == int16_t(plaintext_a / plaintext_b));
 	});
 }

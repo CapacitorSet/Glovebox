@@ -133,6 +133,7 @@ public:
 	// In case of overflow the output will be *truncated* to the 8 LSBs!
 	void mul(bit_t overflow, Int8 a, Int8 b, uint8_t truncate_from = 0);
 	void mul(Int8 a, Int8 b, uint8_t truncate_from = 0);
+	void div(Int8 a, Int8 b);
 
 	void copy(Int8 src);
 };
@@ -168,6 +169,7 @@ public:
 	// In case of overflow the output will be *truncated* to the 16 LSBs!
 	void mul(bit_t overflow, Int16 a, Int16 b, uint16_t truncate_from = 0);
 	void mul(Int16 a, Int16 b, uint16_t truncate_from = 0);
+	void div(Int16 a, Int16 b);
 
 	void copy(Int16 src);
 };

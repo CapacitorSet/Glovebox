@@ -31,6 +31,10 @@ void Int8::mul(Int8 a, Int8 b, uint8_t truncate_from) {
 	this->mul(over_or_underflow, a, b, truncate_from);
 }
 
+void Int8::div(Int8 a, Int8 b) {
+	::div8(data, a.data, b.data, p);
+}
+
 void Int8::copy(Int8 src) {
 	for (int i = 0; i < 8; i++)
 		_copy(data[i], src.data[i], p);
@@ -65,4 +69,8 @@ void Int16::mul(Int16 a, Int16 b, uint16_t truncate_from) {
 void Int16::copy(Int16 src) {
 	for (int i = 0; i < 16; i++)
 		_copy(data[i], src.data[i], p);
+}
+
+void Int16::div(Int16 a, Int16 b) {
+	::div16(data, a.data, b.data, p);
 }
