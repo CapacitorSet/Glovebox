@@ -11,25 +11,33 @@ class Fixed : public BASE_INT {
 	static const int SIZE = INT_SIZE + FRAC_SIZE;
 	static_assert(SIZE <= 8, "Size not supported");
 	using native_type_t = smallest_int_t<SIZE>;
-
+	// Numeric limits of underlying storage
+	static constexpr int64_t native_max = std::numeric_limits<native_type_t>::max();
+	static constexpr int64_t native_min = std::numeric_limits<native_type_t>::min();
 	// Scale the number and return it as an integer
 	static native_type_t scale(double src) {
 		double scaled = round(src * double(1 << FRAC_SIZE));
 		// Assert that the scaled number fits
-		if (scaled > double(std::numeric_limits<native_type_t>::max())) {
-			double upper_limit = std::numeric_limits<native_type_t>::max() >> FRAC_SIZE;
+		if (scaled > double(native_max)) {
+			double upper_limit = native_max >> FRAC_SIZE;
 			fprintf(stderr, "Value is too high: Fixed<%d,%d> was initialized with %lf, but maximum is %lf\n", INT_SIZE, FRAC_SIZE, src, upper_limit);
 			abort();
 		}
-		if (scaled < double(std::numeric_limits<native_type_t>::min())) {
-			double lower_limit = std::numeric_limits<native_type_t>::min() >> FRAC_SIZE;
+		if (scaled < double(native_min)) {
+			double lower_limit = native_min >> FRAC_SIZE;
 			fprintf(stderr, "Value is too low: Fixed<%d,%d> was initialized with %lf, but minimum is %lf\n", INT_SIZE, FRAC_SIZE, src, lower_limit);
 			abort();
 		}
 		return native_type_t(scaled);
 	}
 
+	static constexpr double undo_scale(native_type_t src) {
+		return double(src) / (1 << FRAC_SIZE);
+	}
 public:
+	// Numeric limits of representable fixeds
+	static constexpr double max = undo_scale(native_max);
+	static constexpr double min = undo_scale(native_min);
 	static const int typeID = FIXED_TYPE_ID;
 	static const int _wordSize = INT_SIZE + FRAC_SIZE;
 
@@ -73,8 +81,7 @@ public:
 	}
 
 	double toDouble(TFHEClientParams_t p = default_client_params) {
-		native_type_t tmp = this->toInt(p);
-		return double(tmp) / (1 << FRAC_SIZE);
+		return undo_scale(this->toInt(p));
 	};
 	std::string exportToString() {
 		char header[2] = {INT_SIZE, FRAC_SIZE};

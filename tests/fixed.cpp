@@ -34,9 +34,8 @@ TEST_F(Q4_4Test, Serialization) {
 	});
 }
 
-TEST_F(Q4_4Test, DISABLED_SumOverflow) {
-	::rc::detail::checkGTest([=](double _plaintext_a, double _plaintext_b) {
-		// Rescale to (-2 ** 4, 2 ** 4)
+TEST_F(Q4_4Test, SumOverflow) {
+	::rc::detail::checkGTest([=](int16_t _plaintext_a, int16_t _plaintext_b) {
 		double plaintext_a = rescale(_plaintext_a);
 		double plaintext_b = rescale(_plaintext_b);
 		auto a = Q4_4(plaintext_a, clientParams);
@@ -45,8 +44,8 @@ TEST_F(Q4_4Test, DISABLED_SumOverflow) {
 		auto sum = Q4_4(serverParams);
 		sum.add(overflow, a, b);
 		int16_t plaintext_sum = plaintext_a + plaintext_b;
-		bool plaintext_overflow = plaintext_sum > std::numeric_limits<int8_t>::max();
-		bool plaintext_underflow = plaintext_sum < std::numeric_limits<int8_t>::min();
+		bool plaintext_overflow = plaintext_sum > Q4_4::max;
+		bool plaintext_underflow = plaintext_sum < Q4_4::min;
 		RC_ASSERT((plaintext_overflow || plaintext_underflow) == decrypt(overflow, clientParams));
 	});
 }
