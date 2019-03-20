@@ -3,6 +3,13 @@
 using Q7_1 = Fixed<7, 1>; // Represents weights from 0 to 63 with a precision of 0.5
 class Patient {
 public:
+	constexpr static double scaleHeight(double original) {
+		return original - 120;
+	}
+	constexpr static double unscaleHeight(double scaled) {
+		return scaled + 120;
+	}
+
 	// Beware of implicit initializers! They can cause linker errors about
 	// default_server_params missing in client code, and outright leaks in
 	// server code.
@@ -18,10 +25,14 @@ public:
 
 	Patient(double _height, double _weight, int8_t _age, bool _isMale, TFHEClientParams_t p)
 		: Patient(StructHelper(_wordSize, p), p) {
-		this->resized_height.encrypt(_height, p);
+		this->resized_height.encrypt(scaleHeight(_height), p);
 		this->weight.encrypt(_weight, p);
 		this->age.encrypt(_age, p);
 		encrypt(this->isMale, _isMale, p);
+	}
+
+	double getHeight(TFHEClientParams_t p = default_client_params) {
+		return unscaleHeight(this->resized_height.toInt(p));
 	}
 
 private:
