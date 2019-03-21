@@ -17,7 +17,7 @@ public:
 		}
 	}
 
-	BaseClass evaluate(bit_t overflow, BaseClass x) {
+	BaseClass evaluate(bit_t overflow, BaseClass x) const {
 		// Uses Horner's method: p(x) = a_0 + x(a_1 + x(a_2 + ...))
 		// todo: skip factors equal to zero if inited from vector<double>
 		auto result = BaseClass(p);

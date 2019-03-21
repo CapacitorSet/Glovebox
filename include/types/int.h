@@ -79,7 +79,7 @@ public:
 			::constant(data[i], (src >> i) & 1, _p);
 	}
 
-	std::string exportToString() {
+	std::string exportToString() const {
 		// Todo: header should have >1 byte for size
 		char header[1];
 		char mysize = size;
@@ -92,7 +92,7 @@ public:
 
 	// Decrypts the Int and returns an int of the smallest size possible
 	// (5 -> int8_t, 10 -> int16_t, etc)
-	native_type_t toInt(TFHEClientParams_t p = default_client_params) {
+	native_type_t toInt(TFHEClientParams_t p = default_client_params) const {
 		native_type_t ret = 0;
 		for (int i = 0; i < size; i++)
 			ret |= (::decrypt(data[i], p) & 1) << i;

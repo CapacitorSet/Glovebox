@@ -84,10 +84,10 @@ public:
 		BASE_INT::mul(overflow, a, b, FRAC_SIZE);
 	}
 
-	double toDouble(TFHEClientParams_t p = default_client_params) {
+	double toDouble(TFHEClientParams_t p = default_client_params) const {
 		return undo_scale(this->toInt(p));
 	};
-	std::string exportToString() {
+	std::string exportToString() const {
 		char header[2] = {INT_SIZE, FRAC_SIZE};
 		std::ostringstream oss;
 		oss.write(header, sizeof(header));

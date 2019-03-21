@@ -21,4 +21,4 @@ To do's
 
 [x] Reuse wire IDs in codegen
 
-[ ] Add const annotations where possible
+[x] Add const annotations where possible

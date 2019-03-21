@@ -44,7 +44,7 @@ public:
 		deserialize(ss, this->data, this->p);
 	}
 
-	void toCStr(char *dst, TFHEClientParams_t _p = default_client_params) {
+	void toCStr(char *dst, TFHEClientParams_t _p = default_client_params) const {
 		for (size_t i = 0; i < Length; i++) {
 			char out = 0;
 			for (int j = 0; j < 8; j++)
@@ -53,7 +53,7 @@ public:
 		}
 	}
 
-	std::string exportToString() {
+	std::string exportToString() const {
 		char header[2];
 		uint16_t size = Length;
 		memcpy(header, &size, 2);

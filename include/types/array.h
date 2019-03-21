@@ -83,7 +83,7 @@ public:
 	}
 	*/
 
-	void get(T dst, native_address_type address) {
+	void get(T dst, native_address_type address) const {
 		assert(address < Length);
 		_copy(dst.data, data.subspan(address * WordSize, WordSize), p);
 	}
@@ -96,14 +96,14 @@ public:
 	}
 	*/
 
-	void get(T dst, encrypted_address_type address) {
+	void get(T dst, encrypted_address_type address) const {
 		bit_t mask = make_bit(p);
 		constant(mask, 1, p);
 
 		getBits(dst.data, address.data, 0, mask);
 	}
 
-	std::string exportToString() {
+	std::string exportToString() const {
 		char header[3] = {T::typeID};
 		uint16_t size = Length;
 		memcpy(header + 1, &size, 2);
@@ -124,7 +124,7 @@ public:
 	*/
 
 	// Count the number of items satisfying cond
-	encrypted_address_type countIf(std::function<bit_t(T)> cond) {
+	encrypted_address_type countIf(std::function<bit_t(T)> cond) const {
 		encrypted_address_type ret = 0;
 		for (native_address_type i = 0; i < Length; i++) {
 			T item(p);
@@ -136,7 +136,7 @@ public:
 
 	// Create a new array with the result of calling f
 	template<class TNew, uint16_t WordSizeNew = TNew::_wordSize>
-	Array<TNew, Length, WordSizeNew> map(std::function<TNew(T)> f) {
+	Array<TNew, Length, WordSizeNew> map(std::function<TNew(T)> f) const {
 		Array<TNew, Length, WordSizeNew> ret(false);
 		for (native_address_type i = 0; i < Length; i++) {
 			T item(p);
@@ -201,7 +201,7 @@ protected:
 	}
 
 	void getBits(const bitspan_t &dst, const bitspan_t &address, size_t dynamicOffset,
-	             bit_t mask) {
+	             bit_t mask) const {
 		// Reads out of bounds are a no-op. This is necessary for arrays to
 		// work with sizes other than powers of two. Bound checks should be done
 		// at the caller.

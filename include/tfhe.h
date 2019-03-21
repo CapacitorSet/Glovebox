@@ -10,12 +10,12 @@
 using unsafe_bit_t = bool;
 typedef struct {} only_TFHEServerParams_t;
 typedef struct {
-	operator only_TFHEServerParams_t() {
+	operator only_TFHEServerParams_t() const {
 		return only_TFHEServerParams_t{};
 	}
 } TFHEServerParams_t;
 typedef struct {
-	operator TFHEServerParams_t() {
+	operator TFHEServerParams_t() const {
 		return TFHEServerParams_t{};
 	}
 	operator only_TFHEServerParams_t() = delete; // If you can read this you're passing client params to server-only functions.
@@ -33,14 +33,14 @@ typedef struct {
 typedef struct {
 	const TFheGateBootstrappingParameterSet *params;
 	const TFheGateBootstrappingCloudKeySet *bk;
-	operator only_TFHEServerParams_t() {
+	operator only_TFHEServerParams_t() const {
 		return only_TFHEServerParams_t{params, bk};
 	}
 } TFHEServerParams_t ;
 typedef struct {
 	TFheGateBootstrappingSecretKeySet* key;
 	const TFheGateBootstrappingParameterSet* params;
-	operator TFHEServerParams_t() {
+	operator TFHEServerParams_t() const {
 		return TFHEServerParams_t{
 			key->cloud.params,
 			&(key->cloud)
