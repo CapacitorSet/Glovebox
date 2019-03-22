@@ -67,6 +67,37 @@ protected:
 		deserialize(ss, data, p);
 	}
 
+	// Copy a larger bitspan here. Deals with rounding and overflow calculation
+	// This can't call increment_if directly, so implementations must add a tiny wrapper
+	// If the function returns false, wrappers MUST NOT call increment_if
+	[[nodiscard]] bool round_helper(bit_t should_increment, bit_t overflow, const bitspan_t &src, uint8_t truncate_from) {
+		_copy(data, src.subspan(truncate_from, size), p);
+		bit_t sign_bit = src.last();
+
+		::constant(overflow, false, p);
+		// The number overflows if it is positive and has 1s past what we copied,
+		// or it is negative and has 0s past what we copied.
+		// (Note that we finished copying at truncate_from + size)
+		for (int i = truncate_from + size; i < src.size(); i++) {
+			bit_t is_overflowing = make_bit(p);
+			_xor(is_overflowing, sign_bit, src[i], p);
+			_or(overflow, overflow, is_overflowing, p);
+		}
+
+		if (truncate_from == 0) {
+			// No rounding can occur: the wrapper should not waste time calling
+			// increment_if.
+			return false;
+		} else {
+			// We can't just truncate (i.e. _copy): consider the case 0.011, which
+			// does not round to 0.01 but to 0.10.
+			_xor(should_increment, sign_bit, src[truncate_from - 1], p);
+			// this->increment_if(should_increment);
+			// The wrapper must take care of incrementing.
+			return true;
+		}
+	}
+
 public:
 	void encrypt(native_type_t src, TFHEClientParams_t _p = default_client_params) {
 		for (int i = 0; i < size; i++)
@@ -98,7 +129,7 @@ public:
 			ret |= (::decrypt(data[i], p) & 1) << i;
 		return ret;
 	}
-public:
+
 	fixed_bitspan_t<size> data;
 };
 
@@ -136,6 +167,9 @@ public:
 	void div(Int8 a, Int8 b);
 
 	void copy(Int8 src);
+
+private:
+	void round(bit_t overflow, const bitspan_t &src, uint8_t truncate_from);
 };
 
 class Int16 : public Int<16> {
@@ -167,11 +201,14 @@ public:
 	void add(Int16 a, Int16 b);
 	void increment_if(bit_t cond);
 	// In case of overflow the output will be *truncated* to the 16 LSBs!
-	void mul(bit_t overflow, Int16 a, Int16 b, uint16_t truncate_from = 0);
-	void mul(Int16 a, Int16 b, uint16_t truncate_from = 0);
+	void mul(bit_t overflow, Int16 a, Int16 b, uint8_t truncate_from = 0);
+	void mul(Int16 a, Int16 b, uint8_t truncate_from = 0);
 	void div(Int16 a, Int16 b);
 
 	void copy(Int16 src);
+
+private:
+	void round(bit_t overflow, const bitspan_t &src, uint8_t truncate_from);
 };
 
 // The smallest Int class with at least N bits
