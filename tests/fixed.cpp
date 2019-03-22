@@ -30,7 +30,16 @@ TEST_F(Q4_4Test, Serialization) {
 		auto in = Q4_4(plaintext_num, clientParams);
 		auto tmp = in.exportToString();
 		auto out = Q4_4(tmp, serverParams);
-		RC_ASSERT(quantize(out.toDouble(clientParams)) == quantize(plaintext_num));
+		RC_ASSERT(out.toDouble(clientParams) == quantize(plaintext_num));
+	});
+}
+
+TEST_F(Q4_4Test, SignExtend) {
+	::rc::detail::checkGTest([=](int16_t _plaintext_num) {
+		double plaintext_num = rescale(_plaintext_num);
+		auto num = Q4_4(plaintext_num, clientParams);
+		auto upscaled = fixed_extend<8, 4, 4>(num, clientParams);
+		RC_ASSERT(upscaled.toDouble(clientParams) == quantize(plaintext_num));
 	});
 }
 
