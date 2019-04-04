@@ -68,33 +68,29 @@ protected:
 	}
 
 	// Copy a larger bitspan here. Deals with rounding and overflow calculation
-	// This can't call increment_if directly, so implementations must add a tiny wrapper
-	// If the function returns false, wrappers MUST NOT call increment_if
-	[[nodiscard]] bool round_helper(bit_t should_increment, bit_t overflow, const bitspan_t &src, uint8_t truncate_from) {
+	void round_helper(bit_t overflow, const bitspan_t &src, uint8_t truncate_from) {
 		_copy(data, src.subspan(truncate_from, size), p);
 		bit_t sign_bit = src.last();
 
-		::constant(overflow, false, p);
+		if (truncate_from != 0) {
+			// We can't just truncate (i.e. _copy): consider the case 0.011, which
+			// does not round to 0.01 but to 0.10.
+			bit_t should_increment = make_bit(p);
+			_xor(should_increment, sign_bit, src[truncate_from - 1], p);
+			bitspan_t tmp = make_bitspan(data.size(), p);
+			incr_if(tmp, should_increment, data, p);
+			_copy(data, tmp);
+		}
+
 		// The number overflows if it is positive and has 1s past what we copied,
 		// or it is negative and has 0s past what we copied.
 		// (Note that we finished copying at truncate_from + size)
+		// It also overflows if the signs of src and data do not match.
+		_xor(overflow, sign_bit, data.last());
 		for (int i = truncate_from + size; i < src.size(); i++) {
 			bit_t is_overflowing = make_bit(p);
 			_xor(is_overflowing, sign_bit, src[i], p);
 			_or(overflow, overflow, is_overflowing, p);
-		}
-
-		if (truncate_from == 0) {
-			// No rounding can occur: the wrapper should not waste time calling
-			// increment_if.
-			return false;
-		} else {
-			// We can't just truncate (i.e. _copy): consider the case 0.011, which
-			// does not round to 0.01 but to 0.10.
-			_xor(should_increment, sign_bit, src[truncate_from - 1], p);
-			// this->increment_if(should_increment);
-			// The wrapper must take care of incrementing.
-			return true;
 		}
 	}
 

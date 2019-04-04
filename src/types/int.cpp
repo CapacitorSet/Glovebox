@@ -41,10 +41,7 @@ void Int8::copy(Int8 src) {
 }
 
 void Int8::round(bit_t overflow, const bitspan_t &src, uint8_t truncate_from) {
-	bit_t should_increment = make_bit(p);
-	bool incr = round_helper(should_increment, overflow, src, truncate_from);
-	if (incr)
-		this->increment_if(should_increment);
+	round_helper(overflow, src, truncate_from);
 }
 
 void Int16::add(bit_t overflow, Int16 a, Int16 b) {
@@ -83,8 +80,5 @@ void Int16::copy(Int16 src) {
 }
 
 void Int16::round(bit_t overflow, const bitspan_t &src, uint8_t truncate_from) {
-	bit_t should_increment = make_bit(p);
-	bool incr = round_helper(should_increment, overflow, src, truncate_from);
-	if (incr)
-		this->increment_if(should_increment);
+	round_helper(overflow, src, truncate_from);
 }
