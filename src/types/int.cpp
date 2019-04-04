@@ -16,7 +16,7 @@ void Int8::add(Int8 a, Int8 b) {
 
 void Int8::increment_if(bit_t cond) {
 	auto tmp = make_bitspan<8>(p);
-	::incr8_if(tmp, cond, data, p);
+	incr_if(tmp, cond, data, p);
 	_copy<8>(data, tmp, p);
 }
 
@@ -58,7 +58,7 @@ void Int16::add(Int16 a, Int16 b) {
 
 void Int16::increment_if(bit_t cond) {
 	auto tmp = make_bitspan<16>(p);
-	::incr16_if(tmp, cond, data, p);
+	incr_if(tmp, cond, data, p);
 	_copy<16>(data, tmp, p);
 }
 
