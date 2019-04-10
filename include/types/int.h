@@ -165,8 +165,8 @@ class Int8 : public Int<8> {
 
 	void copy(const Int8 src);
 
-	bit_t is_zero();
-	bit_t is_nonzero();
+	bit_t is_zero() const;
+	bit_t is_nonzero() const;
 	void increment_if(bit_t cond);
 	void decrement_if(bit_t cond);
 
@@ -208,8 +208,8 @@ class Int16 : public Int<16> {
 
 	void copy(Int16 src);
 
-	bit_t is_zero();
-	bit_t is_nonzero();
+	bit_t is_zero() const;
+	bit_t is_nonzero() const;
 	void increment_if(bit_t cond);
 	void decrement_if(bit_t cond);
 

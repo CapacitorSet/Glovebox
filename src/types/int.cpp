@@ -14,8 +14,8 @@ void Int8::add(Int8 a, Int8 b) {
 	this->add(overflow, a, b);
 }
 
-bit_t Int8::is_zero() { return ::is_zero(data); }
-bit_t Int8::is_nonzero() { return ::is_nonzero(data); }
+bit_t Int8::is_zero() const { return ::is_zero(data); }
+bit_t Int8::is_nonzero() const { return ::is_nonzero(data); }
 
 void Int8::increment_if(bit_t cond) {
 	auto tmp = make_bitspan<8>(p);
@@ -60,8 +60,8 @@ void Int16::add(Int16 a, Int16 b) {
 	this->add(overflow, a, b);
 }
 
-bit_t Int16::is_zero() { return ::is_zero(data); }
-bit_t Int16::is_nonzero() { return ::is_nonzero(data); }
+bit_t Int16::is_zero() const { return ::is_zero(data); }
+bit_t Int16::is_nonzero() const { return ::is_nonzero(data); }
 
 void Int16::increment_if(bit_t cond) {
 	auto tmp = make_bitspan<16>(p);
