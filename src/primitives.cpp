@@ -11,6 +11,22 @@ void zero(bitspan_t src, TFHEServerParams_t p) {
 		constant(bit, 0, p);
 }
 
+bit_t is_zero(bitspan_t src, TFHEServerParams_t p) {
+	bit_t ret = make_bit(p);
+	_not(ret, src[0], p);
+	for (int i = 1; i < src.size(); i++)
+		_andyn(ret, ret, src[i], p);
+	return ret;
+}
+
+bit_t is_nonzero(bitspan_t src, TFHEServerParams_t p) {
+	bit_t ret = make_bit(p);
+	_copy(ret, src[0], p);
+	for (int i = 1; i < src.size(); i++)
+		_or(ret, ret, src[i], p);
+	return ret;
+}
+
 // No bounds checking is done!
 void _memcpy(bitspan_t dst, bitspan_t src, size_t size, TFHEServerParams_t p) {
 	for (size_t i = 0; i < size; i++)

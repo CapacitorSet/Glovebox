@@ -1,14 +1,14 @@
-#include <utility>
-
 #ifndef FHETOOLS_INT_H
 #define FHETOOLS_INT_H
 
+#include <cstring>
 #include <primitives.h>
 #include <serialization.h>
 #include <sstream>
 #include <structhelper.h>
 #include <tfhe.h>
 #include <types/type_ids.h>
+#include <utility>
 
 // Template programming is ugly.
 template <uint8_t N, typename = std::enable_if<N <= 64>>
@@ -125,6 +125,9 @@ template <uint8_t size> class Int {
 		return ret;
 	}
 
+	// Convenience method. Makes for more readable code.
+	bit_t isNegative() const { return data.last(); }
+
 	fixed_bitspan_t<size> data;
 };
 
@@ -156,12 +159,13 @@ class Int8 : public Int<8> {
 	// Add and do not be notified if overflow happens
 	void add(Int8 a, Int8 b);
 	void increment_if(bit_t cond);
+	void decrement_if(bit_t cond);
 	// In case of overflow the output will be *truncated* to the 8 LSBs!
 	void mul(bit_t overflow, Int8 a, Int8 b, uint8_t truncate_from = 0);
 	void mul(Int8 a, Int8 b, uint8_t truncate_from = 0);
 	void div(Int8 a, Int8 b);
 
-	void copy(Int8 src);
+	void copy(const Int8 src);
 
   private:
 	void round(bit_t overflow, const bitspan_t &src, uint8_t truncate_from);

@@ -33,7 +33,7 @@ void Int8::mul(Int8 a, Int8 b, uint8_t truncate_from) {
 
 void Int8::div(Int8 a, Int8 b) { ::div8(data, a.data, b.data, p); }
 
-void Int8::copy(Int8 src) {
+void Int8::copy(const Int8 src) {
 	for (int i = 0; i < 8; i++)
 		_copy(data[i], src.data[i], p);
 }
