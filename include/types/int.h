@@ -158,14 +158,17 @@ class Int8 : public Int<8> {
 	void add(bit_t overflow, Int8 a, Int8 b);
 	// Add and do not be notified if overflow happens
 	void add(Int8 a, Int8 b);
-	void increment_if(bit_t cond);
-	void decrement_if(bit_t cond);
 	// In case of overflow the output will be *truncated* to the 8 LSBs!
 	void mul(bit_t overflow, Int8 a, Int8 b, uint8_t truncate_from = 0);
 	void mul(Int8 a, Int8 b, uint8_t truncate_from = 0);
 	void div(Int8 a, Int8 b);
 
 	void copy(const Int8 src);
+
+	bit_t is_zero();
+	bit_t is_nonzero();
+	void increment_if(bit_t cond);
+	void decrement_if(bit_t cond);
 
   private:
 	void round(bit_t overflow, const bitspan_t &src, uint8_t truncate_from);
@@ -198,13 +201,17 @@ class Int16 : public Int<16> {
 	void add(bit_t overflow, Int16 a, Int16 b);
 	// Add and do not be notified if overflow happens
 	void add(Int16 a, Int16 b);
-	void increment_if(bit_t cond);
 	// In case of overflow the output will be *truncated* to the 16 LSBs!
 	void mul(bit_t overflow, Int16 a, Int16 b, uint8_t truncate_from = 0);
 	void mul(Int16 a, Int16 b, uint8_t truncate_from = 0);
 	void div(Int16 a, Int16 b);
 
 	void copy(Int16 src);
+
+	bit_t is_zero();
+	bit_t is_nonzero();
+	void increment_if(bit_t cond);
+	void decrement_if(bit_t cond);
 
   private:
 	void round(bit_t overflow, const bitspan_t &src, uint8_t truncate_from);

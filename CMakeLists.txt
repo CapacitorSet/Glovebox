@@ -102,6 +102,8 @@ if (TESTS_ENABLED)
             tests/main.cpp
             tests/FHEContext.cpp
             tests/gates.cpp
+            tests/primitives.cpp
+            tests/flow_control.cpp
             tests/int.cpp
             tests/array.cpp
             tests/string.cpp

@@ -43,8 +43,10 @@ void incr_if(bitspan_t out, const bit_t cond, const bitspan_t src,
 	const auto size = src.size();
 	// The code was generated with the help of verilog-to-tfhe, hence the
 	// variable names.
-	bit_t _00_ = make_bit();
-	bit_t _01_ = make_bit();
+	bit_t _00_ = make_bit(p);
+	bit_t _01_ = make_bit(p);
+	constant(_00_, 0, p);
+	_copy(_01_, cond, p);
 	for (int i = 0; i < size - 3; i += 2) {
 		_and(_00_, src[i], _01_, p);
 		_xor(out[i], src[i], _01_, p);
@@ -53,5 +55,25 @@ void incr_if(bitspan_t out, const bit_t cond, const bitspan_t src,
 	}
 	_nand(_00_, src[size - 2], _01_, p);
 	_xor(out[size - 2], src[size - 2], _01_, p);
+	_xnor(out[size - 1], src[size - 1], _00_, p);
+}
+
+void decr_if(bitspan_t out, const bit_t cond, const bitspan_t src,
+             TFHEServerParams_t p) {
+	const auto size = src.size();
+	// The code was generated with the help of verilog-to-tfhe, hence the
+	// variable names.
+	bit_t _00_ = make_bit(p);
+	bit_t _01_ = make_bit(p);
+	constant(_00_, 0, p);
+	_not(_01_, cond, p);
+	for (int i = 0; i < size - 3; i += 2) {
+		_or(_00_, src[i], _01_, p);
+		_xnor(out[i], src[i], _01_, p);
+		_or(_01_, src[i + 1], _00_, p);
+		_xnor(out[i + 1], src[i + 1], _00_, p);
+	}
+	_or(_00_, src[size - 2], _01_, p);
+	_xnor(out[size - 2], src[size - 2], _01_, p);
 	_xnor(out[size - 1], src[size - 1], _00_, p);
 }

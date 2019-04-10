@@ -22,6 +22,7 @@ void _copy(fixed_bitspan_t<N> dst, fixed_bitspan_t<N> src,
 }
 
 void incr_if(bitspan_t out, bit_t cond, bitspan_t src, TFHEServerParams_t);
+void decr_if(bitspan_t out, bit_t cond, bitspan_t src, TFHEServerParams_t);
 
 void add8(fixed_bitspan_t<8> out, bit_t overflow, fixed_bitspan_t<8> a,
           fixed_bitspan_t<8> b, TFHEServerParams_t);
