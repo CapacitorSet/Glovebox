@@ -107,7 +107,6 @@ public:
 	}
 
 	std::string exportToString() const {
-		// Todo: header should have >1 byte for size
 		char header[1];
 		char mysize = size;
 		memcpy(header, &mysize, 1);

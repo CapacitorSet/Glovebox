@@ -1,8 +1,7 @@
 #include <cassert>
 #include <tfhe.h>
 
-/* An "agnostic" interface to TFHE. Might support a plaintext backend and TFHE v2 in the future.
- */
+// An "agnostic" interface to TFHE. Might support TFHE v2 in the future.
 
 #if PLAINTEXT
 #warning You are compiling a plaintext binary.
@@ -62,8 +61,7 @@ void _not(bit_t dst, bit_t src, TFHEServerParams_t) {
 	*dst.data() = !*src.data();
 }
 
-#define BINARY_OPERATOR(LibName, CppExpr) void _ ## LibName(bit_t dst, const bit_t a, const bit_t b, TFHEServerParams_t p) { \
-	(void) p; /* Silence unused warning */ \
+#define BINARY_OPERATOR(LibName, CppExpr) void _ ## LibName(bit_t dst, const bit_t a, const bit_t b, TFHEServerParams_t) { \
 	auto A = *a.data(); \
 	auto B = *b.data(); \
 	*dst.data() = (CppExpr); \
