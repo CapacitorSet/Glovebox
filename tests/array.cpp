@@ -1,6 +1,6 @@
+#include "FHEContext.cpp"
 #include "gtest/gtest.h"
 #include <rapidcheck/gtest.h>
-#include "FHEContext.cpp"
 
 using ArrayTest = FHEContext;
 
@@ -8,7 +8,9 @@ using ArrayTest = FHEContext;
 TEST_F(ArrayTest, ReadWritePlaintext) {
 	::rc::detail::checkGTest([=](int8_t plaintext_num, uint8_t _index) {
 		uint8_t index = _index % 8;
-		auto arr = Array<Int8, 8>(false, clientParams); // No need for init, uninitialized regions won't be read
+		auto arr = Array<Int8, 8>(
+		    false, clientParams); // No need for init, uninitialized regions
+		                          // won't be read
 		auto elem = Int8(plaintext_num, clientParams);
 		arr.put(elem, index);
 
@@ -26,7 +28,8 @@ TEST_F(ArrayTest, ReadWriteEncrypted) {
 		auto elem = Int8(plaintext_num, clientParams);
 		arr.put(elem, index_int);
 
-		auto out = Int8(0, clientParams); // Initialize memory so ubsan doesn't complain
+		auto out = Int8(
+		    0, clientParams); // Initialize memory so ubsan doesn't complain
 		arr.get(out, index_int);
 		RC_ASSERT(out.toInt(clientParams) == plaintext_num);
 	});

@@ -8,52 +8,55 @@
 
 #if PLAINTEXT
 using unsafe_bit_t = bool;
-typedef struct {} only_TFHEServerParams_t;
+typedef struct {
+} only_TFHEServerParams_t;
 typedef struct {
 	operator only_TFHEServerParams_t() const {
 		return only_TFHEServerParams_t{};
 	}
 } TFHEServerParams_t;
 typedef struct {
-	operator TFHEServerParams_t() const {
-		return TFHEServerParams_t{};
-	}
-	operator only_TFHEServerParams_t() = delete; // If you can read this you're passing client params to server-only functions.
+	operator TFHEServerParams_t() const { return TFHEServerParams_t{}; }
+	operator only_TFHEServerParams_t() =
+	    delete; // If you can read this you're passing client params to
+	            // server-only functions.
 } TFHEClientParams_t;
 #else
 using unsafe_bit_t = LweSample;
 
 typedef struct {
 	const TFheGateBootstrappingParameterSet *params;
-	/* Todo: remove the const qualifier, deal with the issue that TFHEServerParams_t can be created either from a file
-	 * (resulting in `TFHEGateBoostrappingCloudKeySet*`) or from TFHEClientParams_t (resulting in `const TFHEGate...Set*`).
+	/* Todo: remove the const qualifier, deal with the issue that
+	 * TFHEServerParams_t can be created either from a file (resulting in
+	 * `TFHEGateBoostrappingCloudKeySet*`) or from TFHEClientParams_t (resulting
+	 * in `const TFHEGate...Set*`).
 	 */
 	const TFheGateBootstrappingCloudKeySet *bk;
-} only_TFHEServerParams_t ;
+} only_TFHEServerParams_t;
 typedef struct {
 	const TFheGateBootstrappingParameterSet *params;
 	const TFheGateBootstrappingCloudKeySet *bk;
 	operator only_TFHEServerParams_t() const {
 		return only_TFHEServerParams_t{params, bk};
 	}
-} TFHEServerParams_t ;
+} TFHEServerParams_t;
 typedef struct {
-	TFheGateBootstrappingSecretKeySet* key;
-	const TFheGateBootstrappingParameterSet* params;
+	TFheGateBootstrappingSecretKeySet *key;
+	const TFheGateBootstrappingParameterSet *params;
 	operator TFHEServerParams_t() const {
-		return TFHEServerParams_t{
-			key->cloud.params,
-			&(key->cloud)
-		};
+		return TFHEServerParams_t{key->cloud.params, &(key->cloud)};
 	}
-	operator only_TFHEServerParams_t() = delete; // If you can read this you're passing client params to server-only functions.
+	operator only_TFHEServerParams_t() =
+	    delete; // If you can read this you're passing client params to
+	            // server-only functions.
 } TFHEClientParams_t;
 #endif
 
 typedef gsl::span<unsafe_bit_t> bitspan_t;
 typedef gsl::span<unsafe_bit_t, 1> bit_t;
 
-// C++ doesn't allow us to define a conversion operator for only_TFHESrvParam to TFHESrvParam.
+// C++ doesn't allow us to define a conversion operator for only_TFHESrvParam to
+// TFHESrvParam.
 TFHEServerParams_t unwrap_only(only_TFHEServerParams_t p);
 TFHEClientParams_t makeTFHEClientParams(FILE *secret_key);
 TFHEServerParams_t makeTFHEServerParams(FILE *cloud_key);
@@ -69,21 +72,25 @@ bitspan_t make_bitspan(int N, TFHEServerParams_t p = default_server_params);
 
 template <uint8_t size>
 class fixed_bitspan_t : public gsl::span<unsafe_bit_t, size> {
-public:
+  public:
 	// Seemingly required to instance the inner span
-	explicit fixed_bitspan_t(gsl::span<unsafe_bit_t, size> span) : gsl::span<unsafe_bit_t, size>(span) {};
+	explicit fixed_bitspan_t(gsl::span<unsafe_bit_t, size> span)
+	    : gsl::span<unsafe_bit_t, size>(span){};
 	// Checks at runtime that this conversion is possible.
-	// This operator is explicit so that we can do semmingly-unsafe conversions anyway
-	explicit fixed_bitspan_t(gsl::span<unsafe_bit_t> span) : gsl::span<unsafe_bit_t, size>(span) {
+	// This operator is explicit so that we can do semmingly-unsafe conversions
+	// anyway
+	explicit fixed_bitspan_t(gsl::span<unsafe_bit_t> span)
+	    : gsl::span<unsafe_bit_t, size>(span) {
 		assert(span.size() == size);
 	};
 };
 template <uint8_t size>
-fixed_bitspan_t<size> make_bitspan(TFHEServerParams_t p = default_server_params) {
+fixed_bitspan_t<size>
+make_bitspan(TFHEServerParams_t p = default_server_params) {
 	// Can this be rewritten in terms of make_bitspan, subspan?
 #if PLAINTEXT
-	(void) p;
-	auto cptr = reinterpret_cast<bool*>(malloc(size));
+	(void)p;
+	auto cptr = reinterpret_cast<bool *>(malloc(size));
 #else
 	LweSample *cptr = new_gate_bootstrapping_ciphertext_array(size, p.params);
 #endif
@@ -92,12 +99,14 @@ fixed_bitspan_t<size> make_bitspan(TFHEServerParams_t p = default_server_params)
 	return fixed_bitspan_t<size>(span);
 }
 
-int decrypt(bit_t dst,
+int decrypt(
+    bit_t dst,
 #if PLAINTEXT
-		// Enable one to write just `decrypt(bit)`, since the client params aren't used anyway
-		TFHEClientParams_t p = {}
+    // Enable one to write just `decrypt(bit)`, since the client params aren't
+    // used anyway
+    TFHEClientParams_t p = {}
 #else
-		TFHEClientParams_t p = default_client_params
+    TFHEClientParams_t p = default_client_params
 #endif
 );
 
@@ -106,10 +115,12 @@ int decrypt(bit_t dst,
 #define STRICT_CLIENT_MODE 0
 #endif
 void _internal_constant(bit_t dst, bool src, only_TFHEServerParams_t);
-template<bool override_strict_client_mode = false>
-static void inline constant(bit_t dst, bool src, only_TFHEServerParams_t p = default_server_params) {
+template <bool override_strict_client_mode = false>
+static void inline constant(bit_t dst, bool src,
+                            only_TFHEServerParams_t p = default_server_params) {
 	if constexpr (STRICT_CLIENT_MODE && !override_strict_client_mode) {
-		fprintf(stderr, "constant() was called in strict client mode - exiting.\n");
+		fprintf(stderr,
+		        "constant() was called in strict client mode - exiting.\n");
 		abort();
 	} else {
 		_internal_constant(dst, src, p);
@@ -118,20 +129,33 @@ static void inline constant(bit_t dst, bool src, only_TFHEServerParams_t p = def
 void encrypt(bit_t dst, bool src, TFHEClientParams_t p = default_client_params);
 
 void _not(bit_t dst, bit_t a, TFHEServerParams_t p = default_server_params);
-void _and(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p = default_server_params);
-void _andyn(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p = default_server_params);
-void _andny(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p = default_server_params);
-void _nand(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p = default_server_params);
-void _or(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p = default_server_params);
-void _oryn(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p = default_server_params);
-void _orny(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p = default_server_params);
-void _nor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p = default_server_params);
-void _xor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p = default_server_params);
-void _xnor(bit_t dst, bit_t a, bit_t b, TFHEServerParams_t p = default_server_params);
+void _and(bit_t dst, bit_t a, bit_t b,
+          TFHEServerParams_t p = default_server_params);
+void _andyn(bit_t dst, bit_t a, bit_t b,
+            TFHEServerParams_t p = default_server_params);
+void _andny(bit_t dst, bit_t a, bit_t b,
+            TFHEServerParams_t p = default_server_params);
+void _nand(bit_t dst, bit_t a, bit_t b,
+           TFHEServerParams_t p = default_server_params);
+void _or(bit_t dst, bit_t a, bit_t b,
+         TFHEServerParams_t p = default_server_params);
+void _oryn(bit_t dst, bit_t a, bit_t b,
+           TFHEServerParams_t p = default_server_params);
+void _orny(bit_t dst, bit_t a, bit_t b,
+           TFHEServerParams_t p = default_server_params);
+void _nor(bit_t dst, bit_t a, bit_t b,
+          TFHEServerParams_t p = default_server_params);
+void _xor(bit_t dst, bit_t a, bit_t b,
+          TFHEServerParams_t p = default_server_params);
+void _xnor(bit_t dst, bit_t a, bit_t b,
+           TFHEServerParams_t p = default_server_params);
 
-void _mux(bit_t dst, bit_t cond, bit_t a, bit_t b, TFHEServerParams_t p = default_server_params);
+void _mux(bit_t dst, bit_t cond, bit_t a, bit_t b,
+          TFHEServerParams_t p = default_server_params);
 void _copy(bit_t dst, bit_t src, TFHEServerParams_t p = default_server_params);
 
-void add(bitspan_t result, bitspan_t a, bitspan_t b, TFHEServerParams_t p = default_server_params);
-void mult(bitspan_t result, bitspan_t a, bitspan_t b, TFHEServerParams_t _p = default_server_params);
+void add(bitspan_t result, bitspan_t a, bitspan_t b,
+         TFHEServerParams_t p = default_server_params);
+void mult(bitspan_t result, bitspan_t a, bitspan_t b,
+          TFHEServerParams_t _p = default_server_params);
 #endif // FHETOOLS_TFHE_H

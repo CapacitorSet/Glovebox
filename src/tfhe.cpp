@@ -10,13 +10,9 @@ TFHEServerParams_t unwrap_only(only_TFHEServerParams_t) {
 	return TFHEServerParams_t{};
 };
 
-TFHEClientParams_t makeTFHEClientParams(FILE*) {
-	return TFHEClientParams_t{};
-}
+TFHEClientParams_t makeTFHEClientParams(FILE *) { return TFHEClientParams_t{}; }
 
-TFHEServerParams_t makeTFHEServerParams(FILE*) {
-	return TFHEServerParams_t{};
-}
+TFHEServerParams_t makeTFHEServerParams(FILE *) { return TFHEServerParams_t{}; }
 
 TFHEServerParams_t makeTFHEServerParams(TFHEClientParams_t) {
 	return TFHEServerParams_t{};
@@ -25,33 +21,29 @@ TFHEServerParams_t makeTFHEServerParams(TFHEClientParams_t) {
 void freeTFHEServerParams(TFHEServerParams_t) {}
 void freeTFHEClientParams(TFHEClientParams_t) {}
 
-int decrypt(bit_t dst, TFHEClientParams_t) {
-	return *dst.data();
-}
+int decrypt(bit_t dst, TFHEClientParams_t) { return *dst.data(); }
 
 bit_t make_bit(TFHEClientParams_t) {
-	auto ptr = std::shared_ptr<bool>(reinterpret_cast<bool*>(malloc(1)));
+	auto ptr = std::shared_ptr<bool>(reinterpret_cast<bool *>(malloc(1)));
 	return gsl::span<bool, 1>(ptr, 1);
 }
 
 bit_t make_bit(TFHEServerParams_t) {
-	auto ptr = std::shared_ptr<bool>(reinterpret_cast<bool*>(malloc(1)));
+	auto ptr = std::shared_ptr<bool>(reinterpret_cast<bool *>(malloc(1)));
 	return gsl::span<bool, 1>(ptr, 1);
 }
 
 bitspan_t make_bitspan(int N, TFHEClientParams_t) {
-	auto ptr = std::shared_ptr<bool>(reinterpret_cast<bool*>(malloc(N)));
+	auto ptr = std::shared_ptr<bool>(reinterpret_cast<bool *>(malloc(N)));
 	return gsl::span<bool>(ptr, N);
 }
 
 bitspan_t make_bitspan(int N, TFHEServerParams_t) {
-	auto ptr = std::shared_ptr<bool>(reinterpret_cast<bool*>(malloc(N)));
+	auto ptr = std::shared_ptr<bool>(reinterpret_cast<bool *>(malloc(N)));
 	return gsl::span<bool>(ptr, N);
 }
 
-void encrypt(bit_t dst, bool src, TFHEClientParams_t) {
-	*dst.data() = src;
-}
+void encrypt(bit_t dst, bool src, TFHEClientParams_t) { *dst.data() = src; }
 
 void _internal_constant(bit_t dst, bool src, only_TFHEServerParams_t) {
 	*dst.data() = src;
@@ -61,13 +53,15 @@ void _not(bit_t dst, bit_t src, TFHEServerParams_t) {
 	*dst.data() = !*src.data();
 }
 
-#define BINARY_OPERATOR(LibName, CppExpr) void _ ## LibName(bit_t dst, const bit_t a, const bit_t b, TFHEServerParams_t) { \
-	auto A = *a.data(); \
-	auto B = *b.data(); \
-	*dst.data() = (CppExpr); \
-}
+#define BINARY_OPERATOR(LibName, CppExpr)                                      \
+	void _##LibName(bit_t dst, const bit_t a, const bit_t b,                   \
+	                TFHEServerParams_t) {                                      \
+		auto A = *a.data();                                                    \
+		auto B = *b.data();                                                    \
+		*dst.data() = (CppExpr);                                               \
+	}
 
-BINARY_OPERATOR(and, A && B)
+BINARY_OPERATOR(and, A &&B)
 BINARY_OPERATOR(andyn, A && !B)
 BINARY_OPERATOR(andny, !A && B)
 BINARY_OPERATOR(nand, !(A && B))
@@ -101,16 +95,13 @@ TFHEClientParams_t makeTFHEClientParams(FILE *secret_key) {
 
 TFHEServerParams_t makeTFHEServerParams(FILE *cloud_key) {
 	TFheGateBootstrappingCloudKeySet *bk =
-			new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
+	    new_tfheGateBootstrappingCloudKeySet_fromFile(cloud_key);
 	const TFheGateBootstrappingParameterSet *params = bk->params;
 	return TFHEServerParams_t{params, bk};
 }
 
 TFHEServerParams_t makeTFHEServerParams(TFHEClientParams_t p) {
-	return TFHEServerParams_t{
-		p.key->cloud.params,
-		&(p.key->cloud)
-	};
+	return TFHEServerParams_t{p.key->cloud.params, &(p.key->cloud)};
 }
 
 void freeTFHEServerParams(TFHEServerParams_t p) {
@@ -157,14 +148,15 @@ void _internal_constant(bit_t dst, bool src, only_TFHEServerParams_t p) {
 	bootsCONSTANT(dst.cptr(), src, p.bk);
 };
 
-
 void _not(bit_t dst, bit_t src, TFHEServerParams_t p) {
 	bootsNOT(dst.cptr(), src.cptr(), p.bk);
 }
 
-#define BINARY_OPERATOR(LibName, TFHEName) void _ ## LibName(bit_t dst, const bit_t a, const bit_t b, TFHEServerParams_t p) { \
-	boots ## TFHEName(dst.cptr(), a.cptr(), b.cptr(), p.bk); \
-}
+#define BINARY_OPERATOR(LibName, TFHEName)                                     \
+	void _##LibName(bit_t dst, const bit_t a, const bit_t b,                   \
+	                TFHEServerParams_t p) {                                    \
+		boots##TFHEName(dst.cptr(), a.cptr(), b.cptr(), p.bk);                 \
+	}
 
 BINARY_OPERATOR(and, AND)
 BINARY_OPERATOR(andyn, ANDYN)

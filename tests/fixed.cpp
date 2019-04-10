@@ -1,19 +1,18 @@
+#include "FHEContext.cpp"
 #include "gtest/gtest.h"
 #include <rapidcheck/gtest.h>
-#include "FHEContext.cpp"
 
 using Q4_4 = Fixed<4, 4>;
 using Q4_4Test = FHEContext;
 
 // This is the maximum absolute error on a "measurement" (i.e. rounding to Q4.4)
-constexpr double half_precision = 1.0/32.0;
+constexpr double half_precision = 1.0 / 32.0;
 
-// Rescale to within the range of a Q4.4. Use int16_t to introduce noise in lower bits, that
-// should be ignored but rounded correctly.
-// RapidCheck doesn't yet support doubles in ranges: https://github.com/emil-e/rapidcheck/issues/134
-double rescale(int16_t a) {
-	return double(a) / double(4096);
-}
+// Rescale to within the range of a Q4.4. Use int16_t to introduce noise in
+// lower bits, that should be ignored but rounded correctly. RapidCheck doesn't
+// yet support doubles in ranges:
+// https://github.com/emil-e/rapidcheck/issues/134
+double rescale(int16_t a) { return double(a) / double(4096); }
 
 TEST_F(Q4_4Test, Decrypt) {
 	::rc::detail::checkGTest([=](int16_t _plaintext_num) {
@@ -30,7 +29,8 @@ TEST_F(Q4_4Test, Serialization) {
 		auto in = Q4_4(plaintext_num, clientParams);
 		auto tmp = in.exportToString();
 		auto out = Q4_4(tmp, serverParams);
-		double absolute_error = fabs(out.toDouble(clientParams) - plaintext_num);
+		double absolute_error =
+		    fabs(out.toDouble(clientParams) - plaintext_num);
 		RC_ASSERT(absolute_error <= half_precision);
 	});
 }
@@ -40,12 +40,14 @@ TEST_F(Q4_4Test, SignExtend) {
 		double plaintext_num = rescale(_plaintext_num);
 		auto num = Q4_4(plaintext_num, clientParams);
 		auto upscaled = fixed_extend<8, 4, 4>(num, clientParams);
-		double absolute_error = fabs(upscaled.toDouble(clientParams) - plaintext_num);
+		double absolute_error =
+		    fabs(upscaled.toDouble(clientParams) - plaintext_num);
 		RC_ASSERT(absolute_error <= half_precision);
 	});
 }
 
-// Error propagation: absolute error of the sum = sum of absolute errors of addends
+// Error propagation: absolute error of the sum = sum of absolute errors of
+// addends
 TEST_F(Q4_4Test, Sum) {
 	::rc::detail::checkGTest([=](int16_t _plaintext_a, int16_t _plaintext_b) {
 		double plaintext_a = rescale(_plaintext_a);
@@ -58,9 +60,11 @@ TEST_F(Q4_4Test, Sum) {
 		double plaintext_sum = plaintext_a + plaintext_b;
 		bool plaintext_overflow = plaintext_sum > Q4_4::max;
 		bool plaintext_underflow = plaintext_sum < Q4_4::min;
-		RC_ASSERT((plaintext_overflow || plaintext_underflow) == decrypt(overflow, clientParams));
+		RC_ASSERT((plaintext_overflow || plaintext_underflow) ==
+		          decrypt(overflow, clientParams));
 		if (!plaintext_overflow && !plaintext_underflow) {
-			double absolute_error = fabs(plaintext_sum - sum.toDouble(clientParams));
+			double absolute_error =
+			    fabs(plaintext_sum - sum.toDouble(clientParams));
 			RC_ASSERT(absolute_error <= 2 * half_precision);
 		}
 	});
@@ -79,20 +83,26 @@ TEST_F(Q4_4Test, Mul) {
 		auto result = Q4_4(serverParams);
 		result.mul(overflow, a, b);
 		double plaintext_result = plaintext_a * plaintext_b;
-		double fixed_result = a.toDouble(clientParams) * b.toDouble(clientParams);
-		// Overflow calculations must necessarily be run on the rounded, fixed-point version
-		bool fixed_overflow = fixed_result > Q4_4::max || fixed_result < Q4_4::min;
+		double fixed_result =
+		    a.toDouble(clientParams) * b.toDouble(clientParams);
+		// Overflow calculations must necessarily be run on the rounded,
+		// fixed-point version
+		bool fixed_overflow =
+		    fixed_result > Q4_4::max || fixed_result < Q4_4::min;
 		RC_ASSERT(fixed_overflow == decrypt(overflow, clientParams));
 		if (!fixed_overflow) {
-			/* Let the relative error for X be e_X, and the absolute error be delta_X (difference between
-			 * plaintext "true" value and calculated value).
-			 * Then error propagation theory shows that delta_result = |result|*(|delta_a/a| + |delta_b/b| + |delta_a/a*delta_b/b|).
+			/* Let the relative error for X be e_X, and the absolute error be
+			 * delta_X (difference between plaintext "true" value and calculated
+			 * value). Then error propagation theory shows that delta_result =
+			 * |result|*(|delta_a/a| + |delta_b/b| + |delta_a/a*delta_b/b|).
 			 * Proof: https://math.stackexchange.com/a/3160015/53589
 			 */
 			double e_a = fabs(half_precision / plaintext_a);
 			double e_b = fabs(half_precision / plaintext_b);
-			double theoretical_absolute_error = fabs(plaintext_result) * (e_a + e_b + e_a*e_b);
-			RC_ASSERT(fabs(result.toDouble(clientParams) - plaintext_result) <= theoretical_absolute_error);
+			double theoretical_absolute_error =
+			    fabs(plaintext_result) * (e_a + e_b + e_a * e_b);
+			RC_ASSERT(fabs(result.toDouble(clientParams) - plaintext_result) <=
+			          theoretical_absolute_error);
 		}
 	});
 }

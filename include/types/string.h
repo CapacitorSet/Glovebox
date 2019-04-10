@@ -1,24 +1,27 @@
 #ifndef FHETOOLS_STRING_H
 #define FHETOOLS_STRING_H
 
-#include <cstring>
 #include "array.h"
 #include "int.h"
+#include <cstring>
 
 // A string of *fixed* length.
-template <uint16_t Length>
-class String : public Array<Int8, Length> {
-public:
+template <uint16_t Length> class String : public Array<Int8, Length> {
+  public:
 	static constexpr int typeID = STRING_TYPE_ID;
 
 	String() = delete;
-	explicit String(char /*disambiguation param*/, bool initialize_memory = true, only_TFHEServerParams_t _p = default_server_params)
-		: Array<Int8, Length>(initialize_memory, _p) {}
-	String(char /*disambiguation param*/, bool initialize_memory, TFHEClientParams_t _p)
-		: Array<Int8, Length>(initialize_memory, _p) {}
+	explicit String(char /*disambiguation param*/,
+	                bool initialize_memory = true,
+	                only_TFHEServerParams_t _p = default_server_params)
+	    : Array<Int8, Length>(initialize_memory, _p) {}
+	String(char /*disambiguation param*/, bool initialize_memory,
+	       TFHEClientParams_t _p)
+	    : Array<Int8, Length>(initialize_memory, _p) {}
 	// The bool disambiguates against the deserialization ctor
-	String(const char *src, bool, only_TFHEServerParams_t _p = default_server_params)
-		: Array<Int8, Length>(true, _p) {
+	String(const char *src, bool,
+	       only_TFHEServerParams_t _p = default_server_params)
+	    : Array<Int8, Length>(true, _p) {
 		assert(strlen(src) <= Length);
 		const auto len = strlen(src);
 		for (size_t i = 0; i < len; i++)
@@ -26,7 +29,7 @@ public:
 				constant(this->data[i * 8 + j], (src[i] >> j) & 1, _p);
 	}
 	String(const char *src, bool, TFHEClientParams_t _p)
-		: Array<Int8, Length>(true, _p) {
+	    : Array<Int8, Length>(true, _p) {
 		assert(strlen(src) <= Length);
 		const auto len = strlen(src);
 		for (size_t i = 0; i < len; i++)
@@ -34,8 +37,9 @@ public:
 				encrypt(this->data[i * 8 + j], (src[i] >> j) & 1, _p);
 	}
 
-	String(const std::string &packet, TFHEServerParams_t _p = default_server_params)
-		: Array<Int8, Length>(false, _p) {
+	String(const std::string &packet,
+	       TFHEServerParams_t _p = default_server_params)
+	    : Array<Int8, Length>(false, _p) {
 		uint16_t length_from_header;
 		memcpy(&length_from_header, &packet[0], 2);
 		assert(length_from_header == Length);
@@ -44,7 +48,8 @@ public:
 		deserialize(ss, this->data, this->p);
 	}
 
-	void toCStr(char *dst, TFHEClientParams_t _p = default_client_params) const {
+	void toCStr(char *dst,
+	            TFHEClientParams_t _p = default_client_params) const {
 		for (size_t i = 0; i < Length; i++) {
 			char out = 0;
 			for (int j = 0; j < 8; j++)
@@ -64,4 +69,4 @@ public:
 	}
 };
 
-#endif //FHETOOLS_STRING_H
+#endif // FHETOOLS_STRING_H

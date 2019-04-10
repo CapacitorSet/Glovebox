@@ -6,26 +6,33 @@
 // Are you seeing the error "Base specifier must name a class" at this line?
 // Then the size of your fixed is too large.
 #define BASE_INT smallest_Int<INT_SIZE + FRAC_SIZE>
-template <uint8_t INT_SIZE, uint8_t FRAC_SIZE>
-class Fixed : public BASE_INT {
+template <uint8_t INT_SIZE, uint8_t FRAC_SIZE> class Fixed : public BASE_INT {
 	static const int SIZE = INT_SIZE + FRAC_SIZE;
 	static_assert(SIZE <= 16, "Size not supported");
 	using native_type_t = smallest_int_t<SIZE>;
 	// Numeric limits of underlying storage
-	static constexpr int64_t native_max = std::numeric_limits<native_type_t>::max();
-	static constexpr int64_t native_min = std::numeric_limits<native_type_t>::min();
+	static constexpr int64_t native_max =
+	    std::numeric_limits<native_type_t>::max();
+	static constexpr int64_t native_min =
+	    std::numeric_limits<native_type_t>::min();
 	// Scale the number and return it as an integer
 	static native_type_t scale(double src) {
 		double scaled = round(src * double(1 << FRAC_SIZE));
 		// Assert that the scaled number fits
 		if (scaled > double(native_max)) {
 			double upper_limit = native_max >> FRAC_SIZE;
-			fprintf(stderr, "Value is too high: Fixed<%d,%d> was initialized with %lf, but maximum is %lf\n", INT_SIZE, FRAC_SIZE, src, upper_limit);
+			fprintf(stderr,
+			        "Value is too high: Fixed<%d,%d> was initialized with %lf, "
+			        "but maximum is %lf\n",
+			        INT_SIZE, FRAC_SIZE, src, upper_limit);
 			abort();
 		}
 		if (scaled < double(native_min)) {
 			double lower_limit = native_min >> FRAC_SIZE;
-			fprintf(stderr, "Value is too low: Fixed<%d,%d> was initialized with %lf, but minimum is %lf\n", INT_SIZE, FRAC_SIZE, src, lower_limit);
+			fprintf(stderr,
+			        "Value is too low: Fixed<%d,%d> was initialized with %lf, "
+			        "but minimum is %lf\n",
+			        INT_SIZE, FRAC_SIZE, src, lower_limit);
 			abort();
 		}
 		return native_type_t(scaled);
@@ -34,7 +41,8 @@ class Fixed : public BASE_INT {
 	static constexpr double undo_scale(native_type_t src) {
 		return double(src) / (1 << FRAC_SIZE);
 	}
-public:
+
+  public:
 	// Numeric limits of representable fixeds
 	static constexpr double max = undo_scale(native_max);
 	static constexpr double min = undo_scale(native_min);
@@ -46,21 +54,22 @@ public:
 	static const int _wordSize = INT_SIZE + FRAC_SIZE;
 
 	Fixed() = delete;
-	explicit Fixed(TFHEServerParams_t _p)
-		: BASE_INT(_p) {};
-	explicit Fixed(StructHelper &helper, TFHEServerParams_t _p = default_server_params)
-		: BASE_INT(helper, _p) {};
+	explicit Fixed(TFHEServerParams_t _p) : BASE_INT(_p){};
+	explicit Fixed(StructHelper &helper,
+	               TFHEServerParams_t _p = default_server_params)
+	    : BASE_INT(helper, _p){};
 	Fixed(double src, only_TFHEServerParams_t _p = default_server_params)
-		: BASE_INT(scale(src), unwrap_only(_p)) {};
-	Fixed(double src, StructHelper &helper, only_TFHEServerParams_t _p = default_server_params)
-		: BASE_INT(scale(src), helper, unwrap_only(_p)) {};
-	Fixed(double src, TFHEClientParams_t _p)
-		: BASE_INT(scale(src), _p) {};
+	    : BASE_INT(scale(src), unwrap_only(_p)){};
+	Fixed(double src, StructHelper &helper,
+	      only_TFHEServerParams_t _p = default_server_params)
+	    : BASE_INT(scale(src), helper, unwrap_only(_p)){};
+	Fixed(double src, TFHEClientParams_t _p) : BASE_INT(scale(src), _p){};
 	Fixed(double src, StructHelper &helper, TFHEClientParams_t _p)
-		: BASE_INT(scale(src), helper, _p) {};
+	    : BASE_INT(scale(src), helper, _p){};
 
-	Fixed(const std::string &packet, TFHEServerParams_t _p = default_server_params)
-		: Fixed<INT_SIZE, FRAC_SIZE>(_p) {
+	Fixed(const std::string &packet,
+	      TFHEServerParams_t _p = default_server_params)
+	    : Fixed<INT_SIZE, FRAC_SIZE>(_p) {
 		char int_size_from_header = packet[0];
 		char frac_size_from_header = packet[1];
 		assert(int_size_from_header == INT_SIZE);
@@ -77,10 +86,12 @@ public:
 		BASE_INT::constant(scale(src), _p);
 	}
 
-	void add(bit_t overflow, Fixed<INT_SIZE, FRAC_SIZE> a, Fixed<INT_SIZE, FRAC_SIZE> b) {
+	void add(bit_t overflow, Fixed<INT_SIZE, FRAC_SIZE> a,
+	         Fixed<INT_SIZE, FRAC_SIZE> b) {
 		BASE_INT::add(overflow, a, b);
 	}
-	void mul(bit_t overflow, Fixed<INT_SIZE, FRAC_SIZE> a, Fixed<INT_SIZE, FRAC_SIZE> b) {
+	void mul(bit_t overflow, Fixed<INT_SIZE, FRAC_SIZE> a,
+	         Fixed<INT_SIZE, FRAC_SIZE> b) {
 		BASE_INT::mul(overflow, a, b, FRAC_SIZE);
 	}
 
@@ -102,8 +113,9 @@ public:
 };
 
 // Sign-extend a fixed into a larger one
-template<uint8_t INT_NEW, uint8_t INT_OLD, uint8_t FRAC_SIZE>
-Fixed<INT_NEW, FRAC_SIZE> fixed_extend(Fixed<INT_OLD, FRAC_SIZE> src, TFHEServerParams_t _p) {
+template <uint8_t INT_NEW, uint8_t INT_OLD, uint8_t FRAC_SIZE>
+Fixed<INT_NEW, FRAC_SIZE> fixed_extend(Fixed<INT_OLD, FRAC_SIZE> src,
+                                       TFHEServerParams_t _p) {
 	static_assert(INT_NEW >= INT_OLD);
 	Fixed<INT_NEW, FRAC_SIZE> ret(_p);
 	bit_t sign = src.data.last();
@@ -116,4 +128,4 @@ Fixed<INT_NEW, FRAC_SIZE> fixed_extend(Fixed<INT_OLD, FRAC_SIZE> src, TFHEServer
 	return ret;
 }
 
-#endif //FHETOOLS_FIXED32_H
+#endif // FHETOOLS_FIXED32_H

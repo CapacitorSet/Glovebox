@@ -1,6 +1,6 @@
+#include "FHEContext.cpp"
 #include "gtest/gtest.h"
 #include <rapidcheck/gtest.h>
-#include "FHEContext.cpp"
 
 using StringTest = FHEContext;
 

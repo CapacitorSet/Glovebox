@@ -10,4 +10,4 @@ enum {
 	STRING_TYPE_ID,
 };
 
-#endif //FHETOOLS_TYPE_IDS_H
+#endif // FHETOOLS_TYPE_IDS_H

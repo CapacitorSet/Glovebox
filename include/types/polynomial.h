@@ -1,17 +1,18 @@
 #ifndef FHETOOLS_POLYNOMIAL_H
 #define FHETOOLS_POLYNOMIAL_H
 
-#include <vector>
 #include "fixed.h"
+#include <vector>
 
-template <class BaseClass>
-class Polynomial {
-public:
-	explicit Polynomial(std::vector<BaseClass> _factors, TFHEServerParams_t _p = default_server_params)
-	: factors(std::move(_factors)), p(_p) {}
+template <class BaseClass> class Polynomial {
+  public:
+	explicit Polynomial(std::vector<BaseClass> _factors,
+	                    TFHEServerParams_t _p = default_server_params)
+	    : factors(std::move(_factors)), p(_p) {}
 
-	explicit Polynomial(std::vector<double> _factors, TFHEServerParams_t _p = default_server_params)
-	: p(_p) {
+	explicit Polynomial(std::vector<double> _factors,
+	                    TFHEServerParams_t _p = default_server_params)
+	    : p(_p) {
 		for (auto _factor : _factors) {
 			factors.push_back(BaseClass(_factor, _p));
 		}
@@ -26,7 +27,7 @@ public:
 
 		auto old_result = BaseClass(p);
 		bit_t overflow_tmp = make_bit(p);
-		for (int i = factors.size() - 1; i --> 0; ) {
+		for (int i = factors.size() - 1; i-- > 0;) {
 			constant(overflow_tmp, false, p);
 			// Prevents bugs if mul() reads its input after modifying the output
 			old_result.copy(result);
@@ -42,10 +43,10 @@ public:
 		return result;
 	}
 
-private:
+  private:
 	std::vector<BaseClass> factors;
 
 	TFHEServerParams_t p;
 };
 
-#endif //FHETOOLS_POLYNOMIAL_H
+#endif // FHETOOLS_POLYNOMIAL_H

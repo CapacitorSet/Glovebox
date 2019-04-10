@@ -1,11 +1,11 @@
 #ifndef FHETOOLS_ARRAY_H
 #define FHETOOLS_ARRAY_H
 
-#include <cassert>
-#include <tfhe.h>
-#include <flow_control.h>
-#include "type_ids.h"
 #include "int.h"
+#include "type_ids.h"
+#include <cassert>
+#include <flow_control.h>
+#include <tfhe.h>
 
 // Computes ceil(log_2(value)), constexpr
 static constexpr uint8_t ceillog2(uint64_t value) {
@@ -17,15 +17,18 @@ static constexpr uint8_t ceillog2(uint64_t value) {
 	return ret;
 }
 
-template <class T, uint16_t Length, uint16_t WordSize = T::_wordSize> class Array {
-protected:
+template <class T, uint16_t Length, uint16_t WordSize = T::_wordSize>
+class Array {
+  protected:
 	static constexpr uint8_t AddrBits = ceillog2(Length);
 	using native_address_type = smallest_uint_t<AddrBits>;
 	using encrypted_address_type = smallest_Int<AddrBits>;
-	static_assert(AddrBits <= 8, "This size is not supported"); // See smallest_Int
+	static_assert(AddrBits <= 8,
+	              "This size is not supported"); // See smallest_Int
 
 	static constexpr uint32_t Bitlength = WordSize * Length;
-public:
+
+  public:
 	bitspan_t data;
 
 	/*
@@ -38,8 +41,9 @@ public:
 	static const int typeID = ARRAY_TYPE_ID;
 
 	Array() = delete;
-	explicit Array(bool initialize_memory = true, only_TFHEServerParams_t _p = default_server_params)
-			: p(unwrap_only(_p)) {
+	explicit Array(bool initialize_memory = true,
+	               only_TFHEServerParams_t _p = default_server_params)
+	    : p(unwrap_only(_p)) {
 		data = make_bitspan(Bitlength, p);
 		if (initialize_memory)
 			zero(data, unwrap_only(_p));
@@ -50,7 +54,9 @@ public:
 			zero(data, _p);
 	}
 
-	Array(const std::string &packet, TFHEServerParams_t _p = default_server_params) : Array(false, _p) {
+	Array(const std::string &packet,
+	      TFHEServerParams_t _p = default_server_params)
+	    : Array(false, _p) {
 		char typeID_from_header = packet[0];
 		uint16_t length_from_header;
 		memcpy(&length_from_header, &packet[1], 2);
@@ -76,10 +82,10 @@ public:
 
 	/*
 	maskable_function_t m_put(T src, Int8 address) {
-		// Todo: check that there are enough address bits
-		return [=] (bit_t mask) -> void {
-			putBits(src.data, address.data, 0, mask);
-		};
+	    // Todo: check that there are enough address bits
+	    return [=] (bit_t mask) -> void {
+	        putBits(src.data, address.data, 0, mask);
+	    };
 	}
 	*/
 
@@ -90,9 +96,9 @@ public:
 
 	/*
 	maskable_function_t m_get(T dst, uint64_t address) {
-		assert(address < this->length);
-		return dst._m_fromBytes(
-				this->data.subspan(address * this->wordSize, this->wordSize));
+	    assert(address < this->length);
+	    return dst._m_fromBytes(
+	            this->data.subspan(address * this->wordSize, this->wordSize));
 	}
 	*/
 
@@ -115,11 +121,11 @@ public:
 
 	/*
 	maskable_function_t m_get(T dst, Int8 address) {
-		// Todo: check that there are enough address bits
-		assert(dst.size() == this->wordSize);
-		return [=] (bit_t mask) -> void {
-			getBits(dst.data, address.data, 0, mask);
-		};
+	    // Todo: check that there are enough address bits
+	    assert(dst.size() == this->wordSize);
+	    return [=] (bit_t mask) -> void {
+	        getBits(dst.data, address.data, 0, mask);
+	    };
 	}
 	*/
 
@@ -135,7 +141,7 @@ public:
 	}
 
 	// Create a new array with the result of calling f
-	template<class TNew, uint16_t WordSizeNew = TNew::_wordSize>
+	template <class TNew, uint16_t WordSizeNew = TNew::_wordSize>
 	Array<TNew, Length, WordSizeNew> map(std::function<TNew(T)> f) const {
 		Array<TNew, Length, WordSizeNew> ret(false);
 		for (native_address_type i = 0; i < Length; i++) {
@@ -145,11 +151,12 @@ public:
 		}
 		return ret;
 	}
-protected:
+
+  protected:
 	TFHEServerParams_t p;
 
-	void putBits(const bitspan_t &src, const bitspan_t &address, size_t dynamicOffset,
-	             bit_t mask) {
+	void putBits(const bitspan_t &src, const bitspan_t &address,
+	             size_t dynamicOffset, bit_t mask) {
 		// Writes out of bounds are a no-op. This is necessary for arrays to
 		// work with sizes other than powers of two. Bound checks should be done
 		// at the caller.
@@ -158,7 +165,8 @@ protected:
 			return;
 		}
 		if (address.size() == 1) {
-			// printf("Put: %zu out of %li\n", this->wordSize * dynamicOffset + N, this->length * wordSize);
+			// printf("Put: %zu out of %li\n", this->wordSize * dynamicOffset +
+			// N, this->length * wordSize);
 			size_t offset = WordSize * dynamicOffset;
 			bit_t lowerMask = make_bit(p);
 			_andyn(lowerMask, mask, address[0], p);
@@ -200,8 +208,8 @@ protected:
 		        dynamicOffset + (1 << (address.size() - 1)), upperMask);
 	}
 
-	void getBits(const bitspan_t &dst, const bitspan_t &address, size_t dynamicOffset,
-	             bit_t mask) const {
+	void getBits(const bitspan_t &dst, const bitspan_t &address,
+	             size_t dynamicOffset, bit_t mask) const {
 		// Reads out of bounds are a no-op. This is necessary for arrays to
 		// work with sizes other than powers of two. Bound checks should be done
 		// at the caller.
@@ -210,7 +218,8 @@ protected:
 			return;
 		}
 		if (address.size() == 1) {
-			// printf("Put: %zu out of %li\n", this->wordSize * dynamicOffset + N, this->length * wordSize);
+			// printf("Put: %zu out of %li\n", this->wordSize * dynamicOffset +
+			// N, this->length * wordSize);
 			size_t offset = WordSize * dynamicOffset;
 			bit_t lowerMask = make_bit(p);
 			_andyn(lowerMask, mask, address[0], p);
@@ -254,10 +263,11 @@ protected:
 };
 
 // Sum over Array<Int>
-#define RETURN_TYPE smallest_Int<ceillog2(Length * WordSize)>
-template<class T, uint16_t Length, uint16_t WordSize>
+#define RETURN_TYPE smallest_Int<ceillog2(Length *WordSize)>
+template <class T, uint16_t Length, uint16_t WordSize>
 std::enable_if_t<T::typeID == INT_TYPE_ID, RETURN_TYPE>
-sum(Array<T, Length, WordSize> &arr, TFHEServerParams_t p = default_server_params) {
+sum(Array<T, Length, WordSize> &arr,
+    TFHEServerParams_t p = default_server_params) {
 	printf("Sum of %s\n", typeid(T).name());
 	RETURN_TYPE ret = 0;
 	for (uint16_t i = 0; i < Length; i++) {
@@ -272,18 +282,20 @@ sum(Array<T, Length, WordSize> &arr, TFHEServerParams_t p = default_server_param
 // Sum over Array<Fixed>
 #define NEW_INT_SIZE (ceillog2(Length) + T::_INT_SIZE)
 #define RETURN_TYPE Fixed<NEW_INT_SIZE, T::_FRAC_SIZE>
-template<class T, uint16_t Length, uint16_t WordSize>
+template <class T, uint16_t Length, uint16_t WordSize>
 std::enable_if_t<T::typeID == FIXED_TYPE_ID, RETURN_TYPE>
-sum(Array<T, Length, WordSize> &arr, TFHEServerParams_t p = default_server_params) {
+sum(Array<T, Length, WordSize> &arr,
+    TFHEServerParams_t p = default_server_params) {
 	RETURN_TYPE ret = 0;
 	bit_t overflow = make_bit();
 	for (uint16_t i = 0; i < Length; i++) {
 		T item(p);
 		arr.get(item, i);
-		auto upcast_item = fixed_extend<NEW_INT_SIZE, T::_INT_SIZE, T::_FRAC_SIZE>(item, p);
+		auto upcast_item =
+		    fixed_extend<NEW_INT_SIZE, T::_INT_SIZE, T::_FRAC_SIZE>(item, p);
 		ret.add(overflow, ret, upcast_item);
 	}
 	return ret;
 }
 #undef RETURN_TYPE
-#endif //FHETOOLS_ARRAY_H
+#endif // FHETOOLS_ARRAY_H

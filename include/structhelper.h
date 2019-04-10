@@ -2,7 +2,7 @@
 #define FHETOOLS_STRUCTHELPER_H
 
 class StructHelper {
-public:
+  public:
 	StructHelper(uint16_t length, TFHEServerParams_t p) {
 		this->length = length;
 		data = ::make_bitspan(length, p);
@@ -10,7 +10,10 @@ public:
 
 	bitspan_t finalize() {
 		if (offset != length) {
-			fprintf(stderr, "StructHelper: called finalize() with %d bits out of %d. Exiting.\n", offset, length);
+			fprintf(stderr,
+			        "StructHelper: called finalize() with %d bits out of %d. "
+			        "Exiting.\n",
+			        offset, length);
 			abort();
 		}
 		assert(offset == length);
@@ -39,15 +42,20 @@ public:
 		offset += size;
 		return fixed_bitspan_t<size>(ret);
 	}
-private:
+
+  private:
 	uint16_t offset = 0;
 	uint16_t length;
-	// This is private; users must access it via finalize() to enforce size checks
+	// This is private; users must access it via finalize() to enforce size
+	// checks
 	bitspan_t data;
 
 	void assert_fits(uint8_t size) {
 		if ((length - offset) < size) {
-			fprintf(stderr, "StructHelper: tried to allocate %d bits, only %d left. Exiting.\n", size, (length - offset));
+			fprintf(stderr,
+			        "StructHelper: tried to allocate %d bits, only %d left. "
+			        "Exiting.\n",
+			        size, (length - offset));
 			abort();
 		}
 	}
