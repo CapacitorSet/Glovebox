@@ -9,6 +9,9 @@ void zero(bitspan_t src, TFHEServerParams_t = default_server_params);
 bit_t is_zero(bitspan_t src, TFHEServerParams_t = default_server_params);
 bit_t is_nonzero(bitspan_t src, TFHEServerParams_t = default_server_params);
 
+bit_t equals(bitspan_t a, bitspan_t b,
+             TFHEServerParams_t = default_server_params);
+
 // No bounds checking is done!
 void _memcpy(bitspan_t dst, bitspan_t src, size_t size,
              TFHEServerParams_t = default_server_params);

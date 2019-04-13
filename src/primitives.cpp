@@ -11,6 +11,18 @@ void zero(bitspan_t src, TFHEServerParams_t p) {
 		constant(bit, 0, p);
 }
 
+bit_t equals(bitspan_t a, bitspan_t b, TFHEServerParams_t p) {
+	assert(a.size() == b.size());
+	bit_t ret = make_bit(p);
+	constant(ret, true, p);
+	bit_t tmp = make_bit(p);
+	for (int i = 0; i < a.size(); i++) {
+		_xnor(tmp, a[i], b[i], p);
+		_and(ret, ret, tmp);
+	}
+	return ret;
+}
+
 bit_t is_zero(bitspan_t src, TFHEServerParams_t p) {
 	bit_t ret = make_bit(p);
 	_not(ret, src[0], p);
