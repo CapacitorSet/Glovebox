@@ -59,6 +59,13 @@ target_compile_definitions(example_linreg_client PRIVATE -DSTRICT_CLIENT_MODE=1)
 add_executable(example_linreg_server examples/linreg/server.cpp)
 target_link_libraries(example_linreg_server PRIVATE fhetools rpc pthread)
 
+# Contacts
+add_executable(example_contacts_client examples/contacts/client.cpp examples/contacts/contact.h)
+target_link_libraries(example_contacts_client PRIVATE fhetools rpc pthread)
+target_compile_definitions(example_contacts_client PRIVATE -DSTRICT_CLIENT_MODE=1)
+add_executable(example_contacts_server examples/contacts/server.cpp examples/contacts/contact.h)
+target_link_libraries(example_contacts_server PRIVATE fhetools rpc pthread)
+
 # Health data
 add_executable(example_health_client
         examples/health/client.cpp
