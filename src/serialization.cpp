@@ -1,5 +1,7 @@
 #include <istream>
 #include <ostream>
+#include <serialization.h>
+#include <sstream>
 #include <tfhe.h>
 
 #if PLAINTEXT
@@ -32,6 +34,7 @@ void deserialize(std::istream &input, bitspan_t dst, TFHEServerParams_t p) {
 		constant(bit, tmp == '1', p);
 	}
 }
+
 #else
 void serialize(std::ostream &output, bitspan_t src, TFHEClientParams_t p) {
 	for (const auto bit : src)
@@ -57,3 +60,43 @@ void deserialize(std::istream &input, bitspan_t dst, TFHEServerParams_t p) {
 		                                                p.params);
 }
 #endif
+
+bit_t make_bit(const std::string &packet, TFHEServerParams_t p) {
+	bit_t ret = make_bit(p);
+	std::stringstream ss(packet);
+	deserialize(ss, ret, p);
+	return ret;
+}
+
+bit_t make_bit(const std::string &packet, TFHEClientParams_t p) {
+	bit_t ret = make_bit(p);
+	std::stringstream ss(packet);
+	deserialize(ss, ret, p);
+	return ret;
+}
+
+bitspan_t make_bitspan(int N, const std::string &packet, TFHEServerParams_t p) {
+	bitspan_t ret = make_bitspan(N, p);
+	std::stringstream ss(packet);
+	deserialize(ss, ret, p);
+	return ret;
+}
+
+bitspan_t make_bitspan(int N, const std::string &packet, TFHEClientParams_t p) {
+	bitspan_t ret = make_bitspan(N, p);
+	std::stringstream ss(packet);
+	deserialize(ss, ret, p);
+	return ret;
+}
+
+std::string exportToString(bitspan_t src, TFHEServerParams_t p) {
+	std::ostringstream oss;
+	serialize(oss, src, p);
+	return oss.str();
+}
+
+std::string exportToString(bitspan_t src, TFHEClientParams_t p) {
+	std::ostringstream oss;
+	serialize(oss, src, p);
+	return oss.str();
+}
