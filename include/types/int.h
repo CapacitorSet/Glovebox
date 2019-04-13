@@ -24,11 +24,14 @@ using smallest_uint_t = std::conditional_t<
                        std::conditional_t<(N <= 32), uint32_t, uint64_t>>>;
 
 template <uint8_t size> class Int {
-  private:
 	using native_type_t = smallest_int_t<size>;
 
   protected:
 	TFHEServerParams_t p;
+
+  public:
+	static const int _wordSize = size;
+	fixed_bitspan_t<size> data;
 
 	Int() = delete;
 	// Create an Int, allocate memory, but do not initialize it
@@ -64,35 +67,6 @@ template <uint8_t size> class Int {
 		deserialize(ss, data, p);
 	}
 
-	// Copy a larger bitspan here. Deals with rounding and overflow calculation
-	void round_helper(bit_t overflow, const bitspan_t &src,
-	                  uint8_t truncate_from) {
-		_copy(data, src.subspan(truncate_from, size), p);
-		bit_t sign_bit = src.last();
-
-		if (truncate_from != 0) {
-			// We can't just truncate (i.e. _copy): consider the case 0.011,
-			// which does not round to 0.01 but to 0.10.
-			bit_t should_increment = make_bit(p);
-			_xor(should_increment, sign_bit, src[truncate_from - 1], p);
-			bitspan_t tmp = make_bitspan(data.size(), p);
-			incr_if(tmp, should_increment, data, p);
-			_copy(data, tmp);
-		}
-
-		// The number overflows if it is positive and has 1s past what we
-		// copied, or it is negative and has 0s past what we copied. (Note that
-		// we finished copying at truncate_from + size) It also overflows if the
-		// signs of src and data do not match.
-		_xor(overflow, sign_bit, data.last());
-		for (int i = truncate_from + size; i < src.size(); i++) {
-			bit_t is_overflowing = make_bit(p);
-			_xor(is_overflowing, sign_bit, src[i], p);
-			_or(overflow, overflow, is_overflowing, p);
-		}
-	}
-
-  public:
 	void encrypt(native_type_t src,
 	             TFHEClientParams_t _p = default_client_params) {
 		for (int i = 0; i < size; i++)
@@ -128,7 +102,34 @@ template <uint8_t size> class Int {
 	// Convenience method. Makes for more readable code.
 	bit_t isNegative() const { return data.last(); }
 
-	fixed_bitspan_t<size> data;
+  protected:
+	// Copy a larger bitspan here. Deals with rounding and overflow calculation
+	void round_helper(bit_t overflow, const bitspan_t &src,
+	                  uint8_t truncate_from) {
+		_copy(data, src.subspan(truncate_from, size), p);
+		bit_t sign_bit = src.last();
+
+		if (truncate_from != 0) {
+			// We can't just truncate (i.e. _copy): consider the case 0.011,
+			// which does not round to 0.01 but to 0.10.
+			bit_t should_increment = make_bit(p);
+			_xor(should_increment, sign_bit, src[truncate_from - 1], p);
+			bitspan_t tmp = make_bitspan(data.size(), p);
+			incr_if(tmp, should_increment, data, p);
+			_copy(data, tmp);
+		}
+
+		// The number overflows if it is positive and has 1s past what we
+		// copied, or it is negative and has 0s past what we copied. (Note that
+		// we finished copying at truncate_from + size) It also overflows if the
+		// signs of src and data do not match.
+		_xor(overflow, sign_bit, data.last());
+		for (int i = truncate_from + size; i < src.size(); i++) {
+			bit_t is_overflowing = make_bit(p);
+			_xor(is_overflowing, sign_bit, src[i], p);
+			_or(overflow, overflow, is_overflowing, p);
+		}
+	}
 };
 
 class Int8 : public Int<8> {
