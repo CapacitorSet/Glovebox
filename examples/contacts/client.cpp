@@ -19,6 +19,12 @@ Contact contacts[] = {
     {"Joann F. Harris", 407'620'9392},  {"Evelyn C. Martinez", 704'551'2763},
 };
 
+std::vector<parallel_host_t> parallel_hosts = {
+    {"127.0.0.1", 8001},
+    {"127.0.0.1", 8002},
+    {"127.0.0.1", 8003},
+};
+
 int main() {
 	puts("Initializing TFHE...");
 	FILE *secret_key = fopen("secret.key", "rb");
@@ -32,18 +38,16 @@ int main() {
 	puts("Connecting to server...");
 	rpc::client client("127.0.0.1", 8000);
 	puts("Uploading contact list...");
+	std::vector<std::string> phoneNumbers;
 	for (const auto &contact : contacts) {
 		PhoneNumber phoneNumber(contact.phoneNumber, default_client_params);
-		std::string result =
-		    client.call("isKnownContact", phoneNumber.exportToString())
-		        .as<std::string>();
-		bit_t _isKnown = make_bit(result, default_client_params);
-		bool isKnown = decrypt(_isKnown);
-		if (isKnown)
-			std::cout << "Known: " << contact.name << std::endl;
-		else
-			std::cout << "Not known: " << contact.name << std::endl;
+		phoneNumbers.push_back(phoneNumber.exportToString());
 	}
-
+	bitspan_t mask =
+	    filter(phoneNumbers, "isKnownContact", default_client_params);
+	for (int i = 0; i < 10; i++) {
+		std::cout << (decrypt(mask[i]) ? "Known: " : "Not known: ")
+		          << contacts[i].name << std::endl;
+	}
 	return 0;
 }

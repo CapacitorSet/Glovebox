@@ -26,6 +26,47 @@ Especially in plaintext mode (which you should always use for debugging) ASan an
 
 If you use ASan you must use `ASAN_OPTIONS=alloc_dealloc_mismatch=0`, because the shared pointers used in bitspans call the default destructor rather than `free()`. This is a conscious choice to reduce the memory overhead of bitspans at no cost.
 
+## Parallel computing
+
+Some operations can be computed in parallel using `parallel.h`, however it is an experimental feature inside a library which is itself very experimental. It uses a simple first-come-first-serve work scheduling to distribute tasks over RPC. Note that the RPC layer is rather fragile; refer to the "Typical errors > Runtime" section for what to expect.
+
+To use parallel functions you must define a global `std::vector<parallel_host_t> parallel_hosts`, with `parallel_host_t` being:
+
+```cpp
+struct {
+	std::string address;
+	uint16_t port;
+}
+```
+
+Compilation will fail with a linker error otherwise.
+
+## Typical errors
+
+### Compile time
+
+**Linker errors about default_server_params** (or more rarely about default_client_params) mean that somewhere you used a function call with an implicit TFHEServerParams_t parameter, and yet you didn't define `default_server_params`.
+
+  * If indeed you did not intend to use `default_server_params`, track down the function call that has an implicit parameter.
+  * If you intend to use implicit function parameters, you must define `default_server_params` and assign it a value when you have read the keys.
+
+### Runtime
+
+**terminate() called without an active exception** happens when you try to access a bitspan past its bounds.
+
+**illegal hardware instruction** when in plaintext mode happens when you try to load a non-bool into a bit. This most likely means that you're copying from uninitialized bits (possibly via logic gates); a debugger will be relatively helpful in finding the root cause.
+
+> The "illegal hardware instruction" is intentional: it's a trap placed by [UBSan](https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html).
+
+**hanging at the start** in examples typically means that the server isn't reachable.
+
+**rpc::rpc_error** is thrown when unexpected conditions occur during a RPC call, notably:
+  * aren't RPC servers
+  * don't have the method you asked for
+  * have different arguments
+  * have a different return type
+  * were compiled with `PLAINTEXT=1` while the client is not (or vice versa)
+
 ## Misc
 
 Memory is managed automatically: `make_bitspan` exposes a modified `gsl::span` that uses shared pointers under the hood.

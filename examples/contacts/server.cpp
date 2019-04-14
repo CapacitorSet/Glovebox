@@ -15,7 +15,9 @@ Contact contacts[] = {
     {"", 921'915'3647}, {"", 790'793'8139}, {"", 936'327'0855},
 };
 
-int main() {
+int main(int argc, char **argv) {
+	assert(argc <= 2);
+	uint16_t port = (argc == 2) ? atoi(argv[1]) : 8000;
 	puts("Initializing TFHE...");
 	FILE *cloud_key = fopen("cloud.key", "rb");
 	if (cloud_key == nullptr) {
@@ -25,7 +27,8 @@ int main() {
 	default_server_params = makeTFHEServerParams(cloud_key);
 	fclose(cloud_key);
 
-	rpc::server srv(8000);
+	rpc::server srv(port);
+	printf("Listening on port %d.\n", port);
 
 	srv.bind("isKnownContact", [](std::string _userNumber) {
 		puts("Received request.");
