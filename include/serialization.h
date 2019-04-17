@@ -9,11 +9,13 @@ void serialize(std::ostream &output, bitspan_t src, TFHEServerParams_t p);
 void deserialize(std::istream &input, bitspan_t src, TFHEClientParams_t p);
 void deserialize(std::istream &input, bitspan_t src, TFHEServerParams_t p);
 
+// Todo: choose one to make default
 bit_t make_bit(const std::string &packet,
                TFHEServerParams_t p = default_server_params);
 bit_t make_bit(const std::string &packet,
                TFHEClientParams_t p = default_client_params);
 
+// Todo: choose one to make default
 bitspan_t make_bitspan(int N, const std::string &packet,
                        TFHEServerParams_t p = default_server_params);
 bitspan_t make_bitspan(int N, const std::string &packet,
