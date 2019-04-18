@@ -36,12 +36,12 @@ bit_t _while(std::function<bit_t(void)> condition, uint64_t max,
 	for (uint64_t i = 0; i < max; i++) {
 		// This line is required if the condition is temporarily false but then
 		// is true again. That's weird behaviour, but it might happen.
-		_and(mask, mask, condition());
+		_and(mask, mask, condition(), p);
 		body(mask);
 	}
 	// Check if the mask is still high after leaving the loop.
 	// If so, max was not sufficient; "overflow".
-	_and(mask, mask, condition());
+	_and(mask, mask, condition(), p);
 	return mask;
 }
 
@@ -50,7 +50,7 @@ bit_t times(const Int8 src, uint8_t max, maskable_function_t body,
 	Int8 tmp(p);
 	tmp.copy(src);
 	bit_t mask = make_bit(p);
-	_andyn(mask, src.is_nonzero(), src.isNegative());
+	_andyn(mask, src.is_nonzero(), src.isNegative(), p);
 	for (uint8_t i = 0; i < max; i++) {
 		body(mask);
 		tmp.decrement_if(mask);

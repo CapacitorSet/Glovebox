@@ -18,7 +18,7 @@ bit_t equals(bitspan_t a, bitspan_t b, TFHEServerParams_t p) {
 	bit_t tmp = make_bit(p);
 	for (int i = 0; i < a.size(); i++) {
 		_xnor(tmp, a[i], b[i], p);
-		_and(ret, ret, tmp);
+		_and(ret, ret, tmp, p);
 	}
 	return ret;
 }

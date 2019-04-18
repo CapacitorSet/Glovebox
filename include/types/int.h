@@ -116,14 +116,14 @@ template <uint8_t size> class Int {
 			_xor(should_increment, sign_bit, src[truncate_from - 1], p);
 			bitspan_t tmp = make_bitspan(data.size(), p);
 			incr_if(tmp, should_increment, data, p);
-			_copy(data, tmp);
+			_copy(data, tmp, p);
 		}
 
 		// The number overflows if it is positive and has 1s past what we
 		// copied, or it is negative and has 0s past what we copied. (Note that
 		// we finished copying at truncate_from + size) It also overflows if the
 		// signs of src and data do not match.
-		_xor(overflow, sign_bit, data.last());
+		_xor(overflow, sign_bit, data.last(), p);
 		for (int i = truncate_from + size; i < src.size(); i++) {
 			bit_t is_overflowing = make_bit(p);
 			_xor(is_overflowing, sign_bit, src[i], p);

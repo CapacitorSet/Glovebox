@@ -245,9 +245,9 @@ function transpile_module(_: Module) {
 			return "";
 
 		if (size === 1)
-			return `  bit_t ${it.value} = make_bit();\n`;
+			return `  bit_t ${it.value} = make_bit(p);\n`;
 		else
-			return `  bitspan_t ${it.value} = make_bitspan(${size});\n`;
+			return `  bitspan_t ${it.value} = make_bitspan(${size}, p);\n`;
 	}
 
 	const gates = renamedGates
