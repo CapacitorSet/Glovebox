@@ -46,7 +46,7 @@ function generate_prototype(name: string, decls: Declaration[]): string {
 	const inputs = decls
 		.filter(it => it.type === "input")
 		.map(it => "const " + get_type(it.size) + " " + it.name);
-	return `void ${name}(${outputs.concat(inputs).join(", ")}, TFHEServerParams_t p)`;
+	return `void ${name}(${outputs.concat(inputs).join(", ")}, weak_params_t p)`;
 }
 
 // Add indices where necessary

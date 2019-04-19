@@ -9,13 +9,13 @@ class FHEContext : public ::testing::Test {
 			puts("secret.key not found: run ./keygen first.");
 			ASSERT_NE(secret_key, nullptr);
 		}
-		clientParams = makeTFHEClientParams(secret_key);
-		serverParams = (TFHEServerParams_t)clientParams;
+		params = makeTFHEClientParams(secret_key);
+		serverParams = TFHEServerParams_t(params);
 		fclose(secret_key);
 	}
 
-	void TearDown() override { freeTFHEClientParams(clientParams); }
+	void TearDown() override { freeTFHEClientParams(params); }
 
-	TFHEClientParams_t clientParams;
+	TFHEClientParams_t params;
 	TFHEServerParams_t serverParams;
 };

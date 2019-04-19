@@ -1,9 +1,5 @@
 #include <tfhe.h>
 
-TFHEServerParams_t unwrap_only(only_TFHEServerParams_t p) {
-	return TFHEServerParams_t{p.params, p.bk};
-};
-
 TFHEClientParams_t makeTFHEClientParams(FILE *secret_key) {
 	TFheGateBootstrappingSecretKeySet *key =
 	    new_tfheGateBootstrappingSecretKeySet_fromFile(secret_key);
@@ -34,25 +30,13 @@ int decrypt(bit_t dst, TFHEClientParams_t p) {
 	return bootsSymDecrypt(dst.cptr(), p.key);
 }
 
-bit_t make_bit(TFHEClientParams_t p) {
+bit_t make_bit(weak_params_t p) {
 	LweSample *cptr = new_gate_bootstrapping_ciphertext(p.params);
 	auto ptr = std::shared_ptr<LweSample>(cptr);
 	return gsl::span<LweSample, 1>(ptr, 1);
 }
 
-bit_t make_bit(TFHEServerParams_t p) {
-	LweSample *cptr = new_gate_bootstrapping_ciphertext(p.params);
-	auto ptr = std::shared_ptr<LweSample>(cptr);
-	return gsl::span<LweSample, 1>(ptr, 1);
-}
-
-bitspan_t make_bitspan(int N, TFHEClientParams_t p) {
-	LweSample *cptr = new_gate_bootstrapping_ciphertext_array(N, p.params);
-	auto ptr = std::shared_ptr<LweSample>(cptr);
-	return gsl::span<LweSample>(ptr, N);
-}
-
-bitspan_t make_bitspan(int N, TFHEServerParams_t p) {
+bitspan_t make_bitspan(int N, weak_params_t p) {
 	LweSample *cptr = new_gate_bootstrapping_ciphertext_array(N, p.params);
 	auto ptr = std::shared_ptr<LweSample>(cptr);
 	return gsl::span<LweSample>(ptr, N);
@@ -62,18 +46,18 @@ void encrypt(bit_t dst, bool src, TFHEClientParams_t p) {
 	bootsSymEncrypt(dst.cptr(), src, p.key);
 }
 
-void _internal_constant(bit_t dst, bool src, only_TFHEServerParams_t p) {
-	bootsCONSTANT(dst.cptr(), src, p.bk);
+void _unsafe_constant(bit_t dst, bool src, weak_params_t p) {
+	bootsCONSTANT(dst.cptr(), src, p.keySet);
 };
 
-void _not(bit_t dst, bit_t src, TFHEServerParams_t p) {
-	bootsNOT(dst.cptr(), src.cptr(), p.bk);
+void _not(bit_t dst, bit_t src, weak_params_t p) {
+	bootsNOT(dst.cptr(), src.cptr(), p.keySet);
 }
 
 #define BINARY_OPERATOR(LibName, TFHEName)                                     \
 	void _##LibName(bit_t dst, const bit_t a, const bit_t b,                   \
-	                TFHEServerParams_t p) {                                    \
-		boots##TFHEName(dst.cptr(), a.cptr(), b.cptr(), p.bk);                 \
+	                weak_params_t p) {                                         \
+		boots##TFHEName(dst.cptr(), a.cptr(), b.cptr(), p.keySet);             \
 	}
 
 BINARY_OPERATOR(and, AND)
@@ -87,10 +71,10 @@ BINARY_OPERATOR(nor, NOR)
 BINARY_OPERATOR(xor, XOR)
 BINARY_OPERATOR(xnor, XNOR)
 
-void _mux(bit_t dst, bit_t cond, bit_t a, bit_t b, TFHEServerParams_t p) {
-	bootsMUX(dst.cptr(), cond.cptr(), a.cptr(), b.cptr(), p.bk);
+void _mux(bit_t dst, bit_t cond, bit_t a, bit_t b, weak_params_t p) {
+	bootsMUX(dst.cptr(), cond.cptr(), a.cptr(), b.cptr(), p.keySet);
 }
 
-void _copy(bit_t dst, bit_t src, TFHEServerParams_t p) {
-	bootsCOPY(dst.cptr(), src.cptr(), p.bk);
+void _copy(bit_t dst, bit_t src, weak_params_t p) {
+	bootsCOPY(dst.cptr(), src.cptr(), p.keySet);
 }

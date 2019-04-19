@@ -8,13 +8,13 @@
 	TEST_F(FHEContext, FHEOperand) {                                           \
 		ITERATE_BIT(A) ITERATE_BIT(B) {                                        \
 			char out = CppExpression;                                          \
-			bit_t fhe_A = make_bit(serverParams);                              \
-			constant(fhe_A, A, serverParams);                                  \
-			bit_t fhe_B = make_bit(serverParams);                              \
-			constant(fhe_B, B, serverParams);                                  \
-			bit_t fhe_out = make_bit(serverParams);                            \
-			_##FHEOperand(fhe_out, fhe_A, fhe_B, serverParams);                \
-			ASSERT_EQ(decrypt(fhe_out, clientParams), out);                    \
+			bit_t fhe_A = make_bit(params);                                    \
+			encrypt(fhe_A, A, params);                                         \
+			bit_t fhe_B = make_bit(params);                                    \
+			encrypt(fhe_B, B, params);                                         \
+			bit_t fhe_out = make_bit(params);                                  \
+			_##FHEOperand(fhe_out, fhe_A, fhe_B, params);                      \
+			ASSERT_EQ(decrypt(fhe_out, params), out);                          \
 		}                                                                      \
 	}
 
@@ -29,16 +29,16 @@ TEST_OP(xnor, !(A ^ B));
 
 TEST_F(FHEContext, DecryptFromClient) {
 	ITERATE_BIT(plaintext) {
-		bit_t ciphertext = make_bit(clientParams);
-		encrypt(ciphertext, plaintext, clientParams);
-		ASSERT_EQ(decrypt(ciphertext, clientParams), plaintext);
+		bit_t ciphertext = make_bit(params);
+		encrypt(ciphertext, plaintext, params);
+		ASSERT_EQ(decrypt(ciphertext, params), plaintext);
 	}
 }
 
 TEST_F(FHEContext, DecryptFromServer) {
 	ITERATE_BIT(plaintext) {
-		bit_t ciphertext = make_bit(serverParams);
+		bit_t ciphertext = make_bit(params);
 		constant(ciphertext, plaintext, serverParams);
-		ASSERT_EQ(decrypt(ciphertext, clientParams), plaintext);
+		ASSERT_EQ(decrypt(ciphertext, params), plaintext);
 	}
 }

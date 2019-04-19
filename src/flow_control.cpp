@@ -3,7 +3,7 @@
 void _if(bit_t cond, maskable_function_t iftrue) { iftrue(cond); }
 
 void _if_else(bit_t cond, maskable_function_t iftrue,
-              maskable_function_t iffalse, TFHEServerParams_t p) {
+              maskable_function_t iffalse, weak_params_t p) {
 	iftrue(cond);
 	bit_t inverted = make_bit(p);
 	_not(inverted, cond, p);
@@ -11,7 +11,7 @@ void _if_else(bit_t cond, maskable_function_t iftrue,
 }
 
 maskable_function_t _m_if(bit_t cond, maskable_function_t iftrue,
-                          TFHEServerParams_t p) {
+                          weak_params_t p) {
 	return [=](bit_t mask) {
 		bit_t tmp = make_bit(p);
 		_or(tmp, mask, cond, p);
@@ -20,8 +20,7 @@ maskable_function_t _m_if(bit_t cond, maskable_function_t iftrue,
 }
 
 maskable_function_t _m_if_else(bit_t cond, maskable_function_t iftrue,
-                               maskable_function_t iffalse,
-                               TFHEServerParams_t p) {
+                               maskable_function_t iffalse, weak_params_t p) {
 	return [=](bit_t mask) {
 		bit_t tmp = make_bit(p);
 		_or(tmp, mask, cond, p);
@@ -46,7 +45,7 @@ bit_t _while(std::function<bit_t(void)> condition, uint64_t max,
 }
 
 bit_t times(const Int8 src, uint8_t max, maskable_function_t body,
-            TFHEServerParams_t p) {
+            weak_params_t p) {
 	Int8 tmp(p);
 	tmp.copy(src);
 	bit_t mask = make_bit(p);

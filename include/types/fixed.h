@@ -1,6 +1,7 @@
 #ifndef FHETOOLS_FIXED32_H
 #define FHETOOLS_FIXED32_H
 
+#include <cmath>
 #include <types/int.h>
 
 // Are you seeing the error "Base specifier must name a class" at this line?
@@ -54,21 +55,20 @@ template <uint8_t INT_SIZE, uint8_t FRAC_SIZE> class Fixed : public BASE_INT {
 	static const int _wordSize = INT_SIZE + FRAC_SIZE;
 
 	Fixed() = delete;
-	explicit Fixed(TFHEServerParams_t _p) : BASE_INT(_p){};
+	explicit Fixed(weak_params_t _p) : BASE_INT(_p){};
 	explicit Fixed(StructHelper &helper,
-	               TFHEServerParams_t _p = default_server_params)
+	               weak_params_t _p = default_server_params)
 	    : BASE_INT(helper, _p){};
-	Fixed(double src, only_TFHEServerParams_t _p = default_server_params)
-	    : BASE_INT(scale(src), unwrap_only(_p)){};
+	Fixed(double src, TFHEServerParams_t _p = default_server_params)
+	    : BASE_INT(scale(src), _p){};
 	Fixed(double src, StructHelper &helper,
-	      only_TFHEServerParams_t _p = default_server_params)
-	    : BASE_INT(scale(src), helper, unwrap_only(_p)){};
+	      TFHEServerParams_t _p = default_server_params)
+	    : BASE_INT(scale(src), helper, _p){};
 	Fixed(double src, TFHEClientParams_t _p) : BASE_INT(scale(src), _p){};
 	Fixed(double src, StructHelper &helper, TFHEClientParams_t _p)
 	    : BASE_INT(scale(src), helper, _p){};
 
-	Fixed(const std::string &packet,
-	      TFHEServerParams_t _p = default_server_params)
+	Fixed(const std::string &packet, weak_params_t _p = default_server_params)
 	    : Fixed<INT_SIZE, FRAC_SIZE>(_p) {
 		char int_size_from_header = packet[0];
 		char frac_size_from_header = packet[1];
@@ -82,7 +82,7 @@ template <uint8_t INT_SIZE, uint8_t FRAC_SIZE> class Fixed : public BASE_INT {
 	void encrypt(double src, TFHEClientParams_t _p) {
 		BASE_INT::encrypt(scale(src), _p);
 	}
-	void constant(double src, only_TFHEServerParams_t _p) {
+	void constant(double src, TFHEServerParams_t _p) {
 		BASE_INT::constant(scale(src), _p);
 	}
 
@@ -98,6 +98,7 @@ template <uint8_t INT_SIZE, uint8_t FRAC_SIZE> class Fixed : public BASE_INT {
 	double toDouble(TFHEClientParams_t p = default_client_params) const {
 		return undo_scale(this->toInt(p));
 	};
+
 	std::string exportToString() const {
 		char header[2] = {INT_SIZE, FRAC_SIZE};
 		std::ostringstream oss;
@@ -115,7 +116,7 @@ template <uint8_t INT_SIZE, uint8_t FRAC_SIZE> class Fixed : public BASE_INT {
 // Sign-extend a fixed into a larger one
 template <uint8_t INT_NEW, uint8_t INT_OLD, uint8_t FRAC_SIZE>
 Fixed<INT_NEW, FRAC_SIZE> fixed_extend(Fixed<INT_OLD, FRAC_SIZE> src,
-                                       TFHEServerParams_t _p) {
+                                       weak_params_t _p) {
 	static_assert(INT_NEW >= INT_OLD);
 	Fixed<INT_NEW, FRAC_SIZE> ret(_p);
 	bit_t sign = src.data.last();

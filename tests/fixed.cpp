@@ -17,8 +17,8 @@ double rescale(int16_t a) { return double(a) / double(4096); }
 TEST_F(Q4_4Test, Decrypt) {
 	::rc::detail::checkGTest([=](int16_t _plaintext_num) {
 		double plaintext_num = rescale(_plaintext_num);
-		auto a = Q4_4(plaintext_num, clientParams);
-		double absolute_error = fabs(a.toDouble(clientParams) - plaintext_num);
+		auto a = Q4_4(plaintext_num, params);
+		double absolute_error = fabs(a.toDouble(params) - plaintext_num);
 		RC_ASSERT(absolute_error <= half_precision);
 	});
 }
@@ -26,11 +26,10 @@ TEST_F(Q4_4Test, Decrypt) {
 TEST_F(Q4_4Test, Serialization) {
 	::rc::detail::checkGTest([=](int16_t _plaintext_num) {
 		double plaintext_num = rescale(_plaintext_num);
-		auto in = Q4_4(plaintext_num, clientParams);
+		auto in = Q4_4(plaintext_num, params);
 		auto tmp = in.exportToString();
 		auto out = Q4_4(tmp, serverParams);
-		double absolute_error =
-		    fabs(out.toDouble(clientParams) - plaintext_num);
+		double absolute_error = fabs(out.toDouble(params) - plaintext_num);
 		RC_ASSERT(absolute_error <= half_precision);
 	});
 }
@@ -38,10 +37,9 @@ TEST_F(Q4_4Test, Serialization) {
 TEST_F(Q4_4Test, SignExtend) {
 	::rc::detail::checkGTest([=](int16_t _plaintext_num) {
 		double plaintext_num = rescale(_plaintext_num);
-		auto num = Q4_4(plaintext_num, clientParams);
-		auto upscaled = fixed_extend<8, 4, 4>(num, clientParams);
-		double absolute_error =
-		    fabs(upscaled.toDouble(clientParams) - plaintext_num);
+		auto num = Q4_4(plaintext_num, params);
+		auto upscaled = fixed_extend<8, 4, 4>(num, params);
+		double absolute_error = fabs(upscaled.toDouble(params) - plaintext_num);
 		RC_ASSERT(absolute_error <= half_precision);
 	});
 }
@@ -52,8 +50,8 @@ TEST_F(Q4_4Test, Sum) {
 	::rc::detail::checkGTest([=](int16_t _plaintext_a, int16_t _plaintext_b) {
 		double plaintext_a = rescale(_plaintext_a);
 		double plaintext_b = rescale(_plaintext_b);
-		auto a = Q4_4(plaintext_a, clientParams);
-		auto b = Q4_4(plaintext_b, clientParams);
+		auto a = Q4_4(plaintext_a, params);
+		auto b = Q4_4(plaintext_b, params);
 		auto overflow = make_bit(serverParams);
 		auto sum = Q4_4(serverParams);
 		sum.add(overflow, a, b);
@@ -61,10 +59,9 @@ TEST_F(Q4_4Test, Sum) {
 		bool plaintext_overflow = plaintext_sum > Q4_4::max;
 		bool plaintext_underflow = plaintext_sum < Q4_4::min;
 		RC_ASSERT((plaintext_overflow || plaintext_underflow) ==
-		          decrypt(overflow, clientParams));
+		          decrypt(overflow, params));
 		if (!plaintext_overflow && !plaintext_underflow) {
-			double absolute_error =
-			    fabs(plaintext_sum - sum.toDouble(clientParams));
+			double absolute_error = fabs(plaintext_sum - sum.toDouble(params));
 			RC_ASSERT(absolute_error <= 2 * half_precision);
 		}
 	});
@@ -77,19 +74,18 @@ TEST_F(Q4_4Test, Mul) {
 		// Zero-values mess up error calculations
 		RC_PRE(plaintext_a != 0.0);
 		RC_PRE(plaintext_b != 0.0);
-		auto a = Q4_4(plaintext_a, clientParams);
-		auto b = Q4_4(plaintext_b, clientParams);
+		auto a = Q4_4(plaintext_a, params);
+		auto b = Q4_4(plaintext_b, params);
 		auto overflow = make_bit(serverParams);
 		auto result = Q4_4(serverParams);
 		result.mul(overflow, a, b);
 		double plaintext_result = plaintext_a * plaintext_b;
-		double fixed_result =
-		    a.toDouble(clientParams) * b.toDouble(clientParams);
+		double fixed_result = a.toDouble(params) * b.toDouble(params);
 		// Overflow calculations must necessarily be run on the rounded,
 		// fixed-point version
 		bool fixed_overflow =
 		    fixed_result > Q4_4::max || fixed_result < Q4_4::min;
-		RC_ASSERT(fixed_overflow == decrypt(overflow, clientParams));
+		RC_ASSERT(fixed_overflow == decrypt(overflow, params));
 		if (!fixed_overflow) {
 			/* Let the relative error for X be e_X, and the absolute error be
 			 * delta_X (difference between plaintext "true" value and calculated
@@ -101,7 +97,7 @@ TEST_F(Q4_4Test, Mul) {
 			double e_b = fabs(half_precision / plaintext_b);
 			double theoretical_absolute_error =
 			    fabs(plaintext_result) * (e_a + e_b + e_a * e_b);
-			RC_ASSERT(fabs(result.toDouble(clientParams) - plaintext_result) <=
+			RC_ASSERT(fabs(result.toDouble(params) - plaintext_result) <=
 			          theoretical_absolute_error);
 		}
 	});

@@ -41,22 +41,22 @@ class Array {
 	static const int typeID = ARRAY_TYPE_ID;
 
 	Array() = delete;
-	explicit Array(bool initialize_memory = true,
-	               only_TFHEServerParams_t _p = default_server_params)
-	    : p(unwrap_only(_p)) {
+	Array(weak_params_t _p = default_server_params) : p(_p) {
 		data = make_bitspan(Bitlength, p);
-		if (initialize_memory)
-			zero(data, unwrap_only(_p));
 	}
-	Array(bool initialize_memory, TFHEClientParams_t _p) : p(_p) {
-		data = make_bitspan(Bitlength, p);
+	explicit Array(bool initialize_memory = true,
+	               TFHEServerParams_t _p = default_server_params)
+	    : Array(_p) {
+		if (initialize_memory)
+			zero(data, _p);
+	}
+	Array(bool initialize_memory, TFHEClientParams_t _p) : Array(_p) {
 		if (initialize_memory)
 			zero(data, _p);
 	}
 
-	Array(const std::string &packet,
-	      TFHEServerParams_t _p = default_server_params)
-	    : Array(false, _p) {
+	Array(const std::string &packet, weak_params_t _p = default_server_params)
+	    : Array(_p) {
 		char typeID_from_header = packet[0];
 		uint16_t length_from_header;
 		memcpy(&length_from_header, &packet[1], 2);
@@ -69,7 +69,7 @@ class Array {
 
 	void put(T src, encrypted_address_type address) {
 		bit_t mask = make_bit(p);
-		constant(mask, 1, p);
+		_unsafe_constant(mask, 1, p);
 
 		putBits(src.data, address.data, 0, mask);
 	}
@@ -104,7 +104,7 @@ class Array {
 
 	void get(T dst, encrypted_address_type address) const {
 		bit_t mask = make_bit(p);
-		constant(mask, 1, p);
+		_unsafe_constant(mask, 1, p);
 
 		getBits(dst.data, address.data, 0, mask);
 	}
@@ -153,7 +153,7 @@ class Array {
 	}
 
   protected:
-	TFHEServerParams_t p;
+	weak_params_t p;
 
 	void putBits(const bitspan_t &src, const bitspan_t &address,
 	             size_t dynamicOffset, bit_t mask) {
@@ -266,8 +266,7 @@ class Array {
 #define RETURN_TYPE smallest_Int<ceillog2(Length *WordSize)>
 template <class T, uint16_t Length, uint16_t WordSize>
 std::enable_if_t<T::typeID == INT_TYPE_ID, RETURN_TYPE>
-sum(Array<T, Length, WordSize> &arr,
-    TFHEServerParams_t p = default_server_params) {
+sum(Array<T, Length, WordSize> &arr, weak_params_t p = default_server_params) {
 	printf("Sum of %s\n", typeid(T).name());
 	RETURN_TYPE ret = 0;
 	for (uint16_t i = 0; i < Length; i++) {
@@ -284,8 +283,7 @@ sum(Array<T, Length, WordSize> &arr,
 #define RETURN_TYPE Fixed<NEW_INT_SIZE, T::_FRAC_SIZE>
 template <class T, uint16_t Length, uint16_t WordSize>
 std::enable_if_t<T::typeID == FIXED_TYPE_ID, RETURN_TYPE>
-sum(Array<T, Length, WordSize> &arr,
-    TFHEServerParams_t p = default_server_params) {
+sum(Array<T, Length, WordSize> &arr, weak_params_t p = default_server_params) {
 	RETURN_TYPE ret = 0;
 	bit_t overflow = make_bit();
 	for (uint16_t i = 0; i < Length; i++) {

@@ -11,16 +11,17 @@ template <uint16_t Length> class String : public Array<Int8, Length> {
 	static constexpr int typeID = STRING_TYPE_ID;
 
 	String() = delete;
+	// todo: use named ctors
+	// (https://isocpp.org/wiki/faq/ctors#named-ctor-idiom)
 	explicit String(char /*disambiguation param*/,
 	                bool initialize_memory = true,
-	                only_TFHEServerParams_t _p = default_server_params)
+	                TFHEServerParams_t _p = default_server_params)
 	    : Array<Int8, Length>(initialize_memory, _p) {}
 	String(char /*disambiguation param*/, bool initialize_memory,
 	       TFHEClientParams_t _p)
 	    : Array<Int8, Length>(initialize_memory, _p) {}
 	// The bool disambiguates against the deserialization ctor
-	String(const char *src, bool,
-	       only_TFHEServerParams_t _p = default_server_params)
+	String(const char *src, bool, TFHEServerParams_t _p = default_server_params)
 	    : Array<Int8, Length>(true, _p) {
 		assert(strlen(src) <= Length);
 		const auto len = strlen(src);
@@ -37,9 +38,8 @@ template <uint16_t Length> class String : public Array<Int8, Length> {
 				encrypt(this->data[i * 8 + j], (src[i] >> j) & 1, _p);
 	}
 
-	String(const std::string &packet,
-	       TFHEServerParams_t _p = default_server_params)
-	    : Array<Int8, Length>(false, _p) {
+	String(const std::string &packet, weak_params_t _p = default_server_params)
+	    : Array<Int8, Length>(_p) {
 		uint16_t length_from_header;
 		memcpy(&length_from_header, &packet[0], 2);
 		assert(length_from_header == Length);

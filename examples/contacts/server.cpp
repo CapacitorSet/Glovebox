@@ -29,14 +29,13 @@ int main(int argc, char **argv) {
 
 	rpc::server srv(port);
 	printf("Listening on port %d.\n", port);
-
 	srv.bind("isKnownContact", [](std::string _userNumber) {
 		puts("Received request.");
 		PhoneNumber userNumber(_userNumber);
 		bit_t isKnown = make_bit();
 		constant(isKnown, false);
 		for (const auto &contact : contacts) {
-			PhoneNumber contactNo(contact.phoneNumber);
+			PhoneNumber contactNo(contact.phoneNumber, default_server_params);
 			bit_t matches = equals(contactNo.data, userNumber.data);
 			_or(isKnown, isKnown, matches);
 		}
@@ -44,6 +43,5 @@ int main(int argc, char **argv) {
 	});
 
 	srv.run();
-
 	return 0;
 }
