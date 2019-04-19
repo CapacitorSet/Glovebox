@@ -47,7 +47,7 @@ bit_t make_bit(TFHEServerParams_t p) {
 }
 
 bitspan_t make_bitspan(int N, TFHEClientParams_t p) {
-	LweSample *cptr = new_gate_bootstrapping_ciphertext(p.params);
+	LweSample *cptr = new_gate_bootstrapping_ciphertext_array(N, p.params);
 	auto ptr = std::shared_ptr<LweSample>(cptr);
 	return gsl::span<LweSample>(ptr, N);
 }
