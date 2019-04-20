@@ -131,7 +131,7 @@ class Array {
 
 	// Count the number of items satisfying cond
 	encrypted_address_type countIf(std::function<bit_t(T)> cond) const {
-		encrypted_address_type ret = 0;
+		encrypted_address_type ret(0, p);
 		for (native_address_type i = 0; i < Length; i++) {
 			T item(p);
 			this->get(item, i);
