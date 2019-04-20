@@ -21,6 +21,8 @@ From the point of view of the user, this reflects in branch-heavy code being ver
 
 An important consequence is that loops must have a known upper bound on the number of times they are executed (as doing otherwise would be branching on secret data).
 
+From the point of view of syntax, FHE-Tools tries to be as lightweight as possible, especially by making use of default parameters and conversions. The principles in what to make default are that when possible parameters should be omitted, and that for functions that encode values (and thus could take server parameters to do trivial encryption or client parameters to do actual encryptions) the omitted parameter should be the client one (so that client code, which typically makes the heaviest use of initialization, can be syntactically lighter).
+
 Because FHE is slow, you can test it on plaintext data by compiling with `DEBUG=1`; it is guaranteed to behave the same (and tested to do so). It exposes the exact same interface.
 
 ### Basics

@@ -7,6 +7,7 @@
 #include "patient.h"
 
 TFHEServerParams_t default_server_params;
+weak_params_t default_weak_params;
 
 int main() {
 	if (PLAINTEXT)
@@ -19,7 +20,8 @@ int main() {
 		puts("cloud.key not found: run ./keygen first.");
 		return 1;
 	}
-	default_server_params = makeTFHEServerParams(cloud_key);
+	default_weak_params = default_server_params =
+	    makeTFHEServerParams(cloud_key);
 	fclose(cloud_key);
 
 	Array<Patient, 10> database(false);

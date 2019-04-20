@@ -56,19 +56,18 @@ template <uint8_t INT_SIZE, uint8_t FRAC_SIZE> class Fixed : public BASE_INT {
 
 	Fixed() = delete;
 	explicit Fixed(weak_params_t _p) : BASE_INT(_p){};
-	explicit Fixed(StructHelper &helper,
-	               weak_params_t _p = default_server_params)
+	explicit Fixed(StructHelper &helper, weak_params_t _p = default_weak_params)
 	    : BASE_INT(helper, _p){};
-	Fixed(double src, TFHEServerParams_t _p = default_server_params)
+	Fixed(double src, TFHEServerParams_t _p) : BASE_INT(scale(src), _p){};
+	Fixed(double src, StructHelper &helper, TFHEServerParams_t _p)
+	    : BASE_INT(scale(src), helper, _p){};
+	Fixed(double src, TFHEClientParams_t _p = default_client_params)
 	    : BASE_INT(scale(src), _p){};
 	Fixed(double src, StructHelper &helper,
-	      TFHEServerParams_t _p = default_server_params)
-	    : BASE_INT(scale(src), helper, _p){};
-	Fixed(double src, TFHEClientParams_t _p) : BASE_INT(scale(src), _p){};
-	Fixed(double src, StructHelper &helper, TFHEClientParams_t _p)
+	      TFHEClientParams_t _p = default_client_params)
 	    : BASE_INT(scale(src), helper, _p){};
 
-	Fixed(const std::string &packet, weak_params_t _p = default_server_params)
+	Fixed(const std::string &packet, weak_params_t _p = default_weak_params)
 	    : Fixed<INT_SIZE, FRAC_SIZE>(_p) {
 		char int_size_from_header = packet[0];
 		char frac_size_from_header = packet[1];

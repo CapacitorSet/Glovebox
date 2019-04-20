@@ -5,6 +5,7 @@
 #include <rpc/server.h>
 
 TFHEServerParams_t default_server_params;
+weak_params_t default_weak_params;
 
 int main() {
 	puts("Initializing TFHE...");
@@ -13,7 +14,8 @@ int main() {
 		puts("cloud.key not found: run ./keygen first.");
 		return 1;
 	}
-	default_server_params = makeTFHEServerParams(cloud_key);
+	default_weak_params = default_server_params =
+	    makeTFHEServerParams(cloud_key);
 	fclose(cloud_key);
 
 	rpc::server srv(8000);
@@ -27,9 +29,12 @@ int main() {
 		for (int i = 0; i < times; i++) {
 			printf("Iteration %d\n", i);
 			ret.add(first, second);
-			// todo: document that this is buggy af because it will result in ptrs being reused
-			// first = second;
-			// second = x;
+			// todo: implement copy/move ctor for Int so that the following
+			// works
+			/*
+			first = second;
+			second = x;
+			*/
 			first.copy(second);
 			second.copy(ret);
 		}

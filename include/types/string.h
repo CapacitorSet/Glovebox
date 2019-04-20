@@ -38,7 +38,7 @@ template <uint16_t Length> class String : public Array<Int8, Length> {
 				encrypt(this->data[i * 8 + j], (src[i] >> j) & 1, _p);
 	}
 
-	String(const std::string &packet, weak_params_t _p = default_server_params)
+	String(const std::string &packet, weak_params_t _p = default_weak_params)
 	    : Array<Int8, Length>(_p) {
 		uint16_t length_from_header;
 		memcpy(&length_from_header, &packet[0], 2);

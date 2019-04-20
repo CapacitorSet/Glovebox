@@ -9,6 +9,7 @@
 #include "patient.h"
 
 TFHEClientParams_t default_client_params;
+weak_params_t default_weak_params;
 
 constexpr int NUM_PATIENTS = 10;
 
@@ -54,20 +55,18 @@ int main() {
 	puts("");
 
 	puts("2. Counting men...");
-	std::string countMStr = client.call("countM").as<std::string>();
-	Int8 countM(countMStr, default_client_params);
+	Int8 countM = client.call("countM").as<std::string>();
 	printf("Output: %d\n", countM.toInt());
 	puts("");
 
 	puts("3. Computing average weight...");
-	std::string sumStr = client.call("sumWeight").as<std::string>();
-	Fixed<11, 1> sum(sumStr, default_client_params);
+	Fixed<11, 1> sum = client.call("sumWeight").as<std::string>();
 	// The division is made client-side for performance reasons.
 	printf("Output: %lf\n", sum.toDouble() / 10.0);
 	puts("");
 
 	// Pick one patient to use for the weight demo
-	Patient sample_patient(default_client_params);
+	Patient sample_patient;
 	int i = 0;
 	do {
 		records.get(sample_patient, i++);
@@ -75,11 +74,9 @@ int main() {
 	printf("4. Predicting weight for height=%lf...\n",
 	       sample_patient.getHeight());
 	using Q7_9 = Fixed<7, 9>;
-	Q7_9 height(Patient::scaleHeight(sample_patient.getHeight()),
-	            default_client_params);
-	std::string weightStr =
+	Q7_9 height = Patient::scaleHeight(sample_patient.getHeight());
+	Q7_9 weight =
 	    client.call("predictWeight", height.serialize()).as<std::string>();
-	Q7_9 weight(weightStr, default_client_params);
 	printf("Predicted: %lf, actual: %lf\n", weight.toDouble(),
 	       sample_patient.weight.toDouble());
 

@@ -40,8 +40,7 @@ class Array {
 
 	static const int typeID = ARRAY_TYPE_ID;
 
-	Array() = delete;
-	Array(weak_params_t _p = default_server_params) : p(_p) {
+	Array(weak_params_t _p = default_weak_params) : p(_p) {
 		data = make_bitspan(Bitlength, p);
 	}
 	explicit Array(bool initialize_memory = true,
@@ -55,7 +54,7 @@ class Array {
 			zero(data, _p);
 	}
 
-	Array(const std::string &packet, weak_params_t _p = default_server_params)
+	Array(const std::string &packet, weak_params_t _p = default_weak_params)
 	    : Array(_p) {
 		char typeID_from_header = packet[0];
 		uint16_t length_from_header;
@@ -143,7 +142,7 @@ class Array {
 	// Create a new array with the result of calling f
 	template <class TNew, uint16_t WordSizeNew = TNew::_wordSize>
 	Array<TNew, Length, WordSizeNew> map(std::function<TNew(T)> f) const {
-		Array<TNew, Length, WordSizeNew> ret(false);
+		Array<TNew, Length, WordSizeNew> ret(p);
 		for (native_address_type i = 0; i < Length; i++) {
 			T item(p);
 			this->get(item, i);
@@ -266,7 +265,7 @@ class Array {
 #define RETURN_TYPE smallest_Int<ceillog2(Length *WordSize)>
 template <class T, uint16_t Length, uint16_t WordSize>
 std::enable_if_t<T::typeID == INT_TYPE_ID, RETURN_TYPE>
-sum(Array<T, Length, WordSize> &arr, weak_params_t p = default_server_params) {
+sum(Array<T, Length, WordSize> &arr, weak_params_t p = default_weak_params) {
 	printf("Sum of %s\n", typeid(T).name());
 	RETURN_TYPE ret = 0;
 	for (uint16_t i = 0; i < Length; i++) {
@@ -283,8 +282,9 @@ sum(Array<T, Length, WordSize> &arr, weak_params_t p = default_server_params) {
 #define RETURN_TYPE Fixed<NEW_INT_SIZE, T::_FRAC_SIZE>
 template <class T, uint16_t Length, uint16_t WordSize>
 std::enable_if_t<T::typeID == FIXED_TYPE_ID, RETURN_TYPE>
-sum(Array<T, Length, WordSize> &arr, weak_params_t p = default_server_params) {
-	RETURN_TYPE ret = 0;
+sum(Array<T, Length, WordSize> &arr,
+    TFHEServerParams_t p = default_server_params) {
+	RETURN_TYPE ret(0, p);
 	bit_t overflow = make_bit();
 	for (uint16_t i = 0; i < Length; i++) {
 		T item(p);

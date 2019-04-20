@@ -23,7 +23,8 @@ class Patient {
 	    Int8::_wordSize + Q7_1::_wordSize + Int8::_wordSize + 1;
 	static constexpr char typeID = 123;
 
-	Patient(weak_params_t p) : Patient(StructHelper(_wordSize, p), p) {}
+	Patient(weak_params_t p = default_weak_params)
+	    : Patient(StructHelper(_wordSize, p), p) {}
 
 	Patient(double _height, double _weight, int8_t _age, bool _isMale,
 	        TFHEClientParams_t p)

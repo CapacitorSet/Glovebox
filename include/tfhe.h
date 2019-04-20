@@ -62,8 +62,10 @@ void freeTFHEClientParams(TFHEClientParams_t p);
 
 extern TFHEServerParams_t default_server_params;
 extern TFHEClientParams_t default_client_params;
-bit_t make_bit(weak_params_t = default_server_params);
-bitspan_t make_bitspan(int N, weak_params_t = default_server_params);
+extern weak_params_t default_weak_params;
+
+bit_t make_bit(weak_params_t = default_weak_params);
+bitspan_t make_bitspan(int N, weak_params_t = default_weak_params);
 
 template <uint8_t size>
 class fixed_bitspan_t : public gsl::span<unsafe_bit_t, size> {
@@ -80,7 +82,7 @@ class fixed_bitspan_t : public gsl::span<unsafe_bit_t, size> {
 	};
 };
 template <uint8_t size>
-fixed_bitspan_t<size> make_bitspan(weak_params_t p = default_server_params) {
+fixed_bitspan_t<size> make_bitspan(weak_params_t p = default_weak_params) {
 	// Can this be rewritten in terms of make_bitspan, subspan?
 #if PLAINTEXT
 	(void)p;
@@ -120,24 +122,24 @@ static void inline constant(bit_t dst, bool src,
 #endif
 void encrypt(bit_t dst, bool src, TFHEClientParams_t p = default_client_params);
 
-void _not(bit_t dst, bit_t a, weak_params_t = default_server_params);
-void _and(bit_t dst, bit_t a, bit_t b, weak_params_t = default_server_params);
-void _andyn(bit_t dst, bit_t a, bit_t b, weak_params_t = default_server_params);
-void _andny(bit_t dst, bit_t a, bit_t b, weak_params_t = default_server_params);
-void _nand(bit_t dst, bit_t a, bit_t b, weak_params_t = default_server_params);
-void _or(bit_t dst, bit_t a, bit_t b, weak_params_t = default_server_params);
-void _oryn(bit_t dst, bit_t a, bit_t b, weak_params_t = default_server_params);
-void _orny(bit_t dst, bit_t a, bit_t b, weak_params_t = default_server_params);
-void _nor(bit_t dst, bit_t a, bit_t b, weak_params_t = default_server_params);
-void _xor(bit_t dst, bit_t a, bit_t b, weak_params_t = default_server_params);
-void _xnor(bit_t dst, bit_t a, bit_t b, weak_params_t = default_server_params);
+void _not(bit_t dst, bit_t a, weak_params_t = default_weak_params);
+void _and(bit_t dst, bit_t a, bit_t b, weak_params_t = default_weak_params);
+void _andyn(bit_t dst, bit_t a, bit_t b, weak_params_t = default_weak_params);
+void _andny(bit_t dst, bit_t a, bit_t b, weak_params_t = default_weak_params);
+void _nand(bit_t dst, bit_t a, bit_t b, weak_params_t = default_weak_params);
+void _or(bit_t dst, bit_t a, bit_t b, weak_params_t = default_weak_params);
+void _oryn(bit_t dst, bit_t a, bit_t b, weak_params_t = default_weak_params);
+void _orny(bit_t dst, bit_t a, bit_t b, weak_params_t = default_weak_params);
+void _nor(bit_t dst, bit_t a, bit_t b, weak_params_t = default_weak_params);
+void _xor(bit_t dst, bit_t a, bit_t b, weak_params_t = default_weak_params);
+void _xnor(bit_t dst, bit_t a, bit_t b, weak_params_t = default_weak_params);
 
 void _mux(bit_t dst, bit_t cond, bit_t a, bit_t b,
-          weak_params_t = default_server_params);
-void _copy(bit_t dst, bit_t src, weak_params_t = default_server_params);
+          weak_params_t = default_weak_params);
+void _copy(bit_t dst, bit_t src, weak_params_t = default_weak_params);
 
 void add(bitspan_t result, bitspan_t a, bitspan_t b,
-         weak_params_t = default_server_params);
+         weak_params_t = default_weak_params);
 void mult(bitspan_t result, bitspan_t a, bitspan_t b,
-          weak_params_t = default_server_params);
+          weak_params_t = default_weak_params);
 #endif // FHETOOLS_TFHE_H

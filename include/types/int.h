@@ -57,7 +57,7 @@ template <uint8_t size> class Int {
 		encrypt(src, _p);
 	}
 
-	Int(const std::string &packet, weak_params_t _p = default_server_params)
+	Int(const std::string &packet, weak_params_t _p = default_weak_params)
 	    : Int(_p) {
 		char size_from_header = packet[0];
 		assert(size_from_header == size);
@@ -149,7 +149,7 @@ class Int8 : public Int<8> {
 	     TFHEClientParams_t _p = default_client_params)
 	    : Int(src, helper, _p){};
 	// Inizialize from a char*
-	Int8(const std::string &packet, weak_params_t _p = default_server_params)
+	Int8(const std::string &packet, weak_params_t _p = default_weak_params)
 	    : Int(packet, _p){};
 
 	void add(bit_t overflow, Int8 a, Int8 b);
@@ -191,7 +191,7 @@ class Int16 : public Int<16> {
 	      TFHEClientParams_t _p = default_client_params)
 	    : Int(src, helper, _p){};
 	// Inizialize from a char*
-	Int16(const std::string &packet, weak_params_t _p = default_server_params)
+	Int16(const std::string &packet, weak_params_t _p = default_weak_params)
 	    : Int(packet, _p){};
 
 	void add(bit_t overflow, Int16 a, Int16 b);
