@@ -41,7 +41,7 @@ int main() {
 	std::vector<std::string> phoneNumbers;
 	for (const auto &contact : contacts) {
 		PhoneNumber phoneNumber(contact.phoneNumber, default_client_params);
-		phoneNumbers.push_back(phoneNumber.exportToString());
+		phoneNumbers.push_back(phoneNumber.serialize());
 	}
 	bitspan_t mask =
 	    filter(phoneNumbers, "isKnownContact", default_client_params);

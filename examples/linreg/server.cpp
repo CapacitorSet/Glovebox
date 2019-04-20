@@ -34,7 +34,7 @@ int main() {
 			auto y = p.evaluate(p_overflow, x);
 			ys.put(y, i);
 		}
-		return ys.exportToString();
+		return ys.serialize();
 	});
 
 	srv.run();

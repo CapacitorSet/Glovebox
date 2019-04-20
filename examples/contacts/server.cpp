@@ -39,7 +39,7 @@ int main(int argc, char **argv) {
 			bit_t matches = equals(contactNo.data, userNumber.data);
 			_or(isKnown, isKnown, matches);
 		}
-		return exportToString(isKnown, default_server_params);
+		return serialize(isKnown, default_server_params);
 	});
 
 	srv.run();

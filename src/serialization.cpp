@@ -48,7 +48,7 @@ bitspan_t make_bitspan(int N, const std::string &packet, weak_params_t p) {
 	return ret;
 }
 
-std::string exportToString(bitspan_t src, weak_params_t p) {
+std::string serialize(bitspan_t src, weak_params_t p) {
 	std::ostringstream oss;
 	serialize(oss, src, p);
 	return oss.str();

@@ -99,11 +99,11 @@ template <uint8_t INT_SIZE, uint8_t FRAC_SIZE> class Fixed : public BASE_INT {
 		return undo_scale(this->toInt(p));
 	};
 
-	std::string exportToString() const {
+	std::string serialize() const {
 		char header[2] = {INT_SIZE, FRAC_SIZE};
 		std::ostringstream oss;
 		oss.write(header, sizeof(header));
-		serialize(oss, this->data, this->p);
+		::serialize(oss, this->data, this->p);
 		return oss.str();
 	}
 

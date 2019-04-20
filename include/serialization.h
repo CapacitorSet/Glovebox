@@ -11,6 +11,6 @@ bit_t make_bit(const std::string &packet,
 bitspan_t make_bitspan(int N, const std::string &packet,
                        weak_params_t p = default_server_params);
 
-std::string exportToString(bitspan_t src, weak_params_t);
+std::string serialize(bitspan_t src, weak_params_t);
 
 #endif // FHETOOLS_SERIALIZATION_H

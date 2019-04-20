@@ -109,13 +109,13 @@ class Array {
 		getBits(dst.data, address.data, 0, mask);
 	}
 
-	std::string exportToString() const {
+	std::string serialize() const {
 		char header[3] = {T::typeID};
 		uint16_t size = Length;
 		memcpy(header + 1, &size, 2);
 		std::ostringstream oss;
 		oss.write(header, sizeof(header));
-		serialize(oss, data, p);
+		::serialize(oss, data, p);
 		return oss.str();
 	}
 

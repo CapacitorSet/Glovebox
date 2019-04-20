@@ -40,7 +40,7 @@ TEST_F(ArrayTest, Serialization) {
 		auto elem = Int8(plaintext_num, params);
 		input_arr.put(elem, 0);
 
-		auto tmp = input_arr.exportToString();
+		auto tmp = input_arr.serialize();
 
 		auto output_arr = Array<Int8, 1>(tmp, params);
 		auto out = Int8(params);

@@ -58,13 +58,13 @@ template <uint16_t Length> class String : public Array<Int8, Length> {
 		}
 	}
 
-	std::string exportToString() const {
+	std::string serialize() const {
 		char header[2];
 		uint16_t size = Length;
 		memcpy(header, &size, 2);
 		std::ostringstream oss;
 		oss.write(header, sizeof(header));
-		serialize(oss, this->data, this->p);
+		::serialize(oss, this->data, this->p);
 		return oss.str();
 	}
 };

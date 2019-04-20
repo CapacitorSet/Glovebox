@@ -14,7 +14,7 @@ TEST_F(Int8Test, Decrypt) {
 TEST_F(Int8Test, Serialization) {
 	::rc::detail::checkGTest([=](int8_t plaintext_num) {
 		auto in = Int8(plaintext_num, params);
-		auto tmp = in.exportToString();
+		auto tmp = in.serialize();
 		auto out = Int8(tmp, params);
 		RC_ASSERT(out.toInt(params) == plaintext_num);
 	});
@@ -73,7 +73,7 @@ TEST_F(Int16Test, Decrypt) {
 TEST_F(Int16Test, Serialization) {
 	::rc::detail::checkGTest([=](int16_t plaintext_num) {
 		auto in = Int16(plaintext_num, params);
-		auto tmp = in.exportToString();
+		auto tmp = in.serialize();
 		auto out = Int16(tmp, params);
 		RC_ASSERT(out.toInt(params) == plaintext_num);
 	});

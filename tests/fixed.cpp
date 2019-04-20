@@ -27,7 +27,7 @@ TEST_F(Q4_4Test, Serialization) {
 	::rc::detail::checkGTest([=](int16_t _plaintext_num) {
 		double plaintext_num = rescale(_plaintext_num);
 		auto in = Q4_4(plaintext_num, params);
-		auto tmp = in.exportToString();
+		auto tmp = in.serialize();
 		auto out = Q4_4(tmp, serverParams);
 		double absolute_error = fabs(out.toDouble(params) - plaintext_num);
 		RC_ASSERT(absolute_error <= half_precision);

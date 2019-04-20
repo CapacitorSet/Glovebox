@@ -77,13 +77,13 @@ template <uint8_t size> class Int {
 			::constant(data[i], (src >> i) & 1, _p);
 	}
 
-	std::string exportToString() const {
+	std::string serialize() const {
 		char header[1];
 		char mysize = size;
 		memcpy(header, &mysize, 1);
 		std::ostringstream oss;
 		oss.write(header, sizeof(header));
-		serialize(oss, data, p);
+		::serialize(oss, data, p);
 		return oss.str();
 	}
 

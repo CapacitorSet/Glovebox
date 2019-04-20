@@ -1,10 +1,10 @@
 #include <cassert>
 #include <cstdio>
 #include <cstring>
-#include <fstream>
-#include <string>
 #include <fhe-tools.h>
+#include <fstream>
 #include <rpc/client.h>
+#include <string>
 
 #include "patient.h"
 
@@ -41,7 +41,8 @@ int main() {
 		double weight;
 		int8_t age;
 		char isMale;
-		sscanf(line.c_str(), "%lf,%lf,%d,%c\n", &height, &weight, &age, &isMale);
+		sscanf(line.c_str(), "%lf,%lf,%d,%c\n", &height, &weight, &age,
+		       &isMale);
 		Patient p(height, weight, age, isMale == '1', default_client_params);
 		records.put(p, i);
 	}
@@ -49,7 +50,7 @@ int main() {
 	puts("Connecting to server...");
 	rpc::client client("127.0.0.1", 8000);
 	puts("1. Uploading database...");
-	client.call("uploadDatabase", records.exportToString());
+	client.call("uploadDatabase", records.serialize());
 	puts("");
 
 	puts("2. Counting men...");
@@ -71,12 +72,16 @@ int main() {
 	do {
 		records.get(sample_patient, i++);
 	} while (sample_patient.age.toInt() > 20);
-	printf("4. Predicting weight for height=%lf...\n", sample_patient.getHeight());
+	printf("4. Predicting weight for height=%lf...\n",
+	       sample_patient.getHeight());
 	using Q7_9 = Fixed<7, 9>;
-	Q7_9 height(Patient::scaleHeight(sample_patient.getHeight()), default_client_params);
-	std::string weightStr = client.call("predictWeight", height.exportToString()).as<std::string>();
+	Q7_9 height(Patient::scaleHeight(sample_patient.getHeight()),
+	            default_client_params);
+	std::string weightStr =
+	    client.call("predictWeight", height.serialize()).as<std::string>();
 	Q7_9 weight(weightStr, default_client_params);
-	printf("Predicted: %lf, actual: %lf\n", weight.toDouble(), sample_patient.weight.toDouble());
+	printf("Predicted: %lf, actual: %lf\n", weight.toDouble(),
+	       sample_patient.weight.toDouble());
 
 	return 0;
 }

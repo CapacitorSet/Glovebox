@@ -33,7 +33,7 @@ int main() {
 			first.copy(second);
 			second.copy(ret);
 		}
-		return ret.exportToString();
+		return ret.serialize();
 	});
 
 	srv.run();

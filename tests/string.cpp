@@ -22,7 +22,7 @@ TEST_F(StringTest, Serialization) {
 	::rc::detail::checkGTest([=](std::string plaintext_str) {
 		plaintext_str.resize(TEST_SIZE);
 		auto in = String<TEST_SIZE>(plaintext_str.c_str(), true, params);
-		auto tmp = in.exportToString();
+		auto tmp = in.serialize();
 		auto out = String<TEST_SIZE>(tmp, params);
 		char str[TEST_SIZE];
 		out.toCStr(str, params);
