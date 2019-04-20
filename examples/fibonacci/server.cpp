@@ -23,7 +23,7 @@ int main() {
 		// Note the elegance in automatic deserialization.
 		Int8 first = a;
 		Int8 second = b;
-		Int8 ret(0);
+		Int8 ret(0, default_server_params);
 		for (int i = 0; i < times; i++) {
 			printf("Iteration %d\n", i);
 			ret.add(first, second);
