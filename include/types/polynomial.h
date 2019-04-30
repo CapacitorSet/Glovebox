@@ -1,5 +1,5 @@
-#ifndef FHETOOLS_POLYNOMIAL_H
-#define FHETOOLS_POLYNOMIAL_H
+#ifndef GLOVEBOX_POLYNOMIAL_H
+#define GLOVEBOX_POLYNOMIAL_H
 
 #include "fixed.h"
 #include <vector>
@@ -49,4 +49,4 @@ template <class BaseClass> class Polynomial {
 	TFHEServerParams_t p;
 };
 
-#endif // FHETOOLS_POLYNOMIAL_H
+#endif // GLOVEBOX_POLYNOMIAL_H

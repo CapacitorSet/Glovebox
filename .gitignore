@@ -4,7 +4,7 @@
 # CMake files
 cmake_install.cmake
 CMakeCache.txt
-fhetools.cbp
+glovebox.cbp
 Makefile
 cmake-build-debug/
 CMakeFiles/
@@ -14,7 +14,7 @@ cloud.key
 secret.key
 
 # Library
-libfhetools.a
+libglovebox.a
 
 # Test libraries and artifacts
 gtest/

@@ -1,5 +1,5 @@
-#ifndef FHETOOLS_SERIALIZATION_H
-#define FHETOOLS_SERIALIZATION_H
+#ifndef GLOVEBOX_SERIALIZATION_H
+#define GLOVEBOX_SERIALIZATION_H
 
 #include <tfhe.h>
 
@@ -13,4 +13,4 @@ bitspan_t make_bitspan(int N, const std::string &packet,
 
 std::string serialize(bitspan_t src, weak_params_t);
 
-#endif // FHETOOLS_SERIALIZATION_H
+#endif // GLOVEBOX_SERIALIZATION_H

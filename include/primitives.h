@@ -1,5 +1,5 @@
-#ifndef FHETOOLS_PRIMITIVES_H
-#define FHETOOLS_PRIMITIVES_H
+#ifndef GLOVEBOX_PRIMITIVES_H
+#define GLOVEBOX_PRIMITIVES_H
 
 #include <tfhe.h>
 
@@ -38,4 +38,4 @@ void div8(fixed_bitspan_t<8> out, fixed_bitspan_t<8> a, fixed_bitspan_t<8> b,
 void div16(fixed_bitspan_t<16> out, fixed_bitspan_t<16> a,
            fixed_bitspan_t<16> b, weak_params_t);
 
-#endif // FHETOOLS_PRIMITIVES_H
+#endif // GLOVEBOX_PRIMITIVES_H

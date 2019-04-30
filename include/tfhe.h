@@ -1,5 +1,5 @@
-#ifndef FHETOOLS_TFHE_H
-#define FHETOOLS_TFHE_H
+#ifndef GLOVEBOX_TFHE_H
+#define GLOVEBOX_TFHE_H
 
 #include <cassert>
 #include <cstdint>
@@ -142,4 +142,4 @@ void add(bitspan_t result, bitspan_t a, bitspan_t b,
          weak_params_t = default_weak_params);
 void mult(bitspan_t result, bitspan_t a, bitspan_t b,
           weak_params_t = default_weak_params);
-#endif // FHETOOLS_TFHE_H
+#endif // GLOVEBOX_TFHE_H

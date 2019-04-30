@@ -1,5 +1,5 @@
-#ifndef FHETOOLS_STRING_H
-#define FHETOOLS_STRING_H
+#ifndef GLOVEBOX_STRING_H
+#define GLOVEBOX_STRING_H
 
 #include "array.h"
 #include "int.h"
@@ -69,4 +69,4 @@ template <uint16_t Length> class String : public Array<Int8, Length> {
 	}
 };
 
-#endif // FHETOOLS_STRING_H
+#endif // GLOVEBOX_STRING_H

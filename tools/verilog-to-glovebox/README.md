@@ -16,7 +16,7 @@ Rough summary:
 
  * Yosys does logic synthesis, i.e. it translates algorithms written in Verilog into a list of wires and logic gates, also expressed in Verilog.
  * `parser.js` translates the Verilog implementation into a JS object suitable for processing.
- * `index.ts` reorders the list of gates so that it is logically coherent (wires must be written to before they're used as inputs) and mildly optimized (wires are reused when possible), and translates it into C++ code for FHE-Tools.
+ * `index.ts` reorders the list of gates so that it is logically coherent (wires must be written to before they're used as inputs) and mildly optimized (wires are reused when possible), and translates it into C++ code for Glovebox.
 
 ## Requirements
 

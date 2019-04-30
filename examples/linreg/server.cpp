@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <fhe-tools.h>
+#include <glovebox.h>
 #include <rpc/server.h>
 
 TFHEServerParams_t default_server_params;

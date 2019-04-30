@@ -1,5 +1,5 @@
-#ifndef FHETOOLS_ARRAY_H
-#define FHETOOLS_ARRAY_H
+#ifndef GLOVEBOX_ARRAY_H
+#define GLOVEBOX_ARRAY_H
 
 #include "int.h"
 #include "type_ids.h"
@@ -296,4 +296,4 @@ sum(Array<T, Length, WordSize> &arr,
 	return ret;
 }
 #undef RETURN_TYPE
-#endif // FHETOOLS_ARRAY_H
+#endif // GLOVEBOX_ARRAY_H

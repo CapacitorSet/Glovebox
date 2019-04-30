@@ -24,7 +24,7 @@ try {
 	process.exit(3);
 }
 
-let buf = `/* Generated automatically by CapacitorSet/FHE-tools */
+let buf = `/* Generated automatically by CapacitorSet/Glovebox */
 #include <tfhe.h>
 
 `;

@@ -1,7 +1,7 @@
 #include <cassert>
 #include <cstdio>
 #include <cstring>
-#include <fhe-tools.h>
+#include <glovebox.h>
 #include <iostream>
 #include <rpc/client.h>
 #include <rpc/rpc_error.h>

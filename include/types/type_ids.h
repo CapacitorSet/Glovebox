@@ -1,5 +1,5 @@
-#ifndef FHETOOLS_TYPE_IDS_H
-#define FHETOOLS_TYPE_IDS_H
+#ifndef GLOVEBOX_TYPE_IDS_H
+#define GLOVEBOX_TYPE_IDS_H
 
 // The enum is not actually used, it just ensures that type IDs do not overlap
 enum {
@@ -10,4 +10,4 @@ enum {
 	STRING_TYPE_ID,
 };
 
-#endif // FHETOOLS_TYPE_IDS_H
+#endif // GLOVEBOX_TYPE_IDS_H

@@ -1,5 +1,5 @@
-#ifndef FHETOOLS_FIXED32_H
-#define FHETOOLS_FIXED32_H
+#ifndef GLOVEBOX_FIXED32_H
+#define GLOVEBOX_FIXED32_H
 
 #include <cmath>
 #include <types/int.h>
@@ -128,4 +128,4 @@ Fixed<INT_NEW, FRAC_SIZE> fixed_extend(Fixed<INT_OLD, FRAC_SIZE> src,
 	return ret;
 }
 
-#endif // FHETOOLS_FIXED32_H
+#endif // GLOVEBOX_FIXED32_H

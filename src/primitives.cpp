@@ -53,7 +53,7 @@ void _copy(bitspan_t dst, bitspan_t src, weak_params_t p) {
 void incr_if(bitspan_t out, const bit_t cond, const bitspan_t src,
              weak_params_t p) {
 	const auto size = src.size();
-	// The code was generated with the help of verilog-to-tfhe, hence the
+	// The code was generated with the help of verilog-to-glovebox, hence the
 	// variable names.
 	bit_t _00_ = make_bit(p);
 	bit_t _01_ = make_bit(p);
@@ -73,7 +73,7 @@ void incr_if(bitspan_t out, const bit_t cond, const bitspan_t src,
 void decr_if(bitspan_t out, const bit_t cond, const bitspan_t src,
              weak_params_t p) {
 	const auto size = src.size();
-	// The code was generated with the help of verilog-to-tfhe, hence the
+	// The code was generated with the help of verilog-to-glovebox, hence the
 	// variable names.
 	bit_t _00_ = make_bit(p);
 	bit_t _01_ = make_bit(p);

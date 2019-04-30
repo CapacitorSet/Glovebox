@@ -1,5 +1,5 @@
-#ifndef FHETOOLS_PARALLEL_H
-#define FHETOOLS_PARALLEL_H
+#ifndef GLOVEBOX_PARALLEL_H
+#define GLOVEBOX_PARALLEL_H
 
 #include <iostream>
 #include <rpc/client.h>
@@ -91,4 +91,4 @@ bit_t all_of(const std::vector<T> src, const std::string &fnName,
 	return ret;
 }
 
-#endif // FHETOOLS_PARALLEL_H
+#endif // GLOVEBOX_PARALLEL_H

@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <cstdio>
 #include <cstring>
-#include <fhe-tools.h>
+#include <glovebox.h>
 #include <rpc/client.h>
 
 TFHEClientParams_t default_client_params;

@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-#include <fhe-tools.h>
+#include <glovebox.h>
 
 class FHEContext : public ::testing::Test {
   protected:

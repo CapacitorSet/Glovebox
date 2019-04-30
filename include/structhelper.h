@@ -1,5 +1,5 @@
-#ifndef FHETOOLS_STRUCTHELPER_H
-#define FHETOOLS_STRUCTHELPER_H
+#ifndef GLOVEBOX_STRUCTHELPER_H
+#define GLOVEBOX_STRUCTHELPER_H
 
 class StructHelper {
   public:

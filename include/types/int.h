@@ -1,5 +1,5 @@
-#ifndef FHETOOLS_INT_H
-#define FHETOOLS_INT_H
+#ifndef GLOVEBOX_INT_H
+#define GLOVEBOX_INT_H
 
 #include <cstring>
 #include <primitives.h>
@@ -231,4 +231,4 @@ public:
 };
 */
 
-#endif // FHETOOLS_INT_H
+#endif // GLOVEBOX_INT_H

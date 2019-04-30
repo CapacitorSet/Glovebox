@@ -1,5 +1,5 @@
-#ifndef FHE_TOOLS_H
-#define FHE_TOOLS_H
+#ifndef GLOVEBOX_H
+#define GLOVEBOX_H
 
 #include "types/type_ids.h"
 
@@ -16,4 +16,4 @@
 #include "types/array.h"
 #include "types/string.h"
 
-#endif // FHE_TOOLS_H
+#endif // GLOVEBOX_H

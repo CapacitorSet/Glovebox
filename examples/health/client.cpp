@@ -1,8 +1,8 @@
 #include <cassert>
 #include <cstdio>
 #include <cstring>
-#include <fhe-tools.h>
 #include <fstream>
+#include <glovebox.h>
 #include <rpc/client.h>
 #include <string>
 

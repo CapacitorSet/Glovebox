@@ -1,7 +1,7 @@
 #include <cassert>
 #include <cstdio>
 #include <cstring>
-#include <fhe-tools.h>
+#include <glovebox.h>
 #include <rpc/server.h>
 
 #include "patient.h"

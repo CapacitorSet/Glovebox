@@ -1,10 +1,10 @@
-# FHE-Tools
+# Glovebox
 
-FHE-Tools is a C++ library for developing applications with privacy-by-design. It implements [fully homomorphic encryption](https://en.wikipedia.org/wiki/Homomorphic_encryption) by wrapping [libtfhe v1.0](https://github.com/tfhe/tfhe/).
+Glovebox is a C++ library for developing applications with privacy-by-design. It implements [fully homomorphic encryption](https://en.wikipedia.org/wiki/Homomorphic_encryption) by wrapping [libtfhe v1.0](https://github.com/tfhe/tfhe/).
 
 ## Learning by example
 
-It features several [examples](https://github.com/CapacitorSet/FHE-tools/tree/master/examples/) that you can check out to get a feel of how to develop applications with privacy-by-design using FHE-Tools. In order of difficulty they are roughly:
+It features several [examples](https://github.com/CapacitorSet/Glovebox/tree/master/examples/) that you can check out to get a feel of how to develop applications with privacy-by-design using Glovebox. In order of difficulty they are roughly:
 
   1. Fibonacci, where the server computes the n-th Fibonacci number from a user-provided seed
   2. Linreg, where the server computes a polynomial over user-provided points
@@ -15,13 +15,13 @@ It features several [examples](https://github.com/CapacitorSet/FHE-tools/tree/ma
 
 ### General principles
 
-FHE-Tools tries to replicate the functions and feel of a standard programming language. There are however a few systematic differences due to the impossibility to access user data: in general you can't simply branch based on secret (user-provided) data. Indeed, if you think about it, being able to branch based on secret data would allow for timing attacks that reveal the content of that secret data. The way TFHE solves this problem is by using *masks*: branches are always executed, and they are passed a bit that controls whether they are effective or not (eg. whether they will write to memory or not).
+Glovebox tries to replicate the functions and feel of a standard programming language. There are however a few systematic differences due to the impossibility to access user data: in general you can't simply branch based on secret (user-provided) data. Indeed, if you think about it, being able to branch based on secret data would allow for timing attacks that reveal the content of that secret data. The way TFHE solves this problem is by using *masks*: branches are always executed, and they are passed a bit that controls whether they are effective or not (eg. whether they will write to memory or not).
 
 From the point of view of the user, this reflects in branch-heavy code being very slow (notably array access with a secret index), which the programmer must minimize; from the point of view of the programmer, this reflects in control flow being somewhat clunky, requiring to pass masks around.
 
 An important consequence is that loops must have a known upper bound on the number of times they are executed (as doing otherwise would be branching on secret data).
 
-From the point of view of syntax, FHE-Tools tries to be as lightweight as possible, especially by making use of default parameters and conversions. The principles in what to make default are that when possible parameters should be omitted, and that for functions that encode values (and thus could take server parameters to do trivial encryption or client parameters to do actual encryptions) the omitted parameter should be the client one (so that client code, which typically makes the heaviest use of initialization, can be syntactically lighter).
+From the point of view of syntax, Glovebox tries to be as lightweight as possible, especially by making use of default parameters and conversions. The principles in what to make default are that when possible parameters should be omitted, and that for functions that encode values (and thus could take server parameters to do trivial encryption or client parameters to do actual encryptions) the omitted parameter should be the client one (so that client code, which typically makes the heaviest use of initialization, can be syntactically lighter).
 
 Because FHE is slow, you can test it on plaintext data by compiling with `DEBUG=1`; it is guaranteed to behave the same (and tested to do so). It exposes the exact same interface.
 
