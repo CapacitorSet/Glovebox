@@ -5,6 +5,8 @@ A high-level wrapper around [libtfhe](https://github.com/tfhe/tfhe/). This is ex
 
 Check out the examples folder to see it in action.
 
+Note that this project is distributed under a **non-commercial license** (specifically, the [Commons Clause](https://commonsclause.com/) on top of Apache 2.0). For commercial usage please contact the author: capacitorset@gmail.com.
+
 ## Usage
 
  * Install the requirements detailed in `tools/verilog-to-glovebox`
@@ -28,3 +30,9 @@ Check out the examples folder to see it in action.
 ## Misc notes
 
 Uses a custom version of gsl::span for syntactic reasons. If it ever needs to be updated, apply the patch in gsl_span.diff to gsl/span from the Microsoft GSL.
+
+## Licensing
+
+Copyright 2018 CapacitorSet `<capacitorset@gmail.com>`. Licensed under the terms in the file "LICENSE".
+
+Contact the author for commercial usage and licensing.
