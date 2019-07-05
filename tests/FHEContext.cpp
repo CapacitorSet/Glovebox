@@ -4,18 +4,18 @@
 class FHEContext : public ::testing::Test {
   protected:
 	void SetUp() override {
-		FILE *secret_key = fopen("secret.key", "rb");
-		if (secret_key == nullptr) {
+		key = read_client_key("secret.key");
+		if (key == nullptr) {
 			puts("secret.key not found: run ./keygen first.");
-			ASSERT_NE(secret_key, nullptr);
+			ASSERT_NE(key, nullptr);
 		}
-		params = makeTFHEClientParams(secret_key);
-		serverParams = TFHEServerParams_t(params);
-		fclose(secret_key);
+		params = ClientParams(key);
+		serverParams = ServerParams(params);
 	}
 
-	void TearDown() override { freeTFHEClientParams(params); }
+	void TearDown() override { free_client_key(key); }
 
-	TFHEClientParams_t params;
-	TFHEServerParams_t serverParams;
+	ClientKey key;
+	ClientParams params;
+	ServerParams serverParams;
 };

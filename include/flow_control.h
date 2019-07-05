@@ -8,12 +8,12 @@ using maskable_function_t = std::function<void(bit_t)>;
 
 void _if(bit_t cond, maskable_function_t iftrue);
 void _if_else(bit_t cond, maskable_function_t iftrue,
-              maskable_function_t iffalse, weak_params_t = default_weak_params);
+              maskable_function_t iffalse, WeakParams = default_weak_params);
 maskable_function_t _m_if(bit_t cond, maskable_function_t iftrue,
-                          weak_params_t = default_weak_params);
+                          WeakParams = default_weak_params);
 maskable_function_t _m_if_else(bit_t cond, maskable_function_t iftrue,
                                maskable_function_t iffalse,
-                               weak_params_t = default_weak_params);
+                               WeakParams = default_weak_params);
 
 /* Calls `body` for `max` times. As long as `condition` returns true, it will
  * call `body` with a high mask; when `condition` returns false, that call to
@@ -22,13 +22,13 @@ maskable_function_t _m_if_else(bit_t cond, maskable_function_t iftrue,
  * iterations.
  */
 bit_t _while(std::function<bit_t(void)> condition, uint64_t max,
-             maskable_function_t body, weak_params_t);
+             maskable_function_t body, WeakParams);
 
 /* Calls `body` for `max` times, of which `src` with a high mask and the
  * rest with a low one. Returns an overflow bit, which is true if src > max.
  * `src` is not modified. No iterations are done if `src` < 0.
  */
 [[nodiscard]] bit_t times(Int8 src, uint8_t max, maskable_function_t body,
-                          weak_params_t);
+                          WeakParams);
 
 #endif

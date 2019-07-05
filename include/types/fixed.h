@@ -6,10 +6,11 @@
 
 // Are you seeing the error "Base specifier must name a class" at this line?
 // Then the size of your fixed is too large.
-#define BASE_INT smallest_Int<INT_SIZE + FRAC_SIZE>
-template <uint8_t INT_SIZE, uint8_t FRAC_SIZE> class Fixed : public BASE_INT {
-	static const int SIZE = INT_SIZE + FRAC_SIZE;
+#define BaseInt smallest_Int<IntSize + FracSize>
+template <uint8_t IntSize, uint8_t FracSize> class Fixed : public BaseInt {
+	static const int SIZE = IntSize + FracSize;
 	static_assert(SIZE <= 16, "Size not supported");
+
 	using native_type_t = smallest_int_t<SIZE>;
 	// Numeric limits of underlying storage
 	static constexpr int64_t native_max =
@@ -18,29 +19,29 @@ template <uint8_t INT_SIZE, uint8_t FRAC_SIZE> class Fixed : public BASE_INT {
 	    std::numeric_limits<native_type_t>::min();
 	// Scale the number and return it as an integer
 	static native_type_t scale(double src) {
-		double scaled = round(src * double(1 << FRAC_SIZE));
+		double scaled = round(src * double(1 << FracSize));
 		// Assert that the scaled number fits
 		if (scaled > double(native_max)) {
-			double upper_limit = native_max >> FRAC_SIZE;
+			double upper_limit = native_max >> FracSize;
 			fprintf(stderr,
 			        "Value is too high: Fixed<%d,%d> was initialized with %lf, "
 			        "but maximum is %lf\n",
-			        INT_SIZE, FRAC_SIZE, src, upper_limit);
+			        IntSize, FracSize, src, upper_limit);
 			abort();
 		}
 		if (scaled < double(native_min)) {
-			double lower_limit = native_min >> FRAC_SIZE;
+			double lower_limit = native_min >> FracSize;
 			fprintf(stderr,
 			        "Value is too low: Fixed<%d,%d> was initialized with %lf, "
 			        "but minimum is %lf\n",
-			        INT_SIZE, FRAC_SIZE, src, lower_limit);
+			        IntSize, FracSize, src, lower_limit);
 			abort();
 		}
 		return native_type_t(scaled);
 	}
 
 	static constexpr double undo_scale(native_type_t src) {
-		return double(src) / (1 << FRAC_SIZE);
+		return double(src) / (1 << FracSize);
 	}
 
   public:
@@ -48,76 +49,75 @@ template <uint8_t INT_SIZE, uint8_t FRAC_SIZE> class Fixed : public BASE_INT {
 	static constexpr double max = undo_scale(native_max);
 	static constexpr double min = undo_scale(native_min);
 
-	// todo: rewrite as type traits
-	static const int _INT_SIZE = INT_SIZE;
-	static const int _FRAC_SIZE = FRAC_SIZE;
+	static const uint8_t intSize = IntSize;
+	static const uint8_t fracSize = FracSize;
 	static const int typeID = FIXED_TYPE_ID;
-	static const int _wordSize = INT_SIZE + FRAC_SIZE;
+	static const int _wordSize = IntSize + FracSize;
 
 	Fixed() = delete;
-	explicit Fixed(weak_params_t _p) : BASE_INT(_p){};
-	explicit Fixed(StructHelper &helper, weak_params_t _p = default_weak_params)
-	    : BASE_INT(helper, _p){};
-	Fixed(double src, TFHEServerParams_t _p) : BASE_INT(scale(src), _p){};
-	Fixed(double src, StructHelper &helper, TFHEServerParams_t _p)
-	    : BASE_INT(scale(src), helper, _p){};
-	Fixed(double src, TFHEClientParams_t _p = default_client_params)
-	    : BASE_INT(scale(src), _p){};
+	explicit Fixed(WeakParams _p) : BaseInt(_p){};
+	explicit Fixed(StructHelper &helper, WeakParams _p = default_weak_params)
+	    : BaseInt(helper, _p){};
+	Fixed(double src, ServerParams _p) : BaseInt(scale(src), _p){};
+	Fixed(double src, StructHelper &helper, ServerParams _p)
+	    : BaseInt(scale(src), helper, _p){};
+	Fixed(double src, ClientParams _p = default_client_params)
+	    : BaseInt(scale(src), _p){};
 	Fixed(double src, StructHelper &helper,
-	      TFHEClientParams_t _p = default_client_params)
-	    : BASE_INT(scale(src), helper, _p){};
+	      ClientParams _p = default_client_params)
+	    : BaseInt(scale(src), helper, _p){};
 
-	Fixed(const std::string &packet, weak_params_t _p = default_weak_params)
-	    : Fixed<INT_SIZE, FRAC_SIZE>(_p) {
-		char int_size_from_header = packet[0];
-		char frac_size_from_header = packet[1];
-		assert(int_size_from_header == INT_SIZE);
-		assert(frac_size_from_header == FRAC_SIZE);
+	Fixed(const std::string &packet, WeakParams _p = default_weak_params)
+	    : Fixed<IntSize, FracSize>(_p) {
+		char intSize_from_header = packet[0];
+		char fracSize_from_header = packet[1];
+		assert(intSize_from_header == IntSize);
+		assert(fracSize_from_header == FracSize);
 		// Skip header
 		std::stringstream ss(packet.substr(2));
 		deserialize(ss, this->data, this->p);
 	}
 
-	void encrypt(double src, TFHEClientParams_t _p) {
-		BASE_INT::encrypt(scale(src), _p);
+	void encrypt(double src, ClientParams _p) {
+		BaseInt::encrypt(scale(src), _p);
 	}
-	void constant(double src, TFHEServerParams_t _p) {
-		BASE_INT::constant(scale(src), _p);
-	}
-
-	void add(bit_t overflow, Fixed<INT_SIZE, FRAC_SIZE> a,
-	         Fixed<INT_SIZE, FRAC_SIZE> b) {
-		BASE_INT::add(overflow, a, b);
-	}
-	void mul(bit_t overflow, Fixed<INT_SIZE, FRAC_SIZE> a,
-	         Fixed<INT_SIZE, FRAC_SIZE> b) {
-		BASE_INT::mul(overflow, a, b, FRAC_SIZE);
+	void constant(double src, ServerParams _p) {
+		BaseInt::constant(scale(src), _p);
 	}
 
-	double toDouble(TFHEClientParams_t p = default_client_params) const {
+	void add(bit_t overflow, Fixed<IntSize, FracSize> a,
+	         Fixed<IntSize, FracSize> b) {
+		BaseInt::add(overflow, a, b);
+	}
+	void mul(bit_t overflow, Fixed<IntSize, FracSize> a,
+	         Fixed<IntSize, FracSize> b) {
+		BaseInt::mul(overflow, a, b, FracSize);
+	}
+
+	double toDouble(ClientParams p = default_client_params) const {
 		return undo_scale(this->toInt(p));
 	};
 
 	std::string serialize() const {
-		char header[2] = {INT_SIZE, FRAC_SIZE};
+		char header[2] = {IntSize, FracSize};
 		std::ostringstream oss;
 		oss.write(header, sizeof(header));
 		::serialize(oss, this->data, this->p);
 		return oss.str();
 	}
 
-	void copy(Fixed<INT_SIZE, FRAC_SIZE> src) {
+	void copy(Fixed<IntSize, FracSize> src) {
 		for (int i = 0; i < this->data.size(); i++)
 			_copy(this->data[i], src.data[i], this->p);
 	}
 };
 
 // Sign-extend a fixed into a larger one
-template <uint8_t INT_NEW, uint8_t INT_OLD, uint8_t FRAC_SIZE>
-Fixed<INT_NEW, FRAC_SIZE> fixed_extend(Fixed<INT_OLD, FRAC_SIZE> src,
-                                       weak_params_t _p) {
+template <uint8_t INT_NEW, uint8_t INT_OLD, uint8_t FracSize>
+Fixed<INT_NEW, FracSize> fixed_extend(Fixed<INT_OLD, FracSize> src,
+                                      WeakParams _p) {
 	static_assert(INT_NEW >= INT_OLD);
-	Fixed<INT_NEW, FRAC_SIZE> ret(_p);
+	Fixed<INT_NEW, FracSize> ret(_p);
 	bit_t sign = src.data.last();
 	for (int i = 0; i < ret.data.size(); i++) {
 		if (i < src.data.size())

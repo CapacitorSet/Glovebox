@@ -27,10 +27,6 @@ Note that this project is distributed under a **non-commercial license** (specif
  * `make glovebox_test`
  * `bin/glovebox_test`
 
-## Misc notes
-
-Uses a custom version of gsl::span for syntactic reasons. If it ever needs to be updated, apply the patch in gsl_span.diff to gsl/span from the Microsoft GSL.
-
 ## Licensing
 
 Copyright 2018 CapacitorSet `<capacitorset@gmail.com>`. Licensed under the terms in the file "LICENSE".

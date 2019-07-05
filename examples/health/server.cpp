@@ -1,28 +1,18 @@
-#include <cassert>
-#include <cstdio>
-#include <cstring>
 #include <glovebox.h>
 #include <rpc/server.h>
 
 #include "patient.h"
 
-TFHEServerParams_t default_server_params;
-weak_params_t default_weak_params;
+ServerParams default_server_params;
+WeakParams default_weak_params;
 
 int main() {
-	if (PLAINTEXT)
-		puts("Plaintext mode.");
-	else
-		puts("Ciphertext mode.");
-	puts("Initializing TFHE...");
-	FILE *cloud_key = fopen("cloud.key", "rb");
-	if (cloud_key == nullptr) {
+	ServerKey key = read_server_key("cloud.key");
+	if (key == nullptr) {
 		puts("cloud.key not found: run ./keygen first.");
 		return 1;
 	}
-	default_weak_params = default_server_params =
-	    makeTFHEServerParams(cloud_key);
-	fclose(cloud_key);
+	default_weak_params = default_server_params = ServerParams(key);
 
 	Array<Patient, 10> database(false);
 

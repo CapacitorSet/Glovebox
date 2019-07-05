@@ -16,7 +16,7 @@ extern std::vector<parallel_host_t> parallel_hosts;
 // Takes in a vector<T>, returns a "mask" (true = satisfies the filter).
 template <class T, class... Args>
 bitspan_t filter(const std::vector<T> src, const std::string &fnName,
-                 weak_params_t p, Args... args) {
+                 WeakParams p, Args... args) {
 	size_t numHosts = parallel_hosts.size();
 	assert(numHosts != 0);
 	bitspan_t results = make_bitspan(src.size(), p);
@@ -66,8 +66,8 @@ bitspan_t filter(const std::vector<T> src, const std::string &fnName,
 }
 
 template <class T, class... Args>
-bit_t any_of(const std::vector<T> src, const std::string &fnName,
-             weak_params_t p, Args... args) {
+bit_t any_of(const std::vector<T> src, const std::string &fnName, WeakParams p,
+             Args... args) {
 	bitspan_t results = filter(src, fnName, p, args...);
 
 	// Reduce the results
@@ -79,8 +79,8 @@ bit_t any_of(const std::vector<T> src, const std::string &fnName,
 }
 
 template <class T, class... Args>
-bit_t all_of(const std::vector<T> src, const std::string &fnName,
-             weak_params_t p, Args... args) {
+bit_t all_of(const std::vector<T> src, const std::string &fnName, WeakParams p,
+             Args... args) {
 	bitspan_t results = filter(src, fnName, p, args...);
 
 	// Reduce the results

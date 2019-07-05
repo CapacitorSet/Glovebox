@@ -27,7 +27,7 @@ template <uint8_t size> class Int {
 	using native_type_t = smallest_int_t<size>;
 
   protected:
-	weak_params_t p;
+	WeakParams p;
 
   public:
 	static const int _wordSize = size;
@@ -35,29 +35,26 @@ template <uint8_t size> class Int {
 
 	Int() = delete;
 	// Create an Int, allocate memory, but do not initialize it
-	explicit Int(weak_params_t _p) : p(_p), data(make_bitspan<size>(_p)){};
-	Int(StructHelper &helper, weak_params_t _p)
+	explicit Int(WeakParams _p) : p(_p), data(make_bitspan<size>(_p)){};
+	Int(StructHelper &helper, WeakParams _p)
 	    : p(_p), data(helper.make_bitspan<size>(p)){};
 
 	// Initialize from a plaintext int
-	Int(native_type_t src, TFHEServerParams_t _p) : Int(_p) {
-		constant(src, _p);
-	}
-	Int(native_type_t src, StructHelper &helper, TFHEServerParams_t _p)
+	Int(native_type_t src, ServerParams _p) : Int(_p) { constant(src, _p); }
+	Int(native_type_t src, StructHelper &helper, ServerParams _p)
 	    : Int(helper, _p) {
 		constant(src, _p);
 	}
-	Int(native_type_t src, TFHEClientParams_t _p = default_client_params)
-	    : Int(_p) {
+	Int(native_type_t src, ClientParams _p = default_client_params) : Int(_p) {
 		encrypt(src, _p);
 	}
 	Int(native_type_t src, StructHelper &helper,
-	    TFHEClientParams_t _p = default_client_params)
+	    ClientParams _p = default_client_params)
 	    : Int(helper, _p) {
 		encrypt(src, _p);
 	}
 
-	Int(const std::string &packet, weak_params_t _p = default_weak_params)
+	Int(const std::string &packet, WeakParams _p = default_weak_params)
 	    : Int(_p) {
 		char size_from_header = packet[0];
 		assert(size_from_header == size);
@@ -66,13 +63,11 @@ template <uint8_t size> class Int {
 		deserialize(ss, data, p);
 	}
 
-	void encrypt(native_type_t src,
-	             TFHEClientParams_t _p = default_client_params) {
+	void encrypt(native_type_t src, ClientParams _p = default_client_params) {
 		for (int i = 0; i < size; i++)
 			::encrypt(data[i], (src >> i) & 1, _p);
 	}
-	void constant(native_type_t src,
-	              TFHEServerParams_t _p = default_server_params) {
+	void constant(native_type_t src, ServerParams _p = default_server_params) {
 		for (int i = 0; i < size; i++)
 			::constant(data[i], (src >> i) & 1, _p);
 	}
@@ -89,7 +84,7 @@ template <uint8_t size> class Int {
 
 	// Decrypts the Int and returns an int of the smallest size possible
 	// (5 -> int8_t, 10 -> int16_t, etc)
-	native_type_t toInt(TFHEClientParams_t p = default_client_params) const {
+	native_type_t toInt(ClientParams p = default_client_params) const {
 		native_type_t ret = 0;
 		for (int i = 0; i < size; i++)
 			ret |= (::decrypt(data[i], p) & 1) << i;
@@ -136,20 +131,19 @@ class Int8 : public Int<8> {
 
 	Int8() = delete;
 	// Create an Int8, allocate memory, but do not initialize it
-	explicit Int8(weak_params_t _p) : Int(_p){};
-	Int8(StructHelper &helper, weak_params_t _p) : Int(helper, _p){};
+	explicit Int8(WeakParams _p) : Int(_p){};
+	Int8(StructHelper &helper, WeakParams _p) : Int(helper, _p){};
 
 	// Initialize from a plaintext int8
-	Int8(int8_t src, TFHEServerParams_t _p) : Int(src, _p){};
-	Int8(int8_t src, StructHelper &helper, TFHEServerParams_t _p)
+	Int8(int8_t src, ServerParams _p) : Int(src, _p){};
+	Int8(int8_t src, StructHelper &helper, ServerParams _p)
 	    : Int(src, helper, _p){};
-	Int8(int8_t src, TFHEClientParams_t _p = default_client_params)
-	    : Int(src, _p){};
+	Int8(int8_t src, ClientParams _p = default_client_params) : Int(src, _p){};
 	Int8(int8_t src, StructHelper &helper,
-	     TFHEClientParams_t _p = default_client_params)
+	     ClientParams _p = default_client_params)
 	    : Int(src, helper, _p){};
 	// Inizialize from a char*
-	Int8(const std::string &packet, weak_params_t _p = default_weak_params)
+	Int8(const std::string &packet, WeakParams _p = default_weak_params)
 	    : Int(packet, _p){};
 
 	void add(bit_t overflow, Int8 a, Int8 b);
@@ -178,20 +172,20 @@ class Int16 : public Int<16> {
 
 	Int16() = delete;
 	// Create an Int16, allocate memory, but do not initialize it
-	explicit Int16(weak_params_t _p) : Int(_p){};
-	Int16(StructHelper &helper, weak_params_t _p) : Int(helper, _p){};
+	explicit Int16(WeakParams _p) : Int(_p){};
+	Int16(StructHelper &helper, WeakParams _p) : Int(helper, _p){};
 
 	// Initialize from a plaintext int16
-	Int16(int16_t src, TFHEServerParams_t _p) : Int(src, _p){};
-	Int16(int16_t src, StructHelper &helper, TFHEServerParams_t _p)
+	Int16(int16_t src, ServerParams _p) : Int(src, _p){};
+	Int16(int16_t src, StructHelper &helper, ServerParams _p)
 	    : Int(src, helper, _p){};
-	Int16(int16_t src, TFHEClientParams_t _p = default_client_params)
+	Int16(int16_t src, ClientParams _p = default_client_params)
 	    : Int(src, _p){};
 	Int16(int16_t src, StructHelper &helper,
-	      TFHEClientParams_t _p = default_client_params)
+	      ClientParams _p = default_client_params)
 	    : Int(src, helper, _p){};
 	// Inizialize from a char*
-	Int16(const std::string &packet, weak_params_t _p = default_weak_params)
+	Int16(const std::string &packet, WeakParams _p = default_weak_params)
 	    : Int(packet, _p){};
 
 	void add(bit_t overflow, Int16 a, Int16 b);
@@ -214,11 +208,8 @@ class Int16 : public Int<16> {
 };
 
 // The smallest Int class with at least N bits
-template <uint8_t N>
-using smallest_Int =
-    typename std::enable_if<N <= 16,
-                            std::conditional_t<(N <= 8), Int8, Int16>>::
-        type; // If you're reading this, you're requesting too large of an Int.
+template <uint8_t N, typename = std::enable_if<(N <= 16)>>
+using smallest_Int = std::conditional_t<(N <= 8), Int8, Int16>;
 
 /*
 class Int16 : Int<16> {

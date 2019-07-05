@@ -23,11 +23,11 @@ class Patient {
 	    Int8::_wordSize + Q7_1::_wordSize + Int8::_wordSize + 1;
 	static constexpr char typeID = 123;
 
-	Patient(weak_params_t p = default_weak_params)
+	Patient(WeakParams p = default_weak_params)
 	    : Patient(StructHelper(_wordSize, p), p) {}
 
 	Patient(double _height, double _weight, int8_t _age, bool _isMale,
-	        TFHEClientParams_t p)
+	        ClientParams p)
 	    : Patient(StructHelper(_wordSize, p), p) {
 		this->resized_height.encrypt(scaleHeight(_height), p);
 		this->weight.encrypt(_weight, p);
@@ -35,12 +35,12 @@ class Patient {
 		encrypt(this->isMale, _isMale, p);
 	}
 
-	double getHeight(TFHEClientParams_t p = default_client_params) {
+	double getHeight(ClientParams p = default_client_params) {
 		return unscaleHeight(this->resized_height.toInt(p));
 	}
 
   private:
-	Patient(StructHelper helper, weak_params_t p)
+	Patient(StructHelper helper, WeakParams p)
 	    : resized_height(helper, p), weight(helper, p), age(helper, p),
 	      isMale(helper.make_bit(p)) {
 		this->data = helper.finalize();

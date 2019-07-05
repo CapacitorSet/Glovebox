@@ -1,31 +1,22 @@
 #include <cassert>
-#include <cstdio>
-#include <cstring>
 #include <fstream>
 #include <glovebox.h>
 #include <rpc/client.h>
-#include <string>
 
 #include "patient.h"
 
-TFHEClientParams_t default_client_params;
-weak_params_t default_weak_params;
+ClientParams default_client_params;
+WeakParams default_weak_params;
 
 constexpr int NUM_PATIENTS = 10;
 
 int main() {
-	if (PLAINTEXT)
-		puts("Plaintext mode.");
-	else
-		puts("Ciphertext mode.");
-	puts("Initializing TFHE...");
-	FILE *secret_key = fopen("secret.key", "rb");
-	if (secret_key == nullptr) {
+	ClientKey key = read_client_key("secret.key");
+	if (key == nullptr) {
 		puts("secret.key not found: run ./keygen first.");
 		return 1;
 	}
-	default_client_params = makeTFHEClientParams(secret_key);
-	fclose(secret_key);
+	default_client_params = ClientParams(key);
 
 	puts("Reading data...");
 	std::ifstream file("examples/health/data.csv");

@@ -15,13 +15,13 @@ template <uint16_t Length> class String : public Array<Int8, Length> {
 	// (https://isocpp.org/wiki/faq/ctors#named-ctor-idiom)
 	explicit String(char /*disambiguation param*/,
 	                bool initialize_memory = true,
-	                TFHEServerParams_t _p = default_server_params)
+	                ServerParams _p = default_server_params)
 	    : Array<Int8, Length>(initialize_memory, _p) {}
 	String(char /*disambiguation param*/, bool initialize_memory,
-	       TFHEClientParams_t _p)
+	       ClientParams _p)
 	    : Array<Int8, Length>(initialize_memory, _p) {}
 	// The bool disambiguates against the deserialization ctor
-	String(const char *src, bool, TFHEServerParams_t _p = default_server_params)
+	String(const char *src, bool, ServerParams _p = default_server_params)
 	    : Array<Int8, Length>(true, _p) {
 		assert(strlen(src) <= Length);
 		const auto len = strlen(src);
@@ -29,7 +29,7 @@ template <uint16_t Length> class String : public Array<Int8, Length> {
 			for (int j = 0; j < 8; j++)
 				constant(this->data[i * 8 + j], (src[i] >> j) & 1, _p);
 	}
-	String(const char *src, bool, TFHEClientParams_t _p)
+	String(const char *src, bool, ClientParams _p)
 	    : Array<Int8, Length>(true, _p) {
 		assert(strlen(src) <= Length);
 		const auto len = strlen(src);
@@ -38,7 +38,7 @@ template <uint16_t Length> class String : public Array<Int8, Length> {
 				encrypt(this->data[i * 8 + j], (src[i] >> j) & 1, _p);
 	}
 
-	String(const std::string &packet, weak_params_t _p = default_weak_params)
+	String(const std::string &packet, WeakParams _p = default_weak_params)
 	    : Array<Int8, Length>(_p) {
 		uint16_t length_from_header;
 		memcpy(&length_from_header, &packet[0], 2);
@@ -48,8 +48,7 @@ template <uint16_t Length> class String : public Array<Int8, Length> {
 		deserialize(ss, this->data, this->p);
 	}
 
-	void toCStr(char *dst,
-	            TFHEClientParams_t _p = default_client_params) const {
+	void toCStr(char *dst, ClientParams _p = default_client_params) const {
 		for (size_t i = 0; i < Length; i++) {
 			char out = 0;
 			for (int j = 0; j < 8; j++)

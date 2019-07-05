@@ -1,25 +1,20 @@
 #include <assert.h>
-#include <cstdio>
 #include <cstdlib>
-#include <cstring>
 #include <glovebox.h>
 #include <rpc/server.h>
 
-TFHEServerParams_t default_server_params;
-weak_params_t default_weak_params;
+ServerParams default_server_params;
+WeakParams default_weak_params;
 
 using Q4_4 = Fixed<4, 4>;
 
 int main() {
-	puts("Initializing TFHE...");
-	FILE *cloud_key = fopen("cloud.key", "rb");
-	if (cloud_key == nullptr) {
+	ServerKey key = ServerKey("cloud.key");
+	if (key == nullptr) {
 		puts("cloud.key not found: run ./keygen first.");
 		return 1;
 	}
-	default_weak_params = default_server_params =
-	    makeTFHEServerParams(cloud_key);
-	fclose(cloud_key);
+	default_weak_params = default_server_params = ServerParams(key);
 
 	rpc::server srv(8000);
 

@@ -1,17 +1,17 @@
 #include <cassert>
 #include <tfhe.h>
 
-void zero(bitspan_t src, TFHEClientParams_t p) {
+void zero(bitspan_t src, ClientParams p) {
 	for (auto bit : src)
 		encrypt(bit, 0, p);
 }
 
-void zero(bitspan_t src, TFHEServerParams_t p) {
+void zero(bitspan_t src, ServerParams p) {
 	for (auto bit : src)
 		constant(bit, 0, p);
 }
 
-bit_t equals(bitspan_t a, bitspan_t b, weak_params_t p) {
+bit_t equals(bitspan_t a, bitspan_t b, WeakParams p) {
 	assert(a.size() == b.size());
 	bit_t ret = make_bit(p);
 	_unsafe_constant(ret, true, p);
@@ -23,7 +23,7 @@ bit_t equals(bitspan_t a, bitspan_t b, weak_params_t p) {
 	return ret;
 }
 
-bit_t is_zero(bitspan_t src, weak_params_t p) {
+bit_t is_zero(bitspan_t src, WeakParams p) {
 	bit_t ret = make_bit(p);
 	_not(ret, src[0], p);
 	for (int i = 1; i < src.size(); i++)
@@ -31,7 +31,7 @@ bit_t is_zero(bitspan_t src, weak_params_t p) {
 	return ret;
 }
 
-bit_t is_nonzero(bitspan_t src, weak_params_t p) {
+bit_t is_nonzero(bitspan_t src, WeakParams p) {
 	bit_t ret = make_bit(p);
 	_copy(ret, src[0], p);
 	for (int i = 1; i < src.size(); i++)
@@ -40,18 +40,18 @@ bit_t is_nonzero(bitspan_t src, weak_params_t p) {
 }
 
 // No bounds checking is done!
-void _memcpy(bitspan_t dst, bitspan_t src, size_t size, weak_params_t p) {
+void _memcpy(bitspan_t dst, bitspan_t src, size_t size, WeakParams p) {
 	for (size_t i = 0; i < size; i++)
 		_copy(dst[i], src[i], p);
 }
 
-void _copy(bitspan_t dst, bitspan_t src, weak_params_t p) {
+void _copy(bitspan_t dst, bitspan_t src, WeakParams p) {
 	assert(dst.size() == src.size());
 	_memcpy(dst, src, dst.size(), p);
 }
 
 void incr_if(bitspan_t out, const bit_t cond, const bitspan_t src,
-             weak_params_t p) {
+             WeakParams p) {
 	const auto size = src.size();
 	// The code was generated with the help of verilog-to-glovebox, hence the
 	// variable names.
@@ -71,7 +71,7 @@ void incr_if(bitspan_t out, const bit_t cond, const bitspan_t src,
 }
 
 void decr_if(bitspan_t out, const bit_t cond, const bitspan_t src,
-             weak_params_t p) {
+             WeakParams p) {
 	const auto size = src.size();
 	// The code was generated with the help of verilog-to-glovebox, hence the
 	// variable names.
@@ -89,3 +89,12 @@ void decr_if(bitspan_t out, const bit_t cond, const bitspan_t src,
 	_xnor(out[size - 2], src[size - 2], _01_, p);
 	_xnor(out[size - 1], src[size - 1], _00_, p);
 }
+
+void mul8(fixed_bitspan_t<16>, fixed_bitspan_t<8>, fixed_bitspan_t<8>,
+          WeakParams){};
+void mul16(fixed_bitspan_t<32>, fixed_bitspan_t<16>, fixed_bitspan_t<16>,
+           WeakParams){};
+void div8(fixed_bitspan_t<8>, fixed_bitspan_t<8>, fixed_bitspan_t<8>,
+          WeakParams){};
+void div16(fixed_bitspan_t<16>, fixed_bitspan_t<16>, fixed_bitspan_t<16>,
+           WeakParams){};

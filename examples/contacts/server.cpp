@@ -1,13 +1,11 @@
 #include <cassert>
-#include <cstdio>
-#include <cstring>
 #include <glovebox.h>
 #include <rpc/server.h>
 
 #include "contact.h"
 
-TFHEServerParams_t default_server_params;
-weak_params_t default_weak_params;
+ServerParams default_server_params;
+WeakParams default_weak_params;
 
 Contact contacts[] = {
     {"", 504'305'6784}, {"", 208'348'4604}, {"", 713'729'7840},
@@ -19,15 +17,12 @@ Contact contacts[] = {
 int main(int argc, char **argv) {
 	assert(argc <= 2);
 	uint16_t port = (argc == 2) ? atoi(argv[1]) : 8000;
-	puts("Initializing TFHE...");
-	FILE *cloud_key = fopen("cloud.key", "rb");
-	if (cloud_key == nullptr) {
+	ClientKey key = read_client_key("cloud.key");
+	if (key == nullptr) {
 		puts("cloud.key not found: run ./keygen first.");
 		return 1;
 	}
-	default_weak_params = default_server_params =
-	    makeTFHEServerParams(cloud_key);
-	fclose(cloud_key);
+	default_weak_params = default_server_params = ServerParams(key);
 
 	rpc::server srv(port);
 	printf("Listening on port %d.\n", port);

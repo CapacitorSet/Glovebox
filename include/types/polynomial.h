@@ -7,11 +7,11 @@
 template <class BaseClass> class Polynomial {
   public:
 	explicit Polynomial(std::vector<BaseClass> _factors,
-	                    TFHEServerParams_t _p = default_server_params)
+	                    ServerParams _p = default_server_params)
 	    : factors(std::move(_factors)), p(_p) {}
 
 	explicit Polynomial(std::vector<double> _factors,
-	                    TFHEServerParams_t _p = default_server_params)
+	                    ServerParams _p = default_server_params)
 	    : p(_p) {
 		for (auto _factor : _factors) {
 			factors.push_back(BaseClass(_factor, _p));
@@ -46,7 +46,7 @@ template <class BaseClass> class Polynomial {
   private:
 	std::vector<BaseClass> factors;
 
-	TFHEServerParams_t p;
+	ServerParams p;
 };
 
 #endif // GLOVEBOX_POLYNOMIAL_H

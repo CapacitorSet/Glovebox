@@ -1,24 +1,17 @@
-#include <cassert>
-#include <cstdio>
-#include <cstring>
 #include <glovebox.h>
-#include <iostream>
 #include <rpc/client.h>
 #include <rpc/rpc_error.h>
 
-TFHEClientParams_t default_client_params;
-weak_params_t default_weak_params;
+ClientParams default_client_params;
+WeakParams default_weak_params;
 
 int main() {
-	puts("Initializing TFHE...");
-	FILE *secret_key = fopen("secret.key", "rb");
-	if (secret_key == nullptr) {
+	ClientKey key = read_client_key("secret.key");
+	if (key == nullptr) {
 		puts("secret.key not found: run ./keygen first.");
 		return 1;
 	}
-	default_weak_params = default_client_params =
-	    makeTFHEClientParams(secret_key);
-	fclose(secret_key);
+	default_weak_params = default_client_params = ClientParams(key);
 
 	puts("Constructing values...");
 	// Automatic encryption. Fancy, huh?
@@ -33,5 +26,6 @@ int main() {
 	                  .as<std::string>();
 	printf("Result: %i\n", output.toInt());
 
+	free_client_key(key);
 	return 0;
 }

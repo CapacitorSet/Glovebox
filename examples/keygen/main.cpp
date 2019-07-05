@@ -1,12 +1,9 @@
-// Computes the 10th Fibonacci number.
-
-#include <assert.h>
 #include <cstdio>
-#include <tfhe.h>
+#include <tfhe/tfhe.h>
 
 // Reference: https://tfhe.github.io/tfhe/tuto-alice.html
 
-int main(int argc, char *argv[]) {
+int main() {
 	FILE *secret_key = fopen("secret.key", "rb");
 	if (secret_key != nullptr) {
 		puts("secret.key exists, exiting.");
@@ -26,8 +23,8 @@ int main(int argc, char *argv[]) {
 	uint32_t seed[] = {314, 1592, 657};
 	tfhe_random_generator_setSeed(seed, 3);
 	puts("Seed: ");
-	for (size_t i = 0; i < sizeof(seed) / sizeof(seed[0]); i++)
-		printf("%d ", seed[i]);
+	for (uint32_t i : seed)
+		printf("%d ", i);
 	puts("");
 	TFheGateBootstrappingSecretKeySet *key =
 	    new_random_gate_bootstrapping_secret_keyset(params);
