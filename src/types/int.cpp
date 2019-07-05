@@ -14,8 +14,12 @@ void Int8::add(Int8 a, Int8 b) {
 	this->add(overflow, a, b);
 }
 
-bit_t Int8::is_zero() const { return ::is_zero(data, p); }
-bit_t Int8::is_nonzero() const { return ::is_nonzero(data, p); }
+bit_t Int8::is_zero() const {
+	return ::is_zero(data, p);
+}
+bit_t Int8::is_nonzero() const {
+	return ::is_nonzero(data, p);
+}
 
 void Int8::increment_if(bit_t cond) {
 	auto tmp = make_bitspan<8>(p);
@@ -40,7 +44,9 @@ void Int8::mul(Int8 a, Int8 b, uint8_t truncate_from) {
 	this->mul(over_or_underflow, a, b, truncate_from);
 }
 
-void Int8::div(Int8 a, Int8 b) { ::div8(data, a.data, b.data, p); }
+void Int8::div(Int8 a, Int8 b) {
+	::div8(data, a.data, b.data, p);
+}
 
 void Int8::copy(const Int8 src) {
 	for (int i = 0; i < 8; i++)
@@ -60,8 +66,12 @@ void Int16::add(Int16 a, Int16 b) {
 	this->add(overflow, a, b);
 }
 
-bit_t Int16::is_zero() const { return ::is_zero(data, p); }
-bit_t Int16::is_nonzero() const { return ::is_nonzero(data, p); }
+bit_t Int16::is_zero() const {
+	return ::is_zero(data, p);
+}
+bit_t Int16::is_nonzero() const {
+	return ::is_nonzero(data, p);
+}
 
 void Int16::increment_if(bit_t cond) {
 	auto tmp = make_bitspan<16>(p);
@@ -86,7 +96,9 @@ void Int16::mul(Int16 a, Int16 b, uint8_t truncate_from) {
 	this->mul(overflow, a, b, truncate_from);
 }
 
-void Int16::div(Int16 a, Int16 b) { ::div16(data, a.data, b.data, p); }
+void Int16::div(Int16 a, Int16 b) {
+	::div16(data, a.data, b.data, p);
+}
 
 void Int16::copy(Int16 src) {
 	for (int i = 0; i < 16; i++)
