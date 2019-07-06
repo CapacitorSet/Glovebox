@@ -31,11 +31,13 @@ void free_server_key(ServerKey key) {
 }
 
 ClientParams::ClientParams(ClientKey client_key)
-    : WeakParams(client_key->params, &client_key->cloud), secretKeySet(client_key){};
+    : params(client_key->params), cloudKeySet(&client_key->cloud), secretKeySet(client_key){};
 
-ServerParams::ServerParams(ServerKey cloud_key) : WeakParams(cloud_key->params, cloud_key) {}
+ServerParams::ServerParams(ServerKey cloud_key)
+    : params(cloud_key->params), cloudKeySet(cloud_key) {}
 
-ServerParams::ServerParams(const ClientParams &src) : WeakParams(src) {}
+ServerParams::ServerParams(const ClientParams &src)
+    : params(src.params), cloudKeySet(src.cloudKeySet) {}
 
 #if GB_SERVER
 int decrypt(bit_t) {

@@ -5,13 +5,11 @@
 #include "contact.h"
 
 ServerParams server_params;
-WeakParams weak_params;
 
 Contact contacts[] = {
-    {"", 504'305'6784}, {"", 208'348'4604}, {"", 713'729'7840},
-    {"", 714'543'1510}, {"", 907'553'8994}, {"", 704'551'2763},
-    {"", 172'265'8920}, {"", 583'642'3948}, {"", 754'768'2428},
-    {"", 921'915'3647}, {"", 790'793'8139}, {"", 936'327'0855},
+    {"", 504'305'6784}, {"", 208'348'4604}, {"", 713'729'7840}, {"", 714'543'1510},
+    {"", 907'553'8994}, {"", 704'551'2763}, {"", 172'265'8920}, {"", 583'642'3948},
+    {"", 754'768'2428}, {"", 921'915'3647}, {"", 790'793'8139}, {"", 936'327'0855},
 };
 
 int main(int argc, char **argv) {
@@ -22,7 +20,7 @@ int main(int argc, char **argv) {
 		puts("cloud.key not found: run ./keygen first.");
 		return 1;
 	}
-	weak_params = server_params = ServerParams(key);
+	server_params = ServerParams(key);
 
 	rpc::server srv(port);
 	printf("Listening on port %d.\n", port);

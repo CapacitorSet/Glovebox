@@ -6,7 +6,6 @@
 #include "patient.h"
 
 thread_local ClientParams client_params;
-thread_local WeakParams weak_params;
 
 constexpr int NUM_PATIENTS = 10;
 
@@ -33,8 +32,7 @@ int main() {
 		double weight;
 		int8_t age;
 		char isMale;
-		sscanf(line.c_str(), "%lf,%lf,%d,%c\n", &height, &weight, &age,
-		       &isMale);
+		sscanf(line.c_str(), "%lf,%lf,%d,%c\n", &height, &weight, &age, &isMale);
 		Patient p(height, weight, age, isMale == '1');
 		records.put(p, i);
 	}
@@ -62,14 +60,11 @@ int main() {
 	do {
 		records.get(sample_patient, i++);
 	} while (sample_patient.age.toInt() > 20);
-	printf("4. Predicting weight for height=%lf...\n",
-	       sample_patient.getHeight());
+	printf("4. Predicting weight for height=%lf...\n", sample_patient.getHeight());
 	using Q7_9 = Fixed<7, 9>;
 	Q7_9 height = Patient::scaleHeight(sample_patient.getHeight());
-	Q7_9 weight =
-	    client.call("predictWeight", height.serialize()).as<std::string>();
-	printf("Predicted: %lf, actual: %lf\n", weight.toDouble(),
-	       sample_patient.weight.toDouble());
+	Q7_9 weight = client.call("predictWeight", height.serialize()).as<std::string>();
+	printf("Predicted: %lf, actual: %lf\n", weight.toDouble(), sample_patient.weight.toDouble());
 
 	return 0;
 }

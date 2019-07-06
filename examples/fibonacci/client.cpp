@@ -3,7 +3,6 @@
 #include <rpc/rpc_error.h>
 
 thread_local ClientParams client_params;
-thread_local WeakParams weak_params;
 
 using Int8u = Int<8>;
 
@@ -13,7 +12,7 @@ int main() {
 		puts("secret.key not found: run ./keygen first.");
 		return 1;
 	}
-	weak_params = client_params = ClientParams(key);
+	client_params = ClientParams(key);
 
 	puts("Constructing values...");
 	// Automatic encryption. Fancy, huh?

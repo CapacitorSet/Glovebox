@@ -35,10 +35,12 @@ TEST_F(FHEContext, DecryptFromClient) {
 	}
 }
 
+/*
 TEST_F(FHEContext, DecryptFromServer) {
-	ITERATE_BIT(plaintext) {
-		bit_t ciphertext = make_bit();
-		constant(ciphertext, plaintext);
-		ASSERT_EQ(decrypt(ciphertext), plaintext);
-	}
+    ITERATE_BIT(plaintext) {
+        bit_t ciphertext = make_bit();
+        constant(ciphertext, plaintext);
+        ASSERT_EQ(decrypt(ciphertext), plaintext);
+    }
 }
+*/

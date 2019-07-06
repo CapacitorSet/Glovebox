@@ -19,7 +19,7 @@ TEST_F(StringTest, Decrypt) {
 TEST_F(StringTest, Serialization) {
 	::rc::detail::checkGTest([=](std::string plaintext_str) {
 		plaintext_str.resize(TEST_SIZE - 1);
-		auto in = String<TEST_SIZE>(plaintext_str.c_str(), ModePicker::SERVER);
+		auto in = String<TEST_SIZE>(plaintext_str.c_str(), ModePicker::CLIENT);
 		auto tmp = in.serialize();
 		auto out = String<TEST_SIZE>(tmp);
 		char str[TEST_SIZE];

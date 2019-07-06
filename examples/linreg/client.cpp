@@ -2,7 +2,6 @@
 #include <rpc/client.h>
 
 thread_local ClientParams client_params;
-thread_local WeakParams weak_params;
 
 using Q4_4 = Fixed<4, 4>;
 
@@ -12,7 +11,7 @@ int main() {
 		puts("secret.key not found: run ./keygen first.");
 		return 1;
 	}
-	weak_params = client_params = ClientParams(key);
+	client_params = ClientParams(key);
 
 	double plaintext_xs[] = {1.0, 1.5};
 	puts("Constructing values...");

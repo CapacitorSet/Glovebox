@@ -10,18 +10,13 @@ using unsafe_bit_t = bool;
 using ClientKey = bool *;
 using ServerKey = bool *;
 
-class WeakParams {
-  public:
-	WeakParams() = default;
-};
-
-class ClientParams : public WeakParams {
+class ClientParams {
   public:
 	ClientParams() = default;
 	ClientParams(ClientKey);
 };
 
-class ServerParams : public WeakParams {
+class ServerParams {
   public:
 	ServerParams() = default;
 	ServerParams(ServerKey);
@@ -36,29 +31,21 @@ using unsafe_bit_t = LweSample;
 using ClientKey = TFheGateBootstrappingSecretKeySet *;
 using ServerKey = TFheGateBootstrappingCloudKeySet *;
 
-class WeakParams {
+class ClientParams {
   public:
 	const TFheGateBootstrappingParameterSet *params;
 	const TFheGateBootstrappingCloudKeySet *cloudKeySet;
-
-	WeakParams() = default;
-
-  protected:
-	WeakParams(const TFheGateBootstrappingParameterSet *params,
-	           const TFheGateBootstrappingCloudKeySet *cloudKeySet)
-	    : params(params), cloudKeySet(cloudKeySet){};
-};
-
-class ClientParams : public WeakParams {
-  public:
 	const TFheGateBootstrappingSecretKeySet *secretKeySet;
 
 	ClientParams() = default;
 	ClientParams(ClientKey);
 };
 
-class ServerParams : public WeakParams {
+class ServerParams {
   public:
+	const TFheGateBootstrappingParameterSet *params;
+	const TFheGateBootstrappingCloudKeySet *cloudKeySet;
+
 	ServerParams() = default;
 	ServerParams(ServerKey);
 	// Used very rarely - only in tests for now
@@ -80,12 +67,14 @@ typedef gsl::span<1> bit_t;
 
 #if GB_SERVER
 extern thread_local ServerParams server_params;
+#define weak_params server_params
 #else
 extern thread_local ClientParams client_params;
+#define weak_params client_params
 #endif
-extern thread_local WeakParams weak_params;
 
 enum class ModePicker { CLIENT, SERVER };
+// todo: drop
 #define DefaultMode (GB_SERVER ? ModePicker::SERVER : ModePicker::CLIENT)
 
 bit_t make_bit();

@@ -4,7 +4,6 @@
 #include "patient.h"
 
 thread_local ServerParams server_params;
-thread_local WeakParams weak_params;
 
 int main() {
 	ServerKey key = read_server_key("cloud.key");
@@ -12,7 +11,7 @@ int main() {
 		puts("cloud.key not found: run ./keygen first.");
 		return 1;
 	}
-	weak_params = server_params = ServerParams(key);
+	server_params = ServerParams(key);
 
 	Array<Patient, 10> database(false);
 
