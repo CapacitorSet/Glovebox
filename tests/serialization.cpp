@@ -7,14 +7,12 @@ using Serialization = FHEContext;
 TEST_F(Serialization, Serialize) {
 	::rc::detail::checkGTest([=](uint32_t input) {
 		std::stringstream ss;
-		bitspan_t datum = make_bitspan(32, params),
-		          out_datum = make_bitspan(32, params);
+		bitspan_t datum = make_bitspan(32), out_datum = make_bitspan(32);
 		for (int i = 0; i < 32; i++)
-			encrypt(datum[i], (input >> i) & 1, params);
-		serialize(ss, datum, params);
-		deserialize(ss, out_datum, params);
+			encrypt(datum[i], (input >> i) & 1);
+		serialize(ss, datum);
+		deserialize(ss, out_datum);
 		for (int i = 0; i < 32; i++)
-			RC_ASSERT(decrypt(datum[i], params) ==
-			          decrypt(out_datum[i], params));
+			RC_ASSERT(decrypt(datum[i]) == decrypt(out_datum[i]));
 	});
 }

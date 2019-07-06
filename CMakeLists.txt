@@ -29,20 +29,27 @@ else()
     set(glovebox_SOURCES ${glovebox_SOURCES} src/tfhe_tfhev1.cpp)
 endif()
 
-add_library(glovebox STATIC ${glovebox_SOURCES})
+add_library(glovebox_client STATIC ${glovebox_SOURCES})
+add_library(glovebox_server STATIC ${glovebox_SOURCES})
+
+target_compile_definitions(glovebox_client PUBLIC -DGB_SERVER=0)
+target_compile_definitions(glovebox_server PUBLIC -DGB_SERVER=1)
 
 if (PLAINTEXT)
     add_definitions(-DPLAINTEXT=1)
 else()
     add_definitions(-DPLAINTEXT=0)
     # Should we do the linking ourselves, or have the user choose?
-    target_link_libraries(glovebox PRIVATE tfhe-spqlios-fma)
+    target_link_libraries(glovebox_client PRIVATE tfhe-spqlios-fma)
+    target_link_libraries(glovebox_server PRIVATE tfhe-spqlios-fma)
 endif()
 
 if(CMAKE_BUILD_TYPE MATCHES RELEASE)
     # Hardening: https://wiki.debian.org/Hardening
-    target_compile_options(glovebox PUBLIC -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security -fstack-protector-strong -fPIE -fPIC)
-    target_link_options(glovebox PUBLIC -D_FORTIFY_SOURCE=2 -fstack-protector-strong -pie -Wl,-z,relro -Wl,-z,now)
+    target_compile_options(glovebox_client PUBLIC -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security -fstack-protector-strong -fPIE -fPIC)
+    target_link_options(glovebox_client PUBLIC -D_FORTIFY_SOURCE=2 -fstack-protector-strong -pie -Wl,-z,relro -Wl,-z,now)
+    target_compile_options(glovebox_server PUBLIC -D_FORTIFY_SOURCE=2 -Wformat -Wformat-security -Werror=format-security -fstack-protector-strong -fPIE -fPIC)
+    target_link_options(glovebox_server PUBLIC -D_FORTIFY_SOURCE=2 -fstack-protector-strong -pie -Wl,-z,relro -Wl,-z,now)
 else()
     set(ADDITIONAL_COMPILE_FLAGS -Wall -Wextra -Wformat -Wformat-security -Werror=format-security)
     set(ADDITIONAL_LINK_FLAGS "")
@@ -50,48 +57,47 @@ else()
         string(APPEND ADDITIONAL_COMPILE_FLAGS -fsanitize=undefined -fsanitize-trap=bool)
         set(ADDITIONAL_LINK_FLAGS -fsanitize=undefined -fsanitize-trap=bool)
     endif()
-    target_compile_options(glovebox PUBLIC ${ADDITIONAL_COMPILE_FLAGS})
-    target_link_options(glovebox PUBLIC ${ADDITIONAL_LINK_FLAGS})
+    target_compile_options(glovebox_client PUBLIC ${ADDITIONAL_COMPILE_FLAGS})
+    target_link_options(glovebox_client PUBLIC ${ADDITIONAL_LINK_FLAGS})
+    target_compile_options(glovebox_server PUBLIC ${ADDITIONAL_COMPILE_FLAGS})
+    target_link_options(glovebox_server PUBLIC ${ADDITIONAL_LINK_FLAGS})
 endif()
 
-target_include_directories(glovebox PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_include_directories(glovebox_client PUBLIC ${PROJECT_SOURCE_DIR}/include)
+target_include_directories(glovebox_server PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
 # Create executables
 
 add_executable(keygen examples/keygen/main.cpp)
-target_link_libraries(keygen PRIVATE glovebox)
+target_link_libraries(keygen PRIVATE glovebox_client)
 
 # Fibonacci
 add_executable(example_fibonacci_client examples/fibonacci/client.cpp)
-target_link_libraries(example_fibonacci_client PRIVATE glovebox rpc pthread)
-target_compile_definitions(example_fibonacci_client PRIVATE -DSTRICT_CLIENT_MODE=1)
+target_link_libraries(example_fibonacci_client PRIVATE glovebox_client rpc pthread)
 add_executable(example_fibonacci_server examples/fibonacci/server.cpp)
-target_link_libraries(example_fibonacci_server PRIVATE glovebox rpc pthread)
+target_link_libraries(example_fibonacci_server PRIVATE glovebox_server rpc pthread)
 
 # Linear regression
 add_executable(example_linreg_client examples/linreg/client.cpp)
-target_link_libraries(example_linreg_client PRIVATE glovebox rpc pthread)
-target_compile_definitions(example_linreg_client PRIVATE -DSTRICT_CLIENT_MODE=1)
+target_link_libraries(example_linreg_client PRIVATE glovebox_client rpc pthread)
 add_executable(example_linreg_server examples/linreg/server.cpp)
-target_link_libraries(example_linreg_server PRIVATE glovebox rpc pthread)
+target_link_libraries(example_linreg_server PRIVATE glovebox_server rpc pthread)
 
 # Contacts
 add_executable(example_contacts_client examples/contacts/client.cpp examples/contacts/contact.h)
-target_link_libraries(example_contacts_client PRIVATE glovebox rpc pthread)
-target_compile_definitions(example_contacts_client PRIVATE -DSTRICT_CLIENT_MODE=1)
+target_link_libraries(example_contacts_client PRIVATE glovebox_client rpc pthread)
 add_executable(example_contacts_server examples/contacts/server.cpp examples/contacts/contact.h)
-target_link_libraries(example_contacts_server PRIVATE glovebox rpc pthread)
+target_link_libraries(example_contacts_server PRIVATE glovebox_server rpc pthread)
 
 # Health data
 add_executable(example_health_client
         examples/health/client.cpp
         examples/health/patient.h)
-target_link_libraries(example_health_client PRIVATE glovebox rpc pthread)
-target_compile_definitions(example_health_client PRIVATE -DSTRICT_CLIENT_MODE=1)
+target_link_libraries(example_health_client PRIVATE glovebox_client rpc pthread)
 add_executable(example_health_server
         examples/health/server.cpp
         examples/health/patient.h)
-target_link_libraries(example_health_server PRIVATE glovebox rpc pthread)
+target_link_libraries(example_health_server PRIVATE glovebox_server rpc pthread)
 
 if (TESTS_ENABLED)
     # http://www.kaizou.org/2014/11/gtest-cmake/

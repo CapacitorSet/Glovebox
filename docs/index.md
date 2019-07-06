@@ -57,9 +57,9 @@ bit_t tmp = make_bit();
 
 > From now on, a default argument of `default_server_params` will be represented as eg. `make_bit([TFHEServerParams_t])`; a default argument of `default_client_params` will be represented as eg. `make_bit([TFHEClientParams_t])`.
 
-When created, a bit is uninitialized. As a client you can write a value into it with `void encrypt(bit_t dst, bool value, [TFHEClientParams_t])`, which internally will encrypt the bit; as a server you can write a value into it with `void constant(bit_t dst, bool value, [only_TFHEServerParams_t])`, which internally will use a **trivial** encryption. Take care not to accidentally call `constant` with `TFHEClientParams_t` via implicit conversions! Client applications are **strongly suggested** to defend from this by compiling with `-DSTRICT_CLIENT_MODE=1`, which will cause calls to `constant()` to crash at runtime.
+When created, a bit is uninitialized. As a client you can write a value into it with `void encrypt(bit_t dst, bool value, [TFHEClientParams_t])`, which internally will encrypt the bit; as a server you can write a value into it with `void constant(bit_t dst, bool value, [only_TFHEServerParams_t])`, which internally will use a **trivial** encryption. Take care not to accidentally call `constant` with `TFHEClientParams_t` via implicit conversions!
 
-If you must use `constant()` and you know that your usage is safe (eg. in `include/parallel.h` which implements `any_of` which clients might want to use), use `constant<true>()` which will override `STRICT_CLIENT_MODE`.
+If you must use `constant()` and you know that your usage is safe (eg. in `include/parallel.h` which implements `any_of` which clients might want to use), use `_unsafe_constant()`.
 
 Clients can decrypt bits with `bool decrypt(bit_t, [TFHEClientParams_t])`:
 

@@ -4,8 +4,8 @@
 
 #include "contact.h"
 
-ServerParams default_server_params;
-WeakParams default_weak_params;
+ServerParams server_params;
+WeakParams weak_params;
 
 Contact contacts[] = {
     {"", 504'305'6784}, {"", 208'348'4604}, {"", 713'729'7840},
@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
 		puts("cloud.key not found: run ./keygen first.");
 		return 1;
 	}
-	default_weak_params = default_server_params = ServerParams(key);
+	weak_params = server_params = ServerParams(key);
 
 	rpc::server srv(port);
 	printf("Listening on port %d.\n", port);
@@ -32,11 +32,11 @@ int main(int argc, char **argv) {
 		bit_t isKnown = make_bit();
 		constant(isKnown, false);
 		for (const auto &contact : contacts) {
-			PhoneNumber contactNo(contact.phoneNumber, default_server_params);
+			PhoneNumber contactNo(contact.phoneNumber);
 			bit_t matches = equals(contactNo.data, userNumber.data);
 			_or(isKnown, isKnown, matches);
 		}
-		return serialize(isKnown, default_server_params);
+		return serialize(isKnown);
 	});
 
 	srv.run();

@@ -78,12 +78,18 @@ void free_server_key(ServerKey);
 typedef gsl::span<> bitspan_t;
 typedef gsl::span<1> bit_t;
 
-extern ServerParams default_server_params;
-extern ClientParams default_client_params;
-extern WeakParams default_weak_params;
+#if GB_SERVER
+extern thread_local ServerParams server_params;
+#else
+extern thread_local ClientParams client_params;
+#endif
+extern thread_local WeakParams weak_params;
 
-bit_t make_bit(WeakParams = default_weak_params);
-bitspan_t make_bitspan(int N, WeakParams = default_weak_params);
+enum class ModePicker { CLIENT, SERVER };
+#define DefaultMode (GB_SERVER ? ModePicker::SERVER : ModePicker::CLIENT)
+
+bit_t make_bit();
+bitspan_t make_bitspan(int N);
 
 template <uint8_t size> class fixed_bitspan_t : public gsl::span<size> {
   public:
@@ -96,65 +102,49 @@ template <uint8_t size> class fixed_bitspan_t : public gsl::span<size> {
 		assert(span.size() == size);
 	};
 };
-template <uint8_t size>
-fixed_bitspan_t<size> make_bitspan(WeakParams p = default_weak_params) {
+template <uint8_t size> fixed_bitspan_t<size> make_bitspan() {
 	// Can this be rewritten in terms of make_bitspan, subspan?
 #if PLAINTEXT
-	(void)p;
 	auto cptr = reinterpret_cast<bool *>(malloc(size));
 #else
-	LweSample *cptr = new_gate_bootstrapping_ciphertext_array(size, p.params);
+	LweSample *cptr = new_gate_bootstrapping_ciphertext_array(size, weak_params.params);
 #endif
 	auto ptr = gsl::shared_ptr_unsynchronized<unsafe_bit_t>(cptr);
 	auto span = gsl::span<size>(ptr, size);
 	return fixed_bitspan_t<size>(span);
 }
 
-#if PLAINTEXT
-// Enable one to write just `decrypt(bit)`, since the client params aren't
-// used anyway
-int decrypt(bit_t dst, ClientParams p = {});
+int decrypt(bit_t dst);
+
+void _unsafe_constant(bit_t dst, bool src);
+
+#if GB_SERVER
+static void inline constant(bit_t dst, bool src) {
+	_unsafe_constant(dst, src);
+}
 #else
-int decrypt(bit_t dst, ClientParams p = default_client_params);
-#endif
-
-// Forbids client code from using constant() unless explicitly overridden
-#ifndef STRICT_CLIENT_MODE
-#define STRICT_CLIENT_MODE 0
-#endif
-void _unsafe_constant(bit_t dst, bool src, WeakParams p);
-
-#if STRICT_CLIENT_MODE
-static void inline constant(bit_t, bool, ServerParams) {
-	fprintf(stderr, "constant() was called in strict client mode - exiting.\n");
+static void inline constant(bit_t, bool) {
+	fprintf(stderr, "constant() was called in client mode - exiting.\n");
 	abort();
 }
-#else
-static void inline constant(bit_t dst, bool src,
-                            ServerParams p = default_server_params) {
-	_unsafe_constant(dst, src, p);
-}
 #endif
-void encrypt(bit_t dst, bool src, ClientParams p = default_client_params);
+void encrypt(bit_t dst, bool src);
 
-void _not(bit_t dst, bit_t a, WeakParams = default_weak_params);
-void _and(bit_t dst, bit_t a, bit_t b, WeakParams = default_weak_params);
-void _andyn(bit_t dst, bit_t a, bit_t b, WeakParams = default_weak_params);
-void _andny(bit_t dst, bit_t a, bit_t b, WeakParams = default_weak_params);
-void _nand(bit_t dst, bit_t a, bit_t b, WeakParams = default_weak_params);
-void _or(bit_t dst, bit_t a, bit_t b, WeakParams = default_weak_params);
-void _oryn(bit_t dst, bit_t a, bit_t b, WeakParams = default_weak_params);
-void _orny(bit_t dst, bit_t a, bit_t b, WeakParams = default_weak_params);
-void _nor(bit_t dst, bit_t a, bit_t b, WeakParams = default_weak_params);
-void _xor(bit_t dst, bit_t a, bit_t b, WeakParams = default_weak_params);
-void _xnor(bit_t dst, bit_t a, bit_t b, WeakParams = default_weak_params);
+void _not(bit_t dst, bit_t a);
+void _and(bit_t dst, bit_t a, bit_t b);
+void _andyn(bit_t dst, bit_t a, bit_t b);
+void _andny(bit_t dst, bit_t a, bit_t b);
+void _nand(bit_t dst, bit_t a, bit_t b);
+void _or(bit_t dst, bit_t a, bit_t b);
+void _oryn(bit_t dst, bit_t a, bit_t b);
+void _orny(bit_t dst, bit_t a, bit_t b);
+void _nor(bit_t dst, bit_t a, bit_t b);
+void _xor(bit_t dst, bit_t a, bit_t b);
+void _xnor(bit_t dst, bit_t a, bit_t b);
 
-void _mux(bit_t dst, bit_t cond, bit_t a, bit_t b,
-          WeakParams = default_weak_params);
-void _copy(bit_t dst, bit_t src, WeakParams = default_weak_params);
+void _mux(bit_t dst, bit_t cond, bit_t a, bit_t b);
+void _copy(bit_t dst, bit_t src);
 
-void add(bitspan_t result, bitspan_t a, bitspan_t b,
-         WeakParams = default_weak_params);
-void mult(bitspan_t result, bitspan_t a, bitspan_t b,
-          WeakParams = default_weak_params);
+void add(bitspan_t result, bitspan_t a, bitspan_t b);
+void mult(bitspan_t result, bitspan_t a, bitspan_t b);
 #endif // GLOVEBOX_TFHE_H

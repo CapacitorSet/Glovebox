@@ -3,8 +3,8 @@
 
 #include "patient.h"
 
-ServerParams default_server_params;
-WeakParams default_weak_params;
+thread_local ServerParams server_params;
+thread_local WeakParams weak_params;
 
 int main() {
 	ServerKey key = read_server_key("cloud.key");
@@ -12,7 +12,7 @@ int main() {
 		puts("cloud.key not found: run ./keygen first.");
 		return 1;
 	}
-	default_weak_params = default_server_params = ServerParams(key);
+	weak_params = server_params = ServerParams(key);
 
 	Array<Patient, 10> database(false);
 
@@ -38,8 +38,7 @@ int main() {
 
 	using Q7_9 = Fixed<7, 9>;
 	// See regression.m for the calculation; it's basic polynomial interpolation
-	const auto heightPoly =
-	    std::vector<double>({21.0933654, 0.4819932, 0.0044268});
+	const auto heightPoly = std::vector<double>({21.0933654, 0.4819932, 0.0044268});
 	const Polynomial<Q7_9> weightModel = Polynomial<Q7_9>(heightPoly);
 
 	srv.bind("predictWeight", [&](std::string _weight) {

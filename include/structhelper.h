@@ -3,9 +3,9 @@
 
 class StructHelper {
   public:
-	StructHelper(uint16_t length, WeakParams p) {
+	StructHelper(uint16_t length) {
 		this->length = length;
-		data = ::make_bitspan(length, p);
+		data = ::make_bitspan(length);
 	}
 
 	bitspan_t finalize() {
@@ -20,22 +20,19 @@ class StructHelper {
 		return data;
 	}
 
-	// The params arg is unused for compatibility with the plain ::make_bit.
-	// It will come in useful if ::make_bit is also refactored to some kind
-	// of allocator.
-	bit_t make_bit(WeakParams) {
+	bit_t make_bit() {
 		assert_fits(1);
 		return data[offset++];
 	}
 
-	bitspan_t make_bitspan(uint8_t length, WeakParams) {
+	bitspan_t make_bitspan(uint8_t length) {
 		assert_fits(length);
 		auto ret = data.subspan(offset, length);
 		offset += length;
 		return ret;
 	}
 
-	template <uint8_t size> fixed_bitspan_t<size> make_bitspan(WeakParams) {
+	template <uint8_t size> fixed_bitspan_t<size> make_bitspan() {
 		assert_fits(size);
 		auto ret = data.subspan<size>(offset);
 		offset += size;

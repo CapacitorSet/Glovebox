@@ -1,8 +1,8 @@
 #include <glovebox.h>
 #include <rpc/server.h>
 
-ServerParams default_server_params;
-WeakParams default_weak_params;
+thread_local ServerParams server_params;
+thread_local WeakParams weak_params;
 
 int main() {
 	ServerKey key = read_server_key("cloud.key");
@@ -10,21 +10,19 @@ int main() {
 		puts("cloud.key not found: run ./keygen first.");
 		return 1;
 	}
-	default_weak_params = default_server_params = ServerParams(key);
+	weak_params = server_params = ServerParams(key);
 
 	rpc::server srv(8000);
 
 	srv.bind("fibonacci", [](int times, std::string a, std::string b) {
 		puts("Received request.");
 		// Note the elegance in automatic deserialization.
-		Int8 first = a;
-		Int8 second = b;
-		Int8 ret(0, default_server_params);
+		Int8 first = a, second = b;
+		Int8 ret = 0;
 		for (int i = 0; i < times; i++) {
 			printf("Iteration %d\n", i);
 			ret.add(first, second);
-			// todo: implement copy/move ctor for Int so that the following
-			// works
+			// todo: implement copy/move ctor for Int so that the following works
 			/*
 			first = second;
 			second = x;

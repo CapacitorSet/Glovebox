@@ -3,13 +3,12 @@
 
 #include <tfhe.h>
 
-void serialize(std::ostream &output, bitspan_t src, WeakParams p);
-void deserialize(std::istream &input, bitspan_t src, WeakParams p);
+void serialize(std::ostream &output, bitspan_t src);
+void deserialize(std::istream &input, bitspan_t src);
 
-bit_t make_bit(const std::string &packet, WeakParams p = default_weak_params);
-bitspan_t make_bitspan(int N, const std::string &packet,
-                       WeakParams p = default_weak_params);
+bit_t make_bit(const std::string &packet);
+bitspan_t make_bitspan(int N, const std::string &packet);
 
-std::string serialize(bitspan_t src, WeakParams);
+std::string serialize(bitspan_t src);
 
 #endif // GLOVEBOX_SERIALIZATION_H

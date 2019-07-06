@@ -5,54 +5,41 @@
 #include "int.h"
 #include <cstring>
 
-// A string of *fixed* length.
+// A string of fixed length. Note that Length includes the null terminator.
 template <uint16_t Length> class String : public Array<Int8, Length> {
   public:
 	static constexpr int typeID = STRING_TYPE_ID;
 
-	String() = delete;
-	// todo: use named ctors
-	// (https://isocpp.org/wiki/faq/ctors#named-ctor-idiom)
-	explicit String(char /*disambiguation param*/,
-	                bool initialize_memory = true,
-	                ServerParams _p = default_server_params)
-	    : Array<Int8, Length>(initialize_memory, _p) {}
-	String(char /*disambiguation param*/, bool initialize_memory,
-	       ClientParams _p)
-	    : Array<Int8, Length>(initialize_memory, _p) {}
-	// The bool disambiguates against the deserialization ctor
-	String(const char *src, bool, ServerParams _p = default_server_params)
-	    : Array<Int8, Length>(true, _p) {
-		assert(strlen(src) <= Length);
-		const auto len = strlen(src);
-		for (size_t i = 0; i < len; i++)
-			for (int j = 0; j < 8; j++)
-				constant(this->data[i * 8 + j], (src[i] >> j) & 1, _p);
-	}
-	String(const char *src, bool, ClientParams _p)
-	    : Array<Int8, Length>(true, _p) {
-		assert(strlen(src) <= Length);
-		const auto len = strlen(src);
-		for (size_t i = 0; i < len; i++)
-			for (int j = 0; j < 8; j++)
-				encrypt(this->data[i * 8 + j], (src[i] >> j) & 1, _p);
+	String(bool initialize_memory = true, ModePicker mode = DefaultMode)
+	    : Array<Int8, Length>(initialize_memory, mode) {}
+	// The ModePicker parameter is not optional, otherwise String(std::string) would be ambiguous
+	String(const char *src, ModePicker mode) : Array<Int8, Length>(false) {
+		const auto len = strlen(src) + 1; // Count trailing NUL
+		assert(len <= Length);
+		if (mode == ModePicker::CLIENT)
+			for (size_t i = 0; i < len; i++)
+				for (int j = 0; j < 8; j++)
+					encrypt(this->data[i * 8 + j], (src[i] >> j) & 1);
+		else
+			for (size_t i = 0; i < len; i++)
+				for (int j = 0; j < 8; j++)
+					constant(this->data[i * 8 + j], (src[i] >> j) & 1);
 	}
 
-	String(const std::string &packet, WeakParams _p = default_weak_params)
-	    : Array<Int8, Length>(_p) {
+	String(const std::string &packet) : Array<Int8, Length>() {
 		uint16_t length_from_header;
 		memcpy(&length_from_header, &packet[0], 2);
 		assert(length_from_header == Length);
 		// Skip header
 		std::stringstream ss(packet.substr(2));
-		deserialize(ss, this->data, this->p);
+		deserialize(ss, this->data);
 	}
 
-	void toCStr(char *dst, ClientParams _p = default_client_params) const {
+	void toCStr(char *dst) const {
 		for (size_t i = 0; i < Length; i++) {
 			char out = 0;
 			for (int j = 0; j < 8; j++)
-				out |= decrypt(this->data[i * 8 + j], _p) << j;
+				out |= decrypt(this->data[i * 8 + j]) << j;
 			dst[i] = out;
 		}
 	}
@@ -63,7 +50,7 @@ template <uint16_t Length> class String : public Array<Int8, Length> {
 		memcpy(header, &size, 2);
 		std::ostringstream oss;
 		oss.write(header, sizeof(header));
-		::serialize(oss, this->data, this->p);
+		::serialize(oss, this->data);
 		return oss.str();
 	}
 };

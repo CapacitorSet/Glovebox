@@ -17,8 +17,7 @@ static constexpr uint8_t ceillog2(uint64_t value) {
 	return ret;
 }
 
-template <class T, uint16_t Length, uint16_t WordSize = T::_wordSize>
-class Array {
+template <class T, uint16_t Length, uint16_t WordSize = T::_wordSize> class Array {
   protected:
 	static constexpr uint8_t AddrBits = ceillog2(Length);
 	using native_address_type = smallest_uint_t<AddrBits>;
@@ -34,28 +33,18 @@ class Array {
 	/*
 	static void getN_thBit(bits_t ret, uint8_t N, uint8_t wordsize,
 	                       bits_t address, uint8_t bitsInAddress,
-	                       bits_t staticOffset, size_t dynamicOffset,
-	                       ServerParams p = default_server_params);
+	                       bits_t staticOffset, size_t dynamicOffset);
 	                       */
 
 	static const int typeID = ARRAY_TYPE_ID;
 
-	Array(WeakParams _p = default_weak_params) : p(_p) {
-		data = make_bitspan(Bitlength, p);
-	}
-	explicit Array(bool initialize_memory = true,
-	               ServerParams _p = default_server_params)
-	    : Array(_p) {
+	explicit Array(bool initialize_memory = true, ModePicker mode = DefaultMode)
+	    : data(make_bitspan(Bitlength)) {
 		if (initialize_memory)
-			zero(data, _p);
-	}
-	Array(bool initialize_memory, ClientParams _p) : Array(_p) {
-		if (initialize_memory)
-			zero(data, _p);
+			zero(data, mode);
 	}
 
-	Array(const std::string &packet, WeakParams _p = default_weak_params)
-	    : Array(_p) {
+	Array(const std::string &packet) : Array() {
 		char typeID_from_header = packet[0];
 		uint16_t length_from_header;
 		memcpy(&length_from_header, &packet[1], 2);
@@ -63,12 +52,12 @@ class Array {
 		assert(length_from_header == Length);
 		// Skip header
 		std::stringstream ss(packet.substr(3));
-		deserialize(ss, data, p);
+		deserialize(ss, data);
 	}
 
 	void put(T src, encrypted_address_type address) {
-		bit_t mask = make_bit(p);
-		_unsafe_constant(mask, 1, p);
+		bit_t mask = make_bit();
+		_unsafe_constant(mask, true);
 
 		putBits(src.data, address.data, 0, mask);
 	}
@@ -76,7 +65,7 @@ class Array {
 	void put(T src, native_address_type address) {
 		assert(address < Length);
 		for (uint16_t i = 0; i < WordSize; i++)
-			_copy(data[address * WordSize + i], src.data[i], p);
+			_copy(data[address * WordSize + i], src.data[i]);
 	};
 
 	/*
@@ -90,7 +79,7 @@ class Array {
 
 	void get(T dst, native_address_type address) const {
 		assert(address < Length);
-		_copy(dst.data, data.subspan(address * WordSize, WordSize), p);
+		_copy(dst.data, data.subspan(address * WordSize, WordSize));
 	}
 
 	/*
@@ -102,8 +91,8 @@ class Array {
 	*/
 
 	void get(T dst, encrypted_address_type address) const {
-		bit_t mask = make_bit(p);
-		_unsafe_constant(mask, 1, p);
+		bit_t mask = make_bit();
+		_unsafe_constant(mask, 1);
 
 		getBits(dst.data, address.data, 0, mask);
 	}
@@ -114,7 +103,7 @@ class Array {
 		memcpy(header + 1, &size, 2);
 		std::ostringstream oss;
 		oss.write(header, sizeof(header));
-		::serialize(oss, data, p);
+		::serialize(oss, data);
 		return oss.str();
 	}
 
@@ -130,9 +119,9 @@ class Array {
 
 	// Count the number of items satisfying cond
 	encrypted_address_type countIf(std::function<bit_t(T)> cond) const {
-		encrypted_address_type ret(0, p);
+		encrypted_address_type ret(0);
 		for (native_address_type i = 0; i < Length; i++) {
-			T item(p);
+			T item;
 			this->get(item, i);
 			ret.increment_if(cond(item));
 		}
@@ -142,9 +131,9 @@ class Array {
 	// Create a new array with the result of calling f
 	template <class TNew, uint16_t WordSizeNew = TNew::_wordSize>
 	Array<TNew, Length, WordSizeNew> map(std::function<TNew(T)> f) const {
-		Array<TNew, Length, WordSizeNew> ret(p);
+		Array<TNew, Length, WordSizeNew> ret;
 		for (native_address_type i = 0; i < Length; i++) {
-			T item(p);
+			T item;
 			this->get(item, i);
 			ret.put(f(item), i);
 		}
@@ -152,10 +141,7 @@ class Array {
 	}
 
   protected:
-	WeakParams p;
-
-	void putBits(const bitspan_t &src, const bitspan_t &address,
-	             size_t dynamicOffset, bit_t mask) {
+	void putBits(const bitspan_t &src, const bitspan_t &address, size_t dynamicOffset, bit_t mask) {
 		// Writes out of bounds are a no-op. This is necessary for arrays to
 		// work with sizes other than powers of two. Bound checks should be done
 		// at the caller.
@@ -167,16 +153,16 @@ class Array {
 			// printf("Put: %zu out of %li\n", this->wordSize * dynamicOffset +
 			// N, this->length * wordSize);
 			size_t offset = WordSize * dynamicOffset;
-			bit_t lowerMask = make_bit(p);
-			_andyn(lowerMask, mask, address[0], p);
+			bit_t lowerMask = make_bit();
+			_andyn(lowerMask, mask, address[0]);
 			for (int i = 0; i < WordSize; i++)
-				_mux(data[offset + i], lowerMask, src[i], data[offset + i], p);
+				_mux(data[offset + i], lowerMask, src[i], data[offset + i]);
 
 			offset += WordSize;
-			bit_t upperMask = make_bit(p);
-			_and(upperMask, mask, address[0], p);
+			bit_t upperMask = make_bit();
+			_and(upperMask, mask, address[0]);
 			for (int i = 0; i < WordSize; i++)
-				_mux(data[offset + i], upperMask, src[i], data[offset + i], p);
+				_mux(data[offset + i], upperMask, src[i], data[offset + i]);
 			return;
 		}
 		/*
@@ -193,22 +179,21 @@ class Array {
 		- 1)))) >= MEMSIZE; if (willBranchOverflow) {
 		    // If yes, force the result to stay in bounds: return the lower
 		branch only. putN_thBit(src, N, wordsize, address, bitsInAddress - 1,
-		staticOffset, dynamicOffset, mask, p); return;
+		staticOffset, dynamicOffset, mask); return;
 		}
 		 */
-		bit_t lowerMask = make_bit(p);
-		_andyn(lowerMask, mask, address.last(), p);
-		putBits(src, address.subspan(0, address.size() - 1), dynamicOffset,
-		        lowerMask);
+		bit_t lowerMask = make_bit();
+		_andyn(lowerMask, mask, address.last());
+		putBits(src, address.subspan(0, address.size() - 1), dynamicOffset, lowerMask);
 
-		bit_t upperMask = make_bit(p);
-		_and(upperMask, mask, address.last(), p);
+		bit_t upperMask = make_bit();
+		_and(upperMask, mask, address.last());
 		putBits(src, address.subspan(0, address.size() - 1),
 		        dynamicOffset + (1 << (address.size() - 1)), upperMask);
 	}
 
-	void getBits(const bitspan_t &dst, const bitspan_t &address,
-	             size_t dynamicOffset, bit_t mask) const {
+	void getBits(const bitspan_t &dst, const bitspan_t &address, size_t dynamicOffset,
+	             bit_t mask) const {
 		// Reads out of bounds are a no-op. This is necessary for arrays to
 		// work with sizes other than powers of two. Bound checks should be done
 		// at the caller.
@@ -220,16 +205,16 @@ class Array {
 			// printf("Put: %zu out of %li\n", this->wordSize * dynamicOffset +
 			// N, this->length * wordSize);
 			size_t offset = WordSize * dynamicOffset;
-			bit_t lowerMask = make_bit(p);
-			_andyn(lowerMask, mask, address[0], p);
+			bit_t lowerMask = make_bit();
+			_andyn(lowerMask, mask, address[0]);
 			for (int i = 0; i < WordSize; i++)
-				_mux(dst[i], lowerMask, data[offset + i], dst[i], p);
+				_mux(dst[i], lowerMask, data[offset + i], dst[i]);
 
 			offset += WordSize;
-			bit_t upperMask = make_bit(p);
-			_and(upperMask, mask, address[0], p);
+			bit_t upperMask = make_bit();
+			_and(upperMask, mask, address[0]);
 			for (int i = 0; i < WordSize; i++)
-				_mux(dst[i], upperMask, data[offset + i], dst[i], p);
+				_mux(dst[i], upperMask, data[offset + i], dst[i]);
 			return;
 		}
 		/*
@@ -246,16 +231,15 @@ class Array {
 		- 1)))) >= MEMSIZE; if (willBranchOverflow) {
 		    // If yes, force the result to stay in bounds: return the lower
 		branch only. putN_thBit(src, N, wordsize, address, bitsInAddress - 1,
-		staticOffset, dynamicOffset, mask, p); return;
+		staticOffset, dynamicOffset, mask); return;
 		}
 		 */
-		bit_t lowerMask = make_bit(p);
-		_andyn(lowerMask, mask, address.last(), p);
-		getBits(dst, address.subspan(0, address.size() - 1), dynamicOffset,
-		        lowerMask);
+		bit_t lowerMask = make_bit();
+		_andyn(lowerMask, mask, address.last());
+		getBits(dst, address.subspan(0, address.size() - 1), dynamicOffset, lowerMask);
 
-		bit_t upperMask = make_bit(p);
-		_and(upperMask, mask, address.last(), p);
+		bit_t upperMask = make_bit();
+		_and(upperMask, mask, address.last());
 		getBits(dst, address.subspan(0, address.size() - 1),
 		        dynamicOffset + (1 << (address.size() - 1)), upperMask);
 	}
@@ -264,12 +248,11 @@ class Array {
 // Sum over Array<Int>
 #define RETURN_TYPE smallest_Int<ceillog2(Length *WordSize)>
 template <class T, uint16_t Length, uint16_t WordSize>
-std::enable_if_t<T::typeID == INT_TYPE_ID, RETURN_TYPE>
-sum(Array<T, Length, WordSize> &arr, WeakParams p = default_weak_params) {
+std::enable_if_t<T::typeID == INT_TYPE_ID, RETURN_TYPE> sum(Array<T, Length, WordSize> &arr) {
 	printf("Sum of %s\n", typeid(T).name());
 	RETURN_TYPE ret = 0;
 	for (uint16_t i = 0; i < Length; i++) {
-		T item(p);
+		T item;
 		arr.get(item, i);
 		ret.add(ret, item);
 	}
@@ -278,19 +261,17 @@ sum(Array<T, Length, WordSize> &arr, WeakParams p = default_weak_params) {
 #undef RETURN_TYPE
 
 // Sum over Array<Fixed>
-#define NEW_INT_SIZE (ceillog2(Length) + T::_INT_SIZE)
-#define RETURN_TYPE Fixed<NEW_INT_SIZE, T::_FRAC_SIZE>
+#define NEW_INT_SIZE (ceillog2(Length) + T::int_size)
+#define RETURN_TYPE Fixed<NEW_INT_SIZE, T::frac_size>
 template <class T, uint16_t Length, uint16_t WordSize,
           class = std::enable_if_t<T::typeID == FIXED_TYPE_ID>>
-RETURN_TYPE sum(Array<T, Length, WordSize> &arr,
-                ServerParams p = default_server_params) {
-	RETURN_TYPE ret(0, p);
+RETURN_TYPE sum(Array<T, Length, WordSize> &arr) {
+	RETURN_TYPE ret(0);
 	bit_t overflow = make_bit();
 	for (uint16_t i = 0; i < Length; i++) {
-		T item(p);
+		T item;
 		arr.get(item, i);
-		auto upcast_item =
-		    fixed_extend<NEW_INT_SIZE, T::_INT_SIZE, T::_FRAC_SIZE>(item, p);
+		auto upcast_item = fixed_extend<NEW_INT_SIZE, T::frac_size>(item);
 		ret.add(overflow, ret, upcast_item);
 	}
 	return ret;

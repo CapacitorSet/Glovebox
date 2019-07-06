@@ -1,10 +1,9 @@
-#include <assert.h>
 #include <cstdlib>
 #include <glovebox.h>
 #include <rpc/server.h>
 
-ServerParams default_server_params;
-WeakParams default_weak_params;
+thread_local ServerParams server_params;
+thread_local WeakParams weak_params;
 
 using Q4_4 = Fixed<4, 4>;
 
@@ -14,7 +13,7 @@ int main() {
 		puts("cloud.key not found: run ./keygen first.");
 		return 1;
 	}
-	default_weak_params = default_server_params = ServerParams(key);
+	weak_params = server_params = ServerParams(key);
 
 	rpc::server srv(8000);
 
@@ -26,7 +25,7 @@ int main() {
 		Array<Q4_4, 2> ys(false);
 		bit_t p_overflow = make_bit();
 		for (int i = 0; i < 2; i++) {
-			auto x = Q4_4(0, default_server_params);
+			Q4_4 x = 0;
 			xs.get(x, i);
 			auto y = p.evaluate(p_overflow, x);
 			ys.put(y, i);

@@ -10,8 +10,6 @@ This makes sense from a theoretical standpoint (the client produces bits that mu
 
 (A quick check for the above issue by compiling with PLAINTEXT=0 and running your code. If you have API misuse it will run instantly, otherwise it will take some time ranging from seconds to... ages, sigh.)
 
-The compile flag `STRICT_CLIENT_MODE` was added to automatically protect against API misuse: it will print an error and crash at runtime if `constant()` is used. For this reason, **it is strongly recommended to enable it in client code**: `-DSTRICT_CLIENT_MODE=1`.
-
 ## Arrays
 
 All types that can be put into an array must have a `static int wordSize` representing that type's size in bits and expose `data`. Furthermore, if you want to serialize arrays (which is almost always the case) the type must also implement `static char typeID`. It can be any value you want, it's just used as a sanity check when transmitting data.

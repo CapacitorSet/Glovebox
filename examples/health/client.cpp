@@ -5,8 +5,8 @@
 
 #include "patient.h"
 
-ClientParams default_client_params;
-WeakParams default_weak_params;
+thread_local ClientParams client_params;
+thread_local WeakParams weak_params;
 
 constexpr int NUM_PATIENTS = 10;
 
@@ -16,7 +16,7 @@ int main() {
 		puts("secret.key not found: run ./keygen first.");
 		return 1;
 	}
-	default_client_params = ClientParams(key);
+	client_params = ClientParams(key);
 
 	puts("Reading data...");
 	std::ifstream file("examples/health/data.csv");
@@ -25,7 +25,7 @@ int main() {
 	std::getline(file, line);
 	assert(line == "height,weight,age,male");
 
-	auto records = Array<Patient, NUM_PATIENTS>(true, default_client_params);
+	auto records = Array<Patient, NUM_PATIENTS>(true);
 
 	for (int i = 0; i < NUM_PATIENTS; i++) {
 		std::getline(file, line);
@@ -35,7 +35,7 @@ int main() {
 		char isMale;
 		sscanf(line.c_str(), "%lf,%lf,%d,%c\n", &height, &weight, &age,
 		       &isMale);
-		Patient p(height, weight, age, isMale == '1', default_client_params);
+		Patient p(height, weight, age, isMale == '1');
 		records.put(p, i);
 	}
 

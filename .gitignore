@@ -14,7 +14,8 @@ cloud.key
 secret.key
 
 # Library
-libglovebox.a
+libglovebox_client.a
+libglovebox_server.a
 
 # Test libraries and artifacts
 gtest/

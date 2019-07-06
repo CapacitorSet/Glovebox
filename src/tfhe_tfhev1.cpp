@@ -31,45 +31,57 @@ void free_server_key(ServerKey key) {
 }
 
 ClientParams::ClientParams(ClientKey client_key)
-    : WeakParams(client_key->params, &client_key->cloud),
-      secretKeySet(client_key){};
+    : WeakParams(client_key->params, &client_key->cloud), secretKeySet(client_key){};
 
-ServerParams::ServerParams(ServerKey cloud_key)
-    : WeakParams(cloud_key->params, cloud_key) {}
+ServerParams::ServerParams(ServerKey cloud_key) : WeakParams(cloud_key->params, cloud_key) {}
 
 ServerParams::ServerParams(const ClientParams &src) : WeakParams(src) {}
 
-int decrypt(bit_t dst, ClientParams p) {
-	return bootsSymDecrypt(dst.cptr(), p.secretKeySet);
+#if GB_SERVER
+int decrypt(bit_t) {
+	fprintf(stderr, "decrypt() was called in server mode - exiting.\n");
+	abort();
 }
+#else
+int decrypt(bit_t dst) {
+	return bootsSymDecrypt(dst.cptr(), client_params.secretKeySet);
+}
+#endif
 
-bit_t make_bit(WeakParams p) {
-	LweSample *cptr = new_gate_bootstrapping_ciphertext(p.params);
+bit_t make_bit() {
+	LweSample *cptr = new_gate_bootstrapping_ciphertext(weak_params.params);
 	auto ptr = gsl::shared_ptr_unsynchronized<LweSample>(cptr);
 	return gsl::span<1>(ptr, 1);
 }
 
-bitspan_t make_bitspan(int N, WeakParams p) {
-	LweSample *cptr = new_gate_bootstrapping_ciphertext_array(N, p.params);
+bitspan_t make_bitspan(int N) {
+	LweSample *cptr = new_gate_bootstrapping_ciphertext_array(N, weak_params.params);
 	auto ptr = gsl::shared_ptr_unsynchronized<LweSample>(cptr);
 	return gsl::span<>(ptr, N);
 }
 
-void encrypt(bit_t dst, bool src, ClientParams p) {
-	bootsSymEncrypt(dst.cptr(), src, p.secretKeySet);
+#if GB_SERVER
+void encrypt(bit_t, bool) {
+	fprintf(stderr, "encrypt() was called in server mode - exiting.\n");
+	abort();
 }
+#else
+void encrypt(bit_t dst, bool src) {
+	bootsSymEncrypt(dst.cptr(), src, client_params.secretKeySet);
+}
+#endif
 
-void _unsafe_constant(bit_t dst, bool src, WeakParams p) {
-	bootsCONSTANT(dst.cptr(), src, p.cloudKeySet);
+void _unsafe_constant(bit_t dst, bool src) {
+	bootsCONSTANT(dst.cptr(), src, weak_params.cloudKeySet);
 };
 
-void _not(bit_t dst, bit_t src, WeakParams p) {
-	bootsNOT(dst.cptr(), src.cptr(), p.cloudKeySet);
+void _not(bit_t dst, bit_t src) {
+	bootsNOT(dst.cptr(), src.cptr(), weak_params.cloudKeySet);
 }
 
-#define BINARY_OPERATOR(LibName, TFHEName)                                     \
-	void _##LibName(bit_t dst, const bit_t a, const bit_t b, WeakParams p) {   \
-		boots##TFHEName(dst.cptr(), a.cptr(), b.cptr(), p.cloudKeySet);        \
+#define BINARY_OPERATOR(LibName, TFHEName)                                                         \
+	void _##LibName(bit_t dst, const bit_t a, const bit_t b) {                                     \
+		boots##TFHEName(dst.cptr(), a.cptr(), b.cptr(), weak_params.cloudKeySet);                  \
 	}
 
 BINARY_OPERATOR(and, AND)
@@ -83,10 +95,10 @@ BINARY_OPERATOR(nor, NOR)
 BINARY_OPERATOR(xor, XOR)
 BINARY_OPERATOR(xnor, XNOR)
 
-void _mux(bit_t dst, bit_t cond, bit_t a, bit_t b, WeakParams p) {
-	bootsMUX(dst.cptr(), cond.cptr(), a.cptr(), b.cptr(), p.cloudKeySet);
+void _mux(bit_t dst, bit_t cond, bit_t a, bit_t b) {
+	bootsMUX(dst.cptr(), cond.cptr(), a.cptr(), b.cptr(), weak_params.cloudKeySet);
 }
 
-void _copy(bit_t dst, bit_t src, WeakParams p) {
-	bootsCOPY(dst.cptr(), src.cptr(), p.cloudKeySet);
+void _copy(bit_t dst, bit_t src) {
+	bootsCOPY(dst.cptr(), src.cptr(), weak_params.cloudKeySet);
 }

@@ -5,7 +5,7 @@
 
 #include "contact.h"
 
-ClientParams default_client_params;
+ClientParams client_params;
 
 // Generated with fakenamegenerator.com
 Contact contacts[] = {
@@ -28,18 +28,18 @@ int main() {
 		puts("secret.key not found: run ./keygen first.");
 		return 1;
 	}
-	default_client_params = ClientParams(key);
+	client_params = ClientParams(key);
 
 	puts("Connecting to server...");
 	rpc::client client("127.0.0.1", 8000);
 	puts("Uploading contact list...");
 	std::vector<std::string> phoneNumbers;
 	for (const auto &contact : contacts) {
-		PhoneNumber phoneNumber(contact.phoneNumber, default_client_params);
+		PhoneNumber phoneNumber(contact.phoneNumber, client_params);
 		phoneNumbers.push_back(phoneNumber.serialize());
 	}
 	bitspan_t mask =
-	    filter(phoneNumbers, "isKnownContact", default_client_params);
+	    filter(phoneNumbers, "isKnownContact", client_params);
 	for (int i = 0; i < 10; i++) {
 		std::cout << (decrypt(mask[i]) ? "Known: " : "Not known: ")
 		          << contacts[i].name << std::endl;

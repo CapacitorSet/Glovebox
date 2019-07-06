@@ -46,7 +46,7 @@ function generate_prototype(name: string, decls: Declaration[]): string {
 	const inputs = decls
 		.filter(it => it.type === "input")
 		.map(it => "const " + get_type(it.size) + " " + it.name);
-	return `void ${name}(${outputs.concat(inputs).join(", ")}, weak_params_t p)`;
+	return `void ${name}(${outputs.concat(inputs).join(", ")})`;
 }
 
 // Add indices where necessary
@@ -245,9 +245,9 @@ function transpile_module(_: Module) {
 			return "";
 
 		if (size === 1)
-			return `  bit_t ${it.value} = make_bit(p);\n`;
+			return `  bit_t ${it.value} = make_bit();\n`;
 		else
-			return `  bitspan_t ${it.value} = make_bitspan(${size}, p);\n`;
+			return `  bitspan_t ${it.value} = make_bitspan(${size});\n`;
 	}
 
 	const gates = renamedGates
@@ -256,14 +256,14 @@ function transpile_module(_: Module) {
 			ret += bitsOf(it).map(it => declare_if_needed(it, i)).join("");
 			switch (it.gate) {
 			case "mux":
-				ret += `  _mux(${transpile_identifier(it.z)}, ${transpile_identifier(it.sel)}, ${transpile_identifier(it.t)}, ${transpile_identifier(it.f)}, p);\n`;
+				ret += `  _mux(${transpile_identifier(it.z)}, ${transpile_identifier(it.sel)}, ${transpile_identifier(it.t)}, ${transpile_identifier(it.f)});\n`;
 				break;
 			case "copy":
 			case "not":
-				ret += `  _${it.gate}(${transpile_identifier(it.z)}, ${transpile_identifier(it.a)}, p);\n`;
+				ret += `  _${it.gate}(${transpile_identifier(it.z)}, ${transpile_identifier(it.a)});\n`;
 				break;
 			default:
-				ret += `  _${it.gate}(${transpile_identifier(it.z)}, ${transpile_identifier(it.a)}, ${transpile_identifier(it.b)}, p);\n`;
+				ret += `  _${it.gate}(${transpile_identifier(it.z)}, ${transpile_identifier(it.a)}, ${transpile_identifier(it.b)});\n`;
 				break;
 			}
 			return ret;

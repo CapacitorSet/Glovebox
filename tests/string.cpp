@@ -4,30 +4,26 @@
 
 using StringTest = FHEContext;
 
-constexpr uint16_t TEST_SIZE = 1;
+constexpr uint16_t TEST_SIZE = 5;
 
 TEST_F(StringTest, Decrypt) {
 	::rc::detail::checkGTest([=](std::string plaintext_str) {
-		plaintext_str.resize(TEST_SIZE);
-		auto a = String<TEST_SIZE>(plaintext_str.c_str(), true, params);
+		plaintext_str.resize(TEST_SIZE - 1);
+		auto a = String<TEST_SIZE>(plaintext_str.c_str(), ModePicker::CLIENT);
 		char str[TEST_SIZE];
-		a.toCStr(str, params);
-		// Compare the whole string, but at most TEST_SIZE bytes.
-		auto cmp_len = std::min(plaintext_str.length(), size_t(TEST_SIZE));
-		RC_ASSERT(memcmp(plaintext_str.c_str(), str, cmp_len) == 0);
+		a.toCStr(str);
+		RC_ASSERT(strcmp(plaintext_str.c_str(), str) == 0);
 	});
 }
 
 TEST_F(StringTest, Serialization) {
 	::rc::detail::checkGTest([=](std::string plaintext_str) {
-		plaintext_str.resize(TEST_SIZE);
-		auto in = String<TEST_SIZE>(plaintext_str.c_str(), true, params);
+		plaintext_str.resize(TEST_SIZE - 1);
+		auto in = String<TEST_SIZE>(plaintext_str.c_str(), ModePicker::SERVER);
 		auto tmp = in.serialize();
-		auto out = String<TEST_SIZE>(tmp, params);
+		auto out = String<TEST_SIZE>(tmp);
 		char str[TEST_SIZE];
-		out.toCStr(str, params);
-		// Compare the whole string, but at most TEST_SIZE bytes.
-		auto cmp_len = std::min(plaintext_str.length(), size_t(TEST_SIZE));
-		RC_ASSERT(memcmp(plaintext_str.c_str(), str, cmp_len) == 0);
+		out.toCStr(str);
+		RC_ASSERT(strcmp(plaintext_str.c_str(), str) == 0);
 	});
 }

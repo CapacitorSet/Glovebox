@@ -25,47 +25,44 @@ template <uint8_t Size> class Int {
   protected:
 	using native_type = smallest_int_t<Size>;
 
-	WeakParams p;
-
   public:
 	static const int _wordSize = Size;
 	fixed_bitspan_t<Size> data;
 
-	Int() = delete;
 	// Create an Int, allocate memory, but do not initialize it
-	explicit Int(WeakParams _p) : p(_p), data(make_bitspan<Size>(_p)){};
-	Int(StructHelper &helper, WeakParams _p) : p(_p), data(helper.make_bitspan<Size>(p)){};
+	Int() : data(make_bitspan<Size>()){};
+	Int(StructHelper &helper) : data(helper.make_bitspan<Size>()){};
 
 	// Initialize from a plaintext int
-	Int(native_type src, ServerParams _p) : Int(_p) {
-		constant(src, _p);
+	Int(native_type src, ModePicker mode = DefaultMode) : Int() {
+		if (mode == ModePicker::CLIENT)
+			encrypt(src);
+		else
+			constant(src);
 	}
-	Int(native_type src, StructHelper &helper, ServerParams _p) : Int(helper, _p) {
-		constant(src, _p);
-	}
-	Int(native_type src, ClientParams _p = default_client_params) : Int(_p) {
-		encrypt(src, _p);
-	}
-	Int(native_type src, StructHelper &helper, ClientParams _p = default_client_params)
-	    : Int(helper, _p) {
-		encrypt(src, _p);
+	Int(native_type src, StructHelper &helper, ModePicker mode = DefaultMode) : Int(helper) {
+		if (mode == ModePicker::CLIENT)
+			encrypt(src);
+		else
+			constant(src);
 	}
 
-	Int(const std::string &packet, WeakParams _p = default_weak_params) : Int(_p) {
+	Int(const std::string &packet) : Int() {
 		char size_from_header = packet[0];
 		assert(size_from_header == Size);
 		// Skip header
 		std::stringstream ss(packet.substr(1));
-		deserialize(ss, data, p);
+		deserialize(ss, data);
 	}
 
-	void encrypt(native_type src, ClientParams _p = default_client_params) {
+	void encrypt(native_type src) {
 		for (int i = 0; i < Size; i++)
-			::encrypt(data[i], (src >> i) & 1, _p);
+			::encrypt(data[i], (src >> i) & 1);
 	}
-	void constant(native_type src, ServerParams _p = default_server_params) {
+
+	void constant(native_type src) {
 		for (int i = 0; i < Size; i++)
-			::constant(data[i], (src >> i) & 1, _p);
+			::constant(data[i], (src >> i) & 1);
 	}
 
 	std::string serialize() const {
@@ -74,16 +71,16 @@ template <uint8_t Size> class Int {
 		memcpy(header, &mysize, 1);
 		std::ostringstream oss;
 		oss.write(header, sizeof(header));
-		::serialize(oss, data, p);
+		::serialize(oss, data);
 		return oss.str();
 	}
 
 	// Decrypts the Int and returns an int of the smallest size possible
 	// (5 -> int8_t, 10 -> int16_t, etc)
-	native_type toInt(ClientParams p = default_client_params) const {
+	native_type toInt() const {
 		native_type ret = 0;
 		for (int i = 0; i < Size; i++)
-			ret |= (::decrypt(data[i], p) & 1) << i;
+			ret |= (::decrypt(data[i]) & 1) << i;
 		return ret;
 	}
 
@@ -95,28 +92,28 @@ template <uint8_t Size> class Int {
   protected:
 	// Copy a larger bitspan here. Deals with rounding and overflow calculation
 	void round_helper(bit_t overflow, const bitspan_t &src, uint8_t truncate_from) {
-		_copy(data, src.subspan(truncate_from, Size), p);
+		_copy(data, src.subspan(truncate_from, Size));
 		bit_t sign_bit = src.last();
 
 		if (truncate_from != 0) {
 			// We can't just truncate (i.e. _copy): consider the case 0.011,
 			// which does not round to 0.01 but to 0.10.
-			bit_t should_increment = make_bit(p);
-			_xor(should_increment, sign_bit, src[truncate_from - 1], p);
-			bitspan_t tmp = make_bitspan(data.size(), p);
-			incr_if(tmp, should_increment, data, p);
-			_copy(data, tmp, p);
+			bit_t should_increment = make_bit();
+			_xor(should_increment, sign_bit, src[truncate_from - 1]);
+			bitspan_t tmp = make_bitspan(data.size());
+			incr_if(tmp, should_increment, data);
+			_copy(data, tmp);
 		}
 
 		// The number overflows if it is positive and has 1s past what we
 		// copied, or it is negative and has 0s past what we copied. (Note that
 		// we finished copying at truncate_from + size) It also overflows if the
 		// signs of src and data do not match.
-		_xor(overflow, sign_bit, data.last(), p);
+		_xor(overflow, sign_bit, data.last());
 		for (int i = truncate_from + Size; i < src.size(); i++) {
-			bit_t is_overflowing = make_bit(p);
-			_xor(is_overflowing, sign_bit, src[i], p);
-			_or(overflow, overflow, is_overflowing, p);
+			bit_t is_overflowing = make_bit();
+			_xor(is_overflowing, sign_bit, src[i]);
+			_or(overflow, overflow, is_overflowing);
 		}
 	}
 };
@@ -126,19 +123,16 @@ class Int8 : public Int<8> {
 	static const int typeID = INT_TYPE_ID;
 	static const int _wordSize = 8;
 
-	Int8() = delete;
 	// Create an Int8, allocate memory, but do not initialize it
-	explicit Int8(WeakParams _p) : Int(_p){};
-	Int8(StructHelper &helper, WeakParams _p) : Int(helper, _p){};
+	Int8() : Int(){};
+	Int8(StructHelper &helper) : Int(helper){};
 
 	// Initialize from a plaintext int8
-	Int8(int8_t src, ServerParams _p) : Int(src, _p){};
-	Int8(int8_t src, StructHelper &helper, ServerParams _p) : Int(src, helper, _p){};
-	Int8(int8_t src, ClientParams _p = default_client_params) : Int(src, _p){};
-	Int8(int8_t src, StructHelper &helper, ClientParams _p = default_client_params)
-	    : Int(src, helper, _p){};
+	Int8(int8_t src, ModePicker mode = DefaultMode) : Int(src, mode){};
+	Int8(int8_t src, StructHelper &helper, ModePicker mode = DefaultMode)
+	    : Int(src, helper, mode){};
 	// Inizialize from a char*
-	Int8(const std::string &packet, WeakParams _p = default_weak_params) : Int(packet, _p){};
+	Int8(const std::string &packet) : Int(packet){};
 
 	void add(bit_t overflow, Int8 a, Int8 b);
 	// Add and do not be notified if overflow happens
@@ -164,19 +158,16 @@ class Int16 : public Int<16> {
 	static const int typeID = INT_TYPE_ID;
 	static const int _wordSize = 16;
 
-	Int16() = delete;
 	// Create an Int16, allocate memory, but do not initialize it
-	explicit Int16(WeakParams _p) : Int(_p){};
-	Int16(StructHelper &helper, WeakParams _p) : Int(helper, _p){};
+	Int16() : Int(){};
+	Int16(StructHelper &helper) : Int(helper){};
 
 	// Initialize from a plaintext int16
-	Int16(int16_t src, ServerParams _p) : Int(src, _p){};
-	Int16(int16_t src, StructHelper &helper, ServerParams _p) : Int(src, helper, _p){};
-	Int16(int16_t src, ClientParams _p = default_client_params) : Int(src, _p){};
-	Int16(int16_t src, StructHelper &helper, ClientParams _p = default_client_params)
-	    : Int(src, helper, _p){};
+	Int16(int16_t src, ModePicker mode = DefaultMode) : Int(src, mode){};
+	Int16(int16_t src, StructHelper &helper, ModePicker mode = DefaultMode)
+	    : Int(src, helper, mode){};
 	// Inizialize from a char*
-	Int16(const std::string &packet, WeakParams _p = default_weak_params) : Int(packet, _p){};
+	Int16(const std::string &packet) : Int(packet){};
 
 	void add(bit_t overflow, Int16 a, Int16 b);
 	// Add and do not be notified if overflow happens
