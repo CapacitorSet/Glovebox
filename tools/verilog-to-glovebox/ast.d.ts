@@ -31,14 +31,14 @@ type Identifier = {
 
 type Gate1 = {
 	type: "gate";
-	gate: "copy" | "not";
+	name: "copy" | "not";
 	a: Identifier;
 	z: Identifier;
 }
 
 type Gate2 = {
 	type: "gate";
-	gate: "and" | "andyn" | "nand" | "or" | "oryn" | "nor" | "xor" | "xnor";
+	name: "and" | "andyn" | "nand" | "or" | "oryn" | "nor" | "xor" | "xnor";
 	a: Identifier;
 	b: Identifier;
 	z: Identifier;
@@ -46,7 +46,7 @@ type Gate2 = {
 
 type Mux = {
 	type: "gate";
-	gate: "mux";
+	name: "mux";
 	t: Identifier;
 	f: Identifier;
 	sel: Identifier;

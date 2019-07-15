@@ -53,7 +53,7 @@ Gate
 Assignment
     = "  assign " dst:Identifier " = " src:AssignmentValue ";\n" { return {
     type: "gate",
-    gate: "copy",
+    name: "copy",
     a: src,
     z: dst
 }; }
@@ -72,7 +72,7 @@ NotGate = "  NOT _" [0-9]+ "_ (\n"
     "    .Z(" z:Identifier ")\n"
     "  );\n" { return {
     type: "gate",
-    gate: "not",
+    name: "not",
     a: a,
     z: z
 }; }
@@ -83,7 +83,7 @@ AndGate = "  AND _" [0-9]+ "_ (\n"
     "    .Z(" z:Identifier ")\n"
     "  );\n" { return {
     type: "gate",
-    gate: "and",
+    name: "and",
     a: a,
     b: b,
     z: z
@@ -95,7 +95,7 @@ AndYNGate = "  ANDYN _" [0-9]+ "_ (\n"
     "    .Z(" z:Identifier ")\n"
     "  );\n" { return {
     type: "gate",
-    gate: "andyn",
+    name: "andyn",
     a: a,
     b: b,
     z: z
@@ -107,7 +107,7 @@ NandGate = "  NAND _" [0-9]+ "_ (\n"
     "    .Z(" z:Identifier ")\n"
     "  );\n" { return {
     type: "gate",
-    gate: "nand",
+    name: "nand",
     a: a,
     b: b,
     z: z
@@ -119,7 +119,7 @@ OrGate = "  OR _" [0-9]+ "_ (\n"
     "    .Z(" z:Identifier ")\n"
     "  );\n" { return {
     type: "gate",
-    gate: "or",
+    name: "or",
     a: a,
     b: b,
     z: z
@@ -131,7 +131,7 @@ OrYNGate = "  ORYN _" [0-9]+ "_ (\n"
     "    .Z(" z:Identifier ")\n"
     "  );\n" { return {
     type: "gate",
-    gate: "oryn",
+    name: "oryn",
     a: a,
     b: b,
     z: z
@@ -143,7 +143,7 @@ NorGate = "  NOR _" [0-9]+ "_ (\n"
     "    .Z(" z:Identifier ")\n"
     "  );\n" { return {
     type: "gate",
-    gate: "nor",
+    name: "nor",
     a: a,
     b: b,
     z: z
@@ -155,7 +155,7 @@ XorGate = "  XOR _" [0-9]+ "_ (\n"
     "    .Z(" z:Identifier ")\n"
     "  );\n" { return {
     type: "gate",
-    gate: "xor",
+    name: "xor",
     a: a,
     b: b,
     z: z
@@ -167,7 +167,7 @@ XnorGate = "  XNOR _" [0-9]+ "_ (\n"
     "    .Z(" z:Identifier ")\n"
     "  );\n" { return {
     type: "gate",
-    gate: "xnor",
+    name: "xnor",
     a: a,
     b: b,
     z: z
@@ -180,7 +180,7 @@ MuxGate = "  MUX _" [0-9]+ "_ (\n"
     "    .Z(" z:Identifier ")\n"
     "  );\n" { return {
     type: "gate",
-    gate: "mux",
+    name: "mux",
     t: t,
     f: f,
     sel: sel,

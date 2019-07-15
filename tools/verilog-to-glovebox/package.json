@@ -1,6 +1,8 @@
 {
   "dependencies": {
-    "@types/node": "^11.9.5",
     "toposort": "^2.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^11.13.17"
   }
 }

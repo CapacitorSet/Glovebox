@@ -199,7 +199,7 @@ module.exports = /*
         peg$c36 = peg$literalExpectation(" = ", false),
         peg$c37 = function(dst, src) { return {
             type: "gate",
-            gate: "copy",
+            name: "copy",
             a: src,
             z: dst
         }; },
@@ -235,7 +235,7 @@ module.exports = /*
         peg$c63 = peg$literalExpectation("  );\n", false),
         peg$c64 = function(a, z) { return {
             type: "gate",
-            gate: "not",
+            name: "not",
             a: a,
             z: z
         }; },
@@ -245,7 +245,7 @@ module.exports = /*
         peg$c68 = peg$literalExpectation("    .B(", false),
         peg$c69 = function(a, b, z) { return {
             type: "gate",
-            gate: "and",
+            name: "and",
             a: a,
             b: b,
             z: z
@@ -254,7 +254,7 @@ module.exports = /*
         peg$c71 = peg$literalExpectation("  ANDYN _", false),
         peg$c72 = function(a, b, z) { return {
             type: "gate",
-            gate: "andyn",
+            name: "andyn",
             a: a,
             b: b,
             z: z
@@ -263,7 +263,7 @@ module.exports = /*
         peg$c74 = peg$literalExpectation("  NAND _", false),
         peg$c75 = function(a, b, z) { return {
             type: "gate",
-            gate: "nand",
+            name: "nand",
             a: a,
             b: b,
             z: z
@@ -272,7 +272,7 @@ module.exports = /*
         peg$c77 = peg$literalExpectation("  OR _", false),
         peg$c78 = function(a, b, z) { return {
             type: "gate",
-            gate: "or",
+            name: "or",
             a: a,
             b: b,
             z: z
@@ -281,7 +281,7 @@ module.exports = /*
         peg$c80 = peg$literalExpectation("  ORYN _", false),
         peg$c81 = function(a, b, z) { return {
             type: "gate",
-            gate: "oryn",
+            name: "oryn",
             a: a,
             b: b,
             z: z
@@ -290,7 +290,7 @@ module.exports = /*
         peg$c83 = peg$literalExpectation("  NOR _", false),
         peg$c84 = function(a, b, z) { return {
             type: "gate",
-            gate: "nor",
+            name: "nor",
             a: a,
             b: b,
             z: z
@@ -299,7 +299,7 @@ module.exports = /*
         peg$c86 = peg$literalExpectation("  XOR _", false),
         peg$c87 = function(a, b, z) { return {
             type: "gate",
-            gate: "xor",
+            name: "xor",
             a: a,
             b: b,
             z: z
@@ -308,7 +308,7 @@ module.exports = /*
         peg$c89 = peg$literalExpectation("  XNOR _", false),
         peg$c90 = function(a, b, z) { return {
             type: "gate",
-            gate: "xnor",
+            name: "xnor",
             a: a,
             b: b,
             z: z
@@ -323,7 +323,7 @@ module.exports = /*
         peg$c98 = peg$literalExpectation("    .T(", false),
         peg$c99 = function(f, sel, t, z) { return {
             type: "gate",
-            gate: "mux",
+            name: "mux",
             t: t,
             f: f,
             sel: sel,
