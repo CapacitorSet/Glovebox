@@ -71,6 +71,9 @@ target_include_directories(glovebox_server PUBLIC ${PROJECT_SOURCE_DIR}/include)
 add_executable(keygen examples/keygen/main.cpp)
 target_link_libraries(keygen PRIVATE glovebox_client)
 
+add_executable(lwe-experiments examples/lwe-experiments/main.cpp)
+target_link_libraries(lwe-experiments PRIVATE tfhe-spqlios-fma)
+
 # Fibonacci
 add_executable(example_fibonacci_client examples/fibonacci/client.cpp)
 target_link_libraries(example_fibonacci_client PRIVATE glovebox_client rpc pthread)

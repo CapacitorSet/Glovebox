@@ -51,9 +51,8 @@ class Fixed : public smallest_Int<IntSize + FracSize> {
 
 	Fixed() : BaseInt(){};
 	Fixed(StructHelper &helper) : BaseInt(helper){};
-	Fixed(double src, ModePicker mode = DefaultMode) : BaseInt(double_to_native(src), mode){};
-	Fixed(double src, StructHelper &helper, ModePicker mode = DefaultMode)
-	    : BaseInt(double_to_native(src), helper, mode){};
+	Fixed(double src) : BaseInt(double_to_native(src)){};
+	Fixed(double src, StructHelper &helper) : BaseInt(double_to_native(src), helper){};
 
 	Fixed(const std::string &packet) : Fixed<IntSize, FracSize>() {
 		char intSize_from_header = packet[0];

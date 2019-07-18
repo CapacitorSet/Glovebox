@@ -3,10 +3,11 @@
 
 #include <tfhe.h>
 
-void zero(bitspan_t src, ModePicker = DefaultMode);
+void zero(bitspan_t src);
 
 bit_t is_zero(bitspan_t src);
 bit_t is_nonzero(bitspan_t src);
+bit_t is_negative(bitspan_t src);
 
 bit_t equals(bitspan_t a, bitspan_t b);
 
@@ -18,8 +19,11 @@ template <uint16_t N> void _copy(fixed_bitspan_t<N> dst, fixed_bitspan_t<N> src)
 		_copy(dst[i], src[i]);
 }
 
-void incr_if(bitspan_t out, bit_t cond, bitspan_t src);
-void decr_if(bitspan_t out, const bit_t cond, const bitspan_t src);
+void increment_if(bitspan_t out, bit_t cond, bitspan_t src);
+void decrement_if(bitspan_t out, bit_t cond, bitspan_t src);
+// out = src
+void increment_if(bitspan_t src, bit_t cond);
+void decrement_if(bitspan_t src, bit_t cond);
 
 void add8(fixed_bitspan_t<8> out, bit_t overflow, fixed_bitspan_t<8> a, fixed_bitspan_t<8> b);
 void add16(fixed_bitspan_t<16> out, bit_t overflow, fixed_bitspan_t<16> a, fixed_bitspan_t<16> b);

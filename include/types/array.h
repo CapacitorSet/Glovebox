@@ -38,10 +38,9 @@ template <class T, uint16_t Length, uint16_t WordSize = T::_wordSize> class Arra
 
 	static const int typeID = ARRAY_TYPE_ID;
 
-	explicit Array(bool initialize_memory = true, ModePicker mode = DefaultMode)
-	    : data(make_bitspan(Bitlength)) {
+	explicit Array(bool initialize_memory = true) : data(make_bitspan(Bitlength)) {
 		if (initialize_memory)
-			zero(data, mode);
+			zero(data);
 	}
 
 	Array(const std::string &packet) : Array() {

@@ -22,3 +22,5 @@ To do's
 [x] Reuse wire IDs in codegen
 
 [x] Add const annotations where possible
+
+[ ] Add support for asymmetric usage as mentioned in Ilaria's thesis

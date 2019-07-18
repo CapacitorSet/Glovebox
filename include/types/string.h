@@ -10,20 +10,14 @@ template <uint16_t Length> class String : public Array<Int8, Length> {
   public:
 	static constexpr int typeID = STRING_TYPE_ID;
 
-	String(bool initialize_memory = true, ModePicker mode = DefaultMode)
-	    : Array<Int8, Length>(initialize_memory, mode) {}
-	// The ModePicker parameter is not optional, otherwise String(std::string) would be ambiguous
-	String(const char *src, ModePicker mode) : Array<Int8, Length>(false) {
+	String(bool initialize_memory = true) : Array<Int8, Length>(initialize_memory) {}
+	// The char parameter disambiguates against String(std::string)
+	String(const char *src, char) : Array<Int8, Length>(false) {
 		const auto len = strlen(src) + 1; // Count trailing NUL
 		assert(len <= Length);
-		if (mode == ModePicker::CLIENT)
-			for (size_t i = 0; i < len; i++)
-				for (int j = 0; j < 8; j++)
-					encrypt(this->data[i * 8 + j], (src[i] >> j) & 1);
-		else
-			for (size_t i = 0; i < len; i++)
-				for (int j = 0; j < 8; j++)
-					constant(this->data[i * 8 + j], (src[i] >> j) & 1);
+		for (size_t i = 0; i < len; i++)
+			for (int j = 0; j < 8; j++)
+				write(this->data[i * 8 + j], (src[i] >> j) & 1);
 	}
 
 	String(const std::string &packet) : Array<Int8, Length>() {

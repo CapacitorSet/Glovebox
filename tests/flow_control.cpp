@@ -45,7 +45,7 @@ TEST_F(FlowControlTest, Times) {
 		// Otherwise we expect tmp = max, overflow == false.
 		Int8 n(plaintext_n);
 		Int8 tmp(0);
-		bit_t overflow = times(n, max, [&](bit_t mask) { tmp.increment_if(mask); });
+		bit_t overflow = times(n, max, [&](bit_t mask) { increment_if(tmp.data, mask); });
 		if (plaintext_n < 0) {
 			// Expect that nothing was done.
 			RC_ASSERT(tmp.toInt() == 0);

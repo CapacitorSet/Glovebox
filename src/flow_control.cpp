@@ -45,13 +45,13 @@ bit_t _while(std::function<bit_t(void)> condition, uint64_t max, maskable_functi
 
 bit_t times(const Int8 src, uint8_t max, maskable_function_t body) {
 	Int8 tmp;
-	tmp.copy(src);
+	_copy(tmp.data, src.data);
 	bit_t mask = make_bit();
-	_andyn(mask, src.is_nonzero(), src.isNegative());
+	_andyn(mask, is_nonzero(src.data), is_negative(src.data));
 	for (uint8_t i = 0; i < max; i++) {
 		body(mask);
-		tmp.decrement_if(mask);
-		_and(mask, mask, tmp.is_nonzero());
+		decrement_if(tmp.data, mask);
+		_and(mask, mask, is_nonzero(tmp.data));
 	}
 	// The loop should not be enabled by the last step.
 	return mask;

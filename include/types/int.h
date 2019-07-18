@@ -34,17 +34,11 @@ template <uint8_t Size> class Int {
 	Int(StructHelper &helper) : data(helper.make_bitspan<Size>()){};
 
 	// Initialize from a plaintext int
-	Int(native_type src, ModePicker mode = DefaultMode) : Int() {
-		if (mode == ModePicker::CLIENT)
-			encrypt(src);
-		else
-			constant(src);
+	Int(native_type src) : Int() {
+		write(src);
 	}
-	Int(native_type src, StructHelper &helper, ModePicker mode = DefaultMode) : Int(helper) {
-		if (mode == ModePicker::CLIENT)
-			encrypt(src);
-		else
-			constant(src);
+	Int(native_type src, StructHelper &helper) : Int(helper) {
+		write(src);
 	}
 
 	Int(const std::string &packet) : Int() {
@@ -55,14 +49,9 @@ template <uint8_t Size> class Int {
 		deserialize(ss, data);
 	}
 
-	void encrypt(native_type src) {
+	void write(native_type src) {
 		for (int i = 0; i < Size; i++)
-			::encrypt(data[i], (src >> i) & 1);
-	}
-
-	void constant(native_type src) {
-		for (int i = 0; i < Size; i++)
-			::constant(data[i], (src >> i) & 1);
+			::write(data[i], (src >> i) & 1);
 	}
 
 	std::string serialize() const {
@@ -75,6 +64,7 @@ template <uint8_t Size> class Int {
 		return oss.str();
 	}
 
+#if !GB_SERVER
 	// Decrypts the Int and returns an int of the smallest size possible
 	// (5 -> int8_t, 10 -> int16_t, etc)
 	native_type toInt() const {
@@ -83,11 +73,7 @@ template <uint8_t Size> class Int {
 			ret |= (::decrypt(data[i]) & 1) << i;
 		return ret;
 	}
-
-	// Convenience method. Makes for more readable code.
-	bit_t isNegative() const {
-		return data.last();
-	}
+#endif
 
   protected:
 	// Copy a larger bitspan here. Deals with rounding and overflow calculation
@@ -101,7 +87,7 @@ template <uint8_t Size> class Int {
 			bit_t should_increment = make_bit();
 			_xor(should_increment, sign_bit, src[truncate_from - 1]);
 			bitspan_t tmp = make_bitspan(data.size());
-			incr_if(tmp, should_increment, data);
+			increment_if(tmp, should_increment, data);
 			_copy(data, tmp);
 		}
 
@@ -128,9 +114,8 @@ class Int8 : public Int<8> {
 	Int8(StructHelper &helper) : Int(helper){};
 
 	// Initialize from a plaintext int8
-	Int8(int8_t src, ModePicker mode = DefaultMode) : Int(src, mode){};
-	Int8(int8_t src, StructHelper &helper, ModePicker mode = DefaultMode)
-	    : Int(src, helper, mode){};
+	Int8(int8_t src) : Int(src){};
+	Int8(int8_t src, StructHelper &helper) : Int(src, helper){};
 	// Inizialize from a char*
 	Int8(const std::string &packet) : Int(packet){};
 
@@ -141,13 +126,6 @@ class Int8 : public Int<8> {
 	void mul(bit_t overflow, Int8 a, Int8 b, uint8_t truncate_from = 0);
 	void mul(Int8 a, Int8 b, uint8_t truncate_from = 0);
 	void div(Int8 a, Int8 b);
-
-	void copy(const Int8 src);
-
-	bit_t is_zero() const;
-	bit_t is_nonzero() const;
-	void increment_if(bit_t cond);
-	void decrement_if(bit_t cond);
 
   private:
 	void round(bit_t overflow, const bitspan_t &src, uint8_t truncate_from);
@@ -163,9 +141,8 @@ class Int16 : public Int<16> {
 	Int16(StructHelper &helper) : Int(helper){};
 
 	// Initialize from a plaintext int16
-	Int16(int16_t src, ModePicker mode = DefaultMode) : Int(src, mode){};
-	Int16(int16_t src, StructHelper &helper, ModePicker mode = DefaultMode)
-	    : Int(src, helper, mode){};
+	Int16(int16_t src) : Int(src){};
+	Int16(int16_t src, StructHelper &helper) : Int(src, helper){};
 	// Inizialize from a char*
 	Int16(const std::string &packet) : Int(packet){};
 
@@ -176,13 +153,6 @@ class Int16 : public Int<16> {
 	void mul(bit_t overflow, Int16 a, Int16 b, uint8_t truncate_from = 0);
 	void mul(Int16 a, Int16 b, uint8_t truncate_from = 0);
 	void div(Int16 a, Int16 b);
-
-	void copy(Int16 src);
-
-	bit_t is_zero() const;
-	bit_t is_nonzero() const;
-	void increment_if(bit_t cond);
-	void decrement_if(bit_t cond);
 
   private:
 	void round(bit_t overflow, const bitspan_t &src, uint8_t truncate_from);

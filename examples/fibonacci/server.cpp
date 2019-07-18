@@ -21,13 +21,8 @@ int main() {
 		for (int i = 0; i < times; i++) {
 			printf("Iteration %d\n", i);
 			ret.add(first, second);
-			// todo: implement copy/move ctor for Int so that the following works
-			/*
-			first = second;
-			second = x;
-			*/
-			first.copy(second);
-			second.copy(ret);
+			_copy(first.data, second.data);
+			_copy(second.data, ret.data);
 		}
 		return ret.serialize();
 	});

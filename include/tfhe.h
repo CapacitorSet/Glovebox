@@ -53,6 +53,14 @@ class ServerParams {
 };
 #endif
 
+#if GB_SERVER
+extern thread_local ServerParams server_params;
+#define weak_params server_params
+#else
+extern thread_local ClientParams client_params;
+#define weak_params client_params
+#endif
+
 ClientKey read_client_key(char const *filename);
 ClientKey read_client_key(FILE *);
 void free_client_key(ClientKey);
@@ -65,24 +73,11 @@ void free_server_key(ServerKey);
 typedef gsl::span<> bitspan_t;
 typedef gsl::span<1> bit_t;
 
-#if GB_SERVER
-extern thread_local ServerParams server_params;
-#define weak_params server_params
-#else
-extern thread_local ClientParams client_params;
-#define weak_params client_params
-#endif
-
-enum class ModePicker { CLIENT, SERVER };
-// todo: drop
-#define DefaultMode (GB_SERVER ? ModePicker::SERVER : ModePicker::CLIENT)
-
 bit_t make_bit();
 bitspan_t make_bitspan(int N);
 
 template <uint8_t size> class fixed_bitspan_t : public gsl::span<size> {
   public:
-	// Seemingly required to instance the inner span
 	explicit fixed_bitspan_t(gsl::span<size> span) : gsl::span<size>(span){};
 	// Checks at runtime that this conversion is possible.
 	// This operator is explicit so that we can do semmingly-unsafe conversions
@@ -103,12 +98,12 @@ template <uint8_t size> fixed_bitspan_t<size> make_bitspan() {
 	return fixed_bitspan_t<size>(span);
 }
 
-int decrypt(bit_t dst);
-
 void _unsafe_constant(bit_t dst, bool src);
-
 #if GB_SERVER
 static void inline constant(bit_t dst, bool src) {
+	_unsafe_constant(dst, src);
+}
+static void inline write(bit_t dst, bool src) {
 	_unsafe_constant(dst, src);
 }
 #else
@@ -116,8 +111,12 @@ static void inline constant(bit_t, bool) {
 	fprintf(stderr, "constant() was called in client mode - exiting.\n");
 	abort();
 }
-#endif
 void encrypt(bit_t dst, bool src);
+int decrypt(bit_t dst);
+static void inline write(bit_t dst, bool src) {
+	encrypt(dst, src);
+}
+#endif
 
 void _not(bit_t dst, bit_t a);
 void _and(bit_t dst, bit_t a, bit_t b);
