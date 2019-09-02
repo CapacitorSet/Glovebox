@@ -1,0 +1,101 @@
+<!DOCTYPE html><title>Getting started with Glovebox</title><link rel="stylesheet" href="./css/tbmfw.css"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/default.min.css"><h1 style="text-align: center">Getting started with Glovebox</h1><p>This document is meant to be a hands-on guide to using Glovebox for C++ developers. You can find more detailed information in the reference (<tt>docs/reference.md</tt>).</p><p>You can find both client and server code examples; use the buttons below to hide one or the other.</p><!-- Yes, I'm a bad person who uses tables for layout.--><table width="100%"><tr><td><label><input type="radio" name="radio" id="radioBoth" checked>&nbsp;View both</label></td><td><label><input type="radio" name="radio" id="radioServer">&nbsp;Server only</label></td><td><label><input type="radio" name="radio" id="radioClient">&nbsp;Client only</label></td></tr></table><h2>Key generation</h2><p>As with all encryption libraries, you must generate keys before you can do anything useful. You can find a short program in <tt>examples/keygen/main.cpp</tt>; just compile it, run it once, and distribute the keys securely. Note that it will generate a keypair, with <tt>secret.key</tt> being the secret key (which allows one to encrypt and decrypt data) and <tt>cloud.key</tt> being the public key (which allows one to make computations on data, but not decrypt it).</p><h2>Boilerplate</h2><p><em>todo: add compilation command</em></p><p><em>todo: document <tt>GB_SERVER</tt>. critical!</em></p><p>This is the minimum required to make a Glovebox client-server application. It relies on <a href="https://github.com/rpclib/rpclib/">rpclib</a> to handle the client-server communication: of course, you're free to use a RPC library/mechanism of your choice. Compile with <code>g++ client.cpp ???</code>.</p><p>The usage of <tt>ClientParams</tt> and <tt>ServerParams</tt> is not of interest for most applications, so you can just copy&amp;paste it. If you're interested in the internals anyway, they are explored in the reference.</p><pre class="client"><code class="hljs"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;glovebox.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;rpc/client.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;rpc/rpc_error.h&gt;</span></span>
+
+<span class="hljs-keyword">thread_local</span> ClientParams client_params;
+
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>{
+	ClientKey key = read_client_key(<span class="hljs-string">"secret.key"</span>);
+	<span class="hljs-keyword">if</span> (key == <span class="hljs-literal">nullptr</span>) {
+		<span class="hljs-built_in">puts</span>(<span class="hljs-string">"secret.key not found: run ./keygen first."</span>);
+		<span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+	}
+	client_params = ClientParams(key);
+
+	rpc::<span class="hljs-function">client <span class="hljs-title">client</span><span class="hljs-params">(<span class="hljs-string">"127.0.0.1"</span>, <span class="hljs-number">8000</span>)</span></span>;
+
+	<span class="hljs-comment">// Code here...</span>
+
+	free_client_key(key);
+}</code></pre><pre class="server"><code class="hljs"><span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;glovebox.h&gt;</span></span>
+<span class="hljs-meta">#<span class="hljs-meta-keyword">include</span> <span class="hljs-meta-string">&lt;rpc/server.h&gt;</span></span>
+
+<span class="hljs-keyword">thread_local</span> ServerParams server_params;
+
+<span class="hljs-function"><span class="hljs-keyword">int</span> <span class="hljs-title">main</span><span class="hljs-params">()</span> </span>{
+	ServerKey key = read_server_key(<span class="hljs-string">"cloud.key"</span>);
+	<span class="hljs-keyword">if</span> (key == <span class="hljs-literal">nullptr</span>) {
+		<span class="hljs-built_in">puts</span>(<span class="hljs-string">"cloud.key not found: run ./keygen first."</span>);
+		<span class="hljs-keyword">return</span> <span class="hljs-number">1</span>;
+	}
+	server_params = ServerParams(key);
+
+	rpc::<span class="hljs-function">server <span class="hljs-title">srv</span><span class="hljs-params">(<span class="hljs-number">8000</span>)</span></span>;
+
+	<span class="hljs-comment">// Handlers here...</span>
+
+	srv.run();
+
+	free_server_key(key);
+}
+</code></pre><h2>Minimal example: addition</h2><p>Let's head straight into something you can use: a (client-server) application where the client sends two numbers and the server adds them together.</p><p>This example shows the basics of using Glovebox. Starting from the client code, and leaving aside the details of <code>Int&lt;8&gt;</code> for a moment, the first thing you can see is the creation of encrypted objects. <code>Int8 a = 1</code> will create an <em>encrypted</em> Int object from the number <tt>1</tt>, which is ready to be sent across the network. All that's left to do is serialize it into a string with <code>.serialize()</code>, and then pass it to the RPC library to send it to the server.</p><p>The server deserializes the strings into encrypted Ints (which it can't decrypt!), and then operates on them. For performance reasons there are no overloaded operators, and you must call methods instead. When you send data back to the client you simply serialize it, and the client will deserialize it before transforming it - decrypt it, really - into a plaintext int.</p><pre class="client"><code class="hljs"><span class="hljs-keyword">using</span> Int8 = Int&lt;<span class="hljs-number">8</span>&gt;;
+<span class="hljs-comment">// The constructor creates encrypted objects from plaintext numbers</span>
+Int8 a = <span class="hljs-number">1</span>, b = <span class="hljs-number">1</span>;
+<span class="hljs-comment">// Explicit serialization and deserialization</span>
+<span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> output = client.call(<span class="hljs-string">"add"</span>, a.serialize(), b.serialize()).as&lt;<span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span>&gt;();
+<span class="hljs-function">Int8 <span class="hljs-title">result</span><span class="hljs-params">(output)</span></span>;
+<span class="hljs-comment">// An idiomatic alternative that makes use of implicit deserialization would be:</span>
+<span class="hljs-comment">// Int8 result = client.call("add", a.serialize() ...).as&lt;std::string&gt;();</span>
+<span class="hljs-built_in">std</span>::<span class="hljs-built_in">cout</span> &lt;&lt; <span class="hljs-string">"Result: "</span> &lt;&lt; result.toInt() &lt;&lt; <span class="hljs-built_in">std</span>::<span class="hljs-built_in">endl</span>;</code></pre><pre class="server"><code class="hljs"><span class="hljs-comment">// This is an example of binding a procedure. The .bind part will be skipped in the other examples.</span>
+srv.bind(<span class="hljs-string">"add"</span>, [](<span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> a_str, <span class="hljs-built_in">std</span>::<span class="hljs-built_in">string</span> b_str) {
+	<span class="hljs-comment">// Deserialization happens in the constructor.</span>
+	Int8 a(a_str), b(b_str);
+	Int8 result = <span class="hljs-number">0</span>;
+	result.add(first, second);
+	<span class="hljs-keyword">return</span> result.serialize();
+});
+</code></pre><h2>Primitives: back to bits</h2><p><em>todo: document utilities for bitspans (memcpy etc)</em></p><p>The fundamental data type is <code>bit_t</code>, which represents an encrypted bit. Its building blocks are logic gates (NOT, AND, OR... + MUX), and map directly to TFHE operations on <code>LweSample</code>s. A useful construct is <code>bitspan_t</code>, which looks like a dynamic array of <code>bit_t</code> (but it's not resizable); all other datatypes are abstractions on top of bits and bitspans.</p><td><pre><code class="hljs"><span class="hljs-comment">// Allocate a bit; it will be deallocated automatically when it goes out of scope</span>
+<span class="hljs-keyword">bit_t</span> foo = make_bit(), bar = make_bit(), baz = make_bit();
+<span class="hljs-keyword">bit_t</span> output = make_bit();
+_and(output, foo, bar); <span class="hljs-comment">// output = foo AND bar</span>
+_oryn(output, foo, bar); <span class="hljs-comment">// output = foo OR NOT bar</span>
+_nand(output, foo, bar);
+_mux(output, foo, bar, baz); <span class="hljs-comment">// output = foo ? bar : baz</span>
+
+<span class="hljs-comment">// The size of bitspans is fixed and determined at initialization.</span>
+<span class="hljs-comment">// They are also deallocated automatically when going out of scope.</span>
+<span class="hljs-keyword">bitspan_t</span> test = make_bitspan(<span class="hljs-number">3</span>);
+_and(test[<span class="hljs-number">0</span>], test[<span class="hljs-number">1</span>], test[<span class="hljs-number">2</span>]);
+</code></pre></td><h2>Encryption, decryption, assignments</h2><p>Glovebox, and homomorphic encryption in general, makes a difference between <em>assigning a constant</em> or a <em>encrypting a value</em>. The first refers to writing public, non-sensitive data into a variable (eg. a counter that is initialized to zero), while the second refers to writing private, sensitive data into a variable (eg. a patient's weight). They both produce encrypted objects, but the former is implemented as a dummy "encryption" that is easily reversed, while the latter uses real encryption.</p><p>To prevent API mistakes that would result in a critical security failure, Glovebox different methods:<ul><li><code>constant()</code> does the former, and can only be used from servers; using it in clients will cause a crash, so that you don't mistakenly transmit sensitive data in clear.</li><li><code>encrypt()</code> does the latter, and can only be used from clients; in server code it isn't declared in the first place, since you wouldn't have a key to use it with.</li><li><code>write()</code> automatically selects the correct method. This is what you should prefer.</li><li><code>_unsafe_constant()</code> lets you override the check and assign constants even in client code. As it is unsafe, use it when you're certain you're dealing with public data, eg. initializing variables to a blank state.</li></ul></p><p>Constructors for objects will use the appropriate method: something like <code>Int&lt;8&gt; a = 1</code> will always do the right thing (encrypt <tt>1</tt> if you're a client, set a constant <tt>1</tt> if you're a server).</p><pre class="client"><code class="hljs"><span class="hljs-keyword">bit_t</span> my_data = make_bit();
+<span class="hljs-comment">// This will be "truly" encrypted</span>
+encrypt(my_data, <span class="hljs-literal">true</span>);
+<span class="hljs-comment">// Preferred idiom</span>
+write(my_data, <span class="hljs-literal">true</span>);
+
+Int&lt;<span class="hljs-number">8</span>&gt; my_num = <span class="hljs-number">1</span>;</code></pre><pre class="server"><code class="hljs"><span class="hljs-keyword">bit_t</span> my_data = make_bit();
+<span class="hljs-comment">// This will use a dummy encryption</span>
+constant(my_data, <span class="hljs-literal">true</span>);
+<span class="hljs-comment">// Preferred idiom</span>
+write(my_data, <span class="hljs-literal">true</span>);
+
+Int&lt;<span class="hljs-number">8</span>&gt; my_num = <span class="hljs-number">1</span>;
+</code></pre><h4>Credits</h4><p>Inspiration from <a href="https://learnxinyminutes.com/">learnxinyminutes</a>, CSS from <a href="https://thebestmotherfucking.website">TBMFW</a>.</p><script>var serverBlocks = document.getElementsByClassName("server");
+var clientBlocks = document.getElementsByClassName("client");
+document.getElementById("radioBoth").addEventListener("change", function(it) {
+	for (var i = 0; i < serverBlocks.length; i++) {
+		serverBlocks[i].style.display = "";
+		clientBlocks[i].style.display = "";
+	}
+});
+document.getElementById("radioServer").addEventListener("change", function(it) {
+	for (var i = 0; i < serverBlocks.length; i++) {
+		serverBlocks[i].style.display = "";
+		clientBlocks[i].style.display = "none";
+	}
+});
+document.getElementById("radioClient").addEventListener("change", function(it) {
+	for (var i = 0; i < serverBlocks.length; i++) {
+		serverBlocks[i].style.display = "none";
+		clientBlocks[i].style.display = "";
+	}
+});</script>

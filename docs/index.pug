@@ -1,0 +1,190 @@
+doctype html
+title Getting started with Glovebox
+link(rel="stylesheet" href="./css/tbmfw.css")
+link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/default.min.css")
+h1(style="text-align: center") Getting started with Glovebox
+
+p This document is meant to be a hands-on guide to using Glovebox for C++ developers. You can find more detailed information in the reference (#[tt docs/reference.md]).
+
+p You can find both client and server code examples; use the buttons below to hide one or the other.
+
+// Yes, I'm a bad person who uses tables for layout.
+table(width="100%"): tr
+	td: label
+		input(type="radio" name="radio" id="radioBoth" checked)
+		| &nbsp;View both
+	td: label
+		input(type="radio" name="radio" id="radioServer")
+		| &nbsp;Server only
+	td: label
+		input(type="radio" name="radio" id="radioClient")
+		| &nbsp;Client only
+
+h2 Key generation
+
+p As with all encryption libraries, you must generate keys before you can do anything useful. You can find a short program in #[tt examples/keygen/main.cpp]; just compile it, run it once, and distribute the keys securely. Note that it will generate a keypair, with #[tt secret.key] being the secret key (which allows one to encrypt and decrypt data) and #[tt cloud.key] being the public key (which allows one to make computations on data, but not decrypt it).
+
+h2 Boilerplate
+
+p: em todo: add compilation command
+
+p: em todo: document #[tt GB_SERVER]. critical!
+
+p This is the minimum required to make a Glovebox client-server application. It relies on #[a(href="https://github.com/rpclib/rpclib/") rpclib] to handle the client-server communication: of course, you're free to use a RPC library/mechanism of your choice. Compile with #[code g++ client.cpp ???].
+
+p The usage of #[tt ClientParams] and #[tt ServerParams] is not of interest for most applications, so you can just copy&amp;paste it. If you're interested in the internals anyway, they are explored in the reference.
+
+pre.client: code.hljs
+	:highlight(lang="c++")
+		#include <glovebox.h>
+		#include <rpc/client.h>
+		#include <rpc/rpc_error.h>
+
+		thread_local ClientParams client_params;
+
+		int main() {
+			ClientKey key = read_client_key("secret.key");
+			if (key == nullptr) {
+				puts("secret.key not found: run ./keygen first.");
+				return 1;
+			}
+			client_params = ClientParams(key);
+
+			rpc::client client("127.0.0.1", 8000);
+
+			// Code here...
+
+			free_client_key(key);
+		}
+pre.server: code.hljs
+	:highlight(lang="c++")
+		#include <glovebox.h>
+		#include <rpc/server.h>
+
+		thread_local ServerParams server_params;
+
+		int main() {
+			ServerKey key = read_server_key("cloud.key");
+			if (key == nullptr) {
+				puts("cloud.key not found: run ./keygen first.");
+				return 1;
+			}
+			server_params = ServerParams(key);
+
+			rpc::server srv(8000);
+
+			// Handlers here...
+
+			srv.run();
+
+			free_server_key(key);
+		}
+
+h2 Minimal example: addition
+
+p Let's head straight into something you can use: a (client-server) application where the client sends two numbers and the server adds them together.
+
+p This example shows the basics of using Glovebox. Starting from the client code, and leaving aside the details of #[code Int&lt;8&gt;] for a moment, the first thing you can see is the creation of encrypted objects. #[code Int8 a = 1] will create an #[em encrypted] Int object from the number #[tt 1], which is ready to be sent across the network. All that's left to do is serialize it into a string with #[code .serialize()], and then pass it to the RPC library to send it to the server.
+
+p The server deserializes the strings into encrypted Ints (which it can't decrypt!), and then operates on them. For performance reasons there are no overloaded operators, and you must call methods instead. When you send data back to the client you simply serialize it, and the client will deserialize it before transforming it - decrypt it, really - into a plaintext int.
+
+pre.client: code.hljs
+	:highlight(lang="c++")
+		using Int8 = Int<8>;
+		// The constructor creates encrypted objects from plaintext numbers
+		Int8 a = 1, b = 1;
+		// Explicit serialization and deserialization
+		std::string output = client.call("add", a.serialize(), b.serialize()).as<std::string>();
+		Int8 result(output);
+		// An idiomatic alternative that makes use of implicit deserialization would be:
+		// Int8 result = client.call("add", a.serialize() ...).as<std::string>();
+		std::cout << "Result: " << result.toInt() << std::endl;
+pre.server: code.hljs
+	:highlight(lang="c++")
+		// This is an example of binding a procedure. The .bind part will be skipped in the other examples.
+		srv.bind("add", [](std::string a_str, std::string b_str) {
+			// Deserialization happens in the constructor.
+			Int8 a(a_str), b(b_str);
+			Int8 result = 0;
+			result.add(first, second);
+			return result.serialize();
+		});
+
+h2 Primitives: back to bits
+
+p: em todo: document utilities for bitspans (memcpy etc)
+
+p The fundamental data type is #[code bit_t], which represents an encrypted bit. Its building blocks are logic gates (NOT, AND, OR... + MUX), and map directly to TFHE operations on #[code LweSample]s. A useful construct is #[code bitspan_t], which looks like a dynamic array of #[code bit_t] (but it's not resizable); all other datatypes are abstractions on top of bits and bitspans.
+
+td: pre: code.hljs
+	:highlight(lang="c++")
+		// Allocate a bit; it will be deallocated automatically when it goes out of scope
+		bit_t foo = make_bit(), bar = make_bit(), baz = make_bit();
+		bit_t output = make_bit();
+		_and(output, foo, bar); // output = foo AND bar
+		_oryn(output, foo, bar); // output = foo OR NOT bar
+		_nand(output, foo, bar);
+		_mux(output, foo, bar, baz); // output = foo ? bar : baz
+
+		// The size of bitspans is fixed and determined at initialization.
+		// They are also deallocated automatically when going out of scope.
+		bitspan_t test = make_bitspan(3);
+		_and(test[0], test[1], test[2]);
+
+h2 Encryption, decryption, assignments
+
+p Glovebox, and homomorphic encryption in general, makes a difference between #[em assigning a constant] or a #[em encrypting a value]. The first refers to writing public, non-sensitive data into a variable (eg. a counter that is initialized to zero), while the second refers to writing private, sensitive data into a variable (eg. a patient's weight). They both produce encrypted objects, but the former is implemented as a dummy "encryption" that is easily reversed, while the latter uses real encryption.
+
+p
+	| To prevent API mistakes that would result in a critical security failure, Glovebox different methods:
+	ul
+		li #[code constant()] does the former, and can only be used from servers; using it in clients will cause a crash, so that you don't mistakenly transmit sensitive data in clear.
+		li #[code encrypt()] does the latter, and can only be used from clients; in server code it isn't declared in the first place, since you wouldn't have a key to use it with.
+		li #[code write()] automatically selects the correct method. This is what you should prefer.
+		li #[code _unsafe_constant()] lets you override the check and assign constants even in client code. As it is unsafe, use it when you're certain you're dealing with public data, eg. initializing variables to a blank state.
+
+p Constructors for objects will use the appropriate method: something like #[code Int&lt;8&gt; a = 1] will always do the right thing (encrypt #[tt 1] if you're a client, set a constant #[tt 1] if you're a server).
+
+pre.client: code.hljs
+	:highlight(lang="c++")
+		bit_t my_data = make_bit();
+		// This will be "truly" encrypted
+		encrypt(my_data, true);
+		// Preferred idiom
+		write(my_data, true);
+
+		Int<8> my_num = 1;
+pre.server: code.hljs
+	:highlight(lang="c++")
+		bit_t my_data = make_bit();
+		// This will use a dummy encryption
+		constant(my_data, true);
+		// Preferred idiom
+		write(my_data, true);
+
+		Int<8> my_num = 1;
+
+h4 Credits
+
+p Inspiration from #[a(href="https://learnxinyminutes.com/") learnxinyminutes], CSS from #[a(href="https://thebestmotherfucking.website") TBMFW].
+script.
+	var serverBlocks = document.getElementsByClassName("server");
+	var clientBlocks = document.getElementsByClassName("client");
+	document.getElementById("radioBoth").addEventListener("change", function(it) {
+		for (var i = 0; i < serverBlocks.length; i++) {
+			serverBlocks[i].style.display = "";
+			clientBlocks[i].style.display = "";
+		}
+	});
+	document.getElementById("radioServer").addEventListener("change", function(it) {
+		for (var i = 0; i < serverBlocks.length; i++) {
+			serverBlocks[i].style.display = "";
+			clientBlocks[i].style.display = "none";
+		}
+	});
+	document.getElementById("radioClient").addEventListener("change", function(it) {
+		for (var i = 0; i < serverBlocks.length; i++) {
+			serverBlocks[i].style.display = "none";
+			clientBlocks[i].style.display = "";
+		}
+	});
