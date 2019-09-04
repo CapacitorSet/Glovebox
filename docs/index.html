@@ -54,7 +54,7 @@ srv.bind(<span class="hljs-string">"add"</span>, [](<span class="hljs-built_in">
 	result.add(first, second);
 	<span class="hljs-keyword">return</span> result.serialize();
 });
-</code></pre><h2>Primitives: back to bits</h2><p><em>todo: document utilities for bitspans (memcpy etc)</em></p><p>The fundamental data type is <code>bit_t</code>, which represents an encrypted bit. Its building blocks are logic gates (NOT, AND, OR... + MUX), and map directly to TFHE operations on <code>LweSample</code>s. A useful construct is <code>bitspan_t</code>, which looks like a dynamic array of <code>bit_t</code> (but it's not resizable); all other datatypes are abstractions on top of bits and bitspans.</p><td><pre><code class="hljs"><span class="hljs-comment">// Allocate a bit; it will be deallocated automatically when it goes out of scope</span>
+</code></pre><h2>Primitives: back to bits</h2><p><em>todo: document utilities for bitspans (memcpy etc)</em></p><p>The fundamental data type is <code>bit_t</code>, which represents an encrypted bit. Its building blocks are logic gates (NOT, AND, OR... + MUX), and map directly to TFHE operations on <code>LweSample</code>s. A useful construct is <code>bitspan_t</code>, which looks like a dynamic array of <code>bit_t</code> (but it's not resizable); all other datatypes are abstractions on top of bits and bitspans. For this reason, you can access the underlying bitspan for such datatypes with <code>.data()</code> (least significant bit first).</p><td><pre><code class="hljs"><span class="hljs-comment">// Allocate a bit; it will be deallocated automatically when it goes out of scope</span>
 <span class="hljs-keyword">bit_t</span> foo = make_bit(), bar = make_bit(), baz = make_bit();
 <span class="hljs-keyword">bit_t</span> output = make_bit();
 _and(output, foo, bar); <span class="hljs-comment">// output = foo AND bar</span>
@@ -66,6 +66,12 @@ _mux(output, foo, bar, baz); <span class="hljs-comment">// output = foo ? bar : 
 <span class="hljs-comment">// They are also deallocated automatically when going out of scope.</span>
 <span class="hljs-keyword">bitspan_t</span> test = make_bitspan(<span class="hljs-number">3</span>);
 _and(test[<span class="hljs-number">0</span>], test[<span class="hljs-number">1</span>], test[<span class="hljs-number">2</span>]);
+
+Int&lt;<span class="hljs-number">8</span>&gt; test_int = <span class="hljs-number">9</span>; <span class="hljs-comment">// Binary: 00001001</span>
+<span class="hljs-comment">// Let's manipulate the raw bits!</span>
+write(test_int.data()[<span class="hljs-number">2</span>], <span class="hljs-literal">true</span>);
+<span class="hljs-comment">// test_int is now 00001101. And indeed...</span>
+<span class="hljs-built_in">printf</span>(<span class="hljs-string">"%d\n"</span>, test_int.toInt()); <span class="hljs-comment">// Will print 13</span>
 </code></pre></td><h2>Encryption, decryption, assignments</h2><p>Glovebox, and homomorphic encryption in general, makes a difference between <em>assigning a constant</em> or a <em>encrypting a value</em>. The first refers to writing public, non-sensitive data into a variable (eg. a counter that is initialized to zero), while the second refers to writing private, sensitive data into a variable (eg. a patient's weight). They both produce encrypted objects, but the former is implemented as a dummy "encryption" that is easily reversed, while the latter uses real encryption.</p><p>To prevent API mistakes that would result in a critical security failure, Glovebox different methods:<ul><li><code>constant()</code> does the former, and can only be used from servers; using it in clients will cause a crash, so that you don't mistakenly transmit sensitive data in clear.</li><li><code>encrypt()</code> does the latter, and can only be used from clients; in server code it isn't declared in the first place, since you wouldn't have a key to use it with.</li><li><code>write()</code> automatically selects the correct method. This is what you should prefer.</li><li><code>_unsafe_constant()</code> lets you override the check and assign constants even in client code. As it is unsafe, use it when you're certain you're dealing with public data, eg. initializing variables to a blank state.</li></ul></p><p>Constructors for objects will use the appropriate method: something like <code>Int&lt;8&gt; a = 1</code> will always do the right thing (encrypt <tt>1</tt> if you're a client, set a constant <tt>1</tt> if you're a server).</p><pre class="client"><code class="hljs"><span class="hljs-keyword">bit_t</span> my_data = make_bit();
 <span class="hljs-comment">// This will be "truly" encrypted</span>
 encrypt(my_data, <span class="hljs-literal">true</span>);
@@ -79,7 +85,47 @@ constant(my_data, <span class="hljs-literal">true</span>);
 write(my_data, <span class="hljs-literal">true</span>);
 
 Int&lt;<span class="hljs-number">8</span>&gt; my_num = <span class="hljs-number">1</span>;
-</code></pre><h4>Credits</h4><p>Inspiration from <a href="https://learnxinyminutes.com/">learnxinyminutes</a>, CSS from <a href="https://thebestmotherfucking.website">TBMFW</a>.</p><script>var serverBlocks = document.getElementsByClassName("server");
+</code></pre><div class="server"><h2>Flow control</h2><p>Flow control in homomorphically encrypted environments works somewhat differently than in standard computing. For an intuitive explanation, think of writing an application that receives an encrypted bit from the client, with an <code>if</code> that performs very expensive operations (eg. 100 float multiplications) and an <code>else</code> that performs some simpler ones (eg. one xor). If the <code>if</code> construct behaved the way it usually does, you could simply time your program and infer that the encrypted bit was <tt>0</tt> if it took very little, and <tt>1</tt> if it took very long.</p><p>For this reason, traditional flow control isn't possible. We can however emulate a traditional <code>if</code> by always executing the branch <em>but</em> using the condition bit as a mask (specifically, an input to a mux): when the mask is high, the data computed in the branch is copied to memory, and when it is low, nothing happens (the original data is copied onto itself). Consider this practical example:</p><p><em>todo: implement an elvis operator to use a single mux. signature: <code>elvis(bits&lt;N&gt; output, bit_t cond, bits&lt;N&gt; _if, bits&lt;N&gt; _else)</code></em></p><pre><code class="hljs"><span class="hljs-keyword">bit_t</span> isPremiumCustomer = <span class="hljs-comment">/* some encrypted data from the client */</span>;
+Int&lt;<span class="hljs-number">8</span>&gt; price = <span class="hljs-comment">/* likewise */</span>;
+<span class="hljs-comment">// A snippet that applies a -5 discount if the customer is "premium"</span>
+_if(whatOperation, [&amp;](<span class="hljs-keyword">bit_t</span> mask) {
+	<span class="hljs-comment">// Do the operation in a temporary variable</span>
+	Int&lt;<span class="hljs-number">8</span>&gt; tmpResult = <span class="hljs-number">0</span>;
+	tmpResult.sub(price, <span class="hljs-number">5</span>);
+	<span class="hljs-comment">// Copy tmpResult into result if mask is true; do nothing otherwise</span>
+	_mux(shouldAdd, result.data(), tmpResult.data(), result.data());
+});
+
+<span class="hljs-comment">// Will compile to:</span>
+
+<span class="hljs-keyword">bit_t</span> mask = make_bit();
+_copy(mask, whatOperation);
+<span class="hljs-comment">// Do the operation in a temporary variable</span>
+Int&lt;<span class="hljs-number">8</span>&gt; tmpResult = <span class="hljs-number">0</span>;
+tmpResult.sub(price, <span class="hljs-number">5</span>);
+_mux(mask, result.data(), tmpResult.data(), result.data());
+</code></pre><p>There's also an <code>_if_else</code> construct, which works just like you expect. However, note that implementing operations like <code>result = cond ? a : b</code> (i.e. writing different data to the same variable depending on a condition) with an <code>if_else</code> will use two muxes where one would suffice. In such cases, use the <code>elvis</code> function (yet to be developed!).</p><p>For similar reasons we can't implement <code>while</code> directly (hint: you could decrypt ints by setting up an expensive while loop that decrements the variable). What can be done however, is running an <code>if</code> loop for a fixed (plaintext) number of times, the "limit". This in turn reveals another intrinsic restriction to flow control in homomorphic encryption: you can't have unbounded, data-dependent loops (i.e. a <code>while</code> that might run for arbitrarily long depending on some encrypted value). In practice, <code>while</code> loops are very expensive because they generally run the loop a large number of times, so they should be avoided when possible.</p><pre><code class="hljs"><span class="hljs-comment">/* Plaintext version:
+while (num_mutual_contacts &lt; 3)
+	if (is_mutual_contact(/* ... */</span>))
+		num_mutual_contacts++;
+*/
+Int&lt;<span class="hljs-number">8</span>&gt; num_mutual_contacts = <span class="hljs-number">0</span>;
+<span class="hljs-comment">// Iterate at most 100 times.</span>
+<span class="hljs-keyword">const</span> <span class="hljs-keyword">int</span> max_iterations = <span class="hljs-number">100</span>;
+<span class="hljs-comment">// Will run the loop 100 times, and while_mask will be true while the condition is true.</span>
+_while([&amp;]() { <span class="hljs-keyword">return</span> num_mutual_contacts.lesserThan(<span class="hljs-number">3</span>); }, max_iterations, [&amp;](<span class="hljs-keyword">bit_t</span> while_mask) {
+	<span class="hljs-keyword">bit_t</span> is_contact_mask = is_mutual_contact(<span class="hljs-comment">/* ... */</span>);
+	<span class="hljs-comment">// Don't forget to combine masks if you have several!</span>
+	<span class="hljs-keyword">bit_t</span> mask = make_bit();
+	_and(mask, while_mask, is_contact_mask);
+	num_mutual_contacts.increment_if(mask);
+});
+</code></pre><p>Finally, there's a <code>times</code> function that replicates the traditional <code>for (i = 0; i &lt; n; i++)</code> loop. It's a helper function on top of <code>while</code>, so it too takes a maximum number of iterations.</p><pre><code class="hljs">Int&lt;<span class="hljs-number">8</span>&gt; num_times = <span class="hljs-comment">/* some value from the client. Must be &lt;100 */</span>;
+times(num_times, <span class="hljs-number">100</span>, [&amp;](<span class="hljs-keyword">bit_t</span> mask) {
+	do_something(mask);
+});
+</code></pre><p><strong>Don't forget to use masks in your flow branches!</strong> Forgetting to do so will cause weird bugs, e.g. an <code>if</code> that "somehow" runs both the if and the else branch or a <code>while</code> that straight out ignores the condition.
+</p><p>Notice the use of <code>increment_if</code> in the <code>while</code> example. It is a helper function that takes a mask variable so you don't have to write out the verbose <code>if</code> body. There are a few <code>_if</code> helper functions in Glovebox, and their use is strongly recommended - not only it reduces the complexity of your code and makes it more elegant, they're also potentially more efficient. </p></div><h2>Arrays</h2><p><em>todo: mention future improvements in TFHE with packing that might make this faster for plaintext LUTs</em></p><p><em>todo: implement arrays as vectors, there's no reason for the length to be a template parameter</em></p><p><em>todo: mention count</em></p><p>Arrays work more or less the same as traditional arrays, with a key difference. While traditional arrays have constant-time access (it takes the same time to access some position, no matter whether the array has 1 item or 1 billion - caching aside), arrays in Glovebox must essentially compare the index against all positions, so access at an encrypted position runs in linear time. Access with a plaintext position on the other hand is no different than a standard array access, so it is constant-time.</p><p><em>todo: add example</em></p><h2>Strings</h2><p>Strings are simply an array of ASCII characters with some helper functions - nothing much to be said here.</p><p><em>todo: add example</em></p><h4>Credits</h4><p>Inspiration from <a href="https://learnxinyminutes.com/">learnxinyminutes</a>, CSS from <a href="https://thebestmotherfucking.website">TBMFW</a>.</p><script>var serverBlocks = document.getElementsByClassName("server");
 var clientBlocks = document.getElementsByClassName("client");
 document.getElementById("radioBoth").addEventListener("change", function(it) {
 	for (var i = 0; i < serverBlocks.length; i++) {
