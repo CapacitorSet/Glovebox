@@ -3,7 +3,7 @@ Glovebox
 
 A high-level wrapper around [libtfhe](https://github.com/tfhe/tfhe/). This is extremely **experimental**, alpha, and by all means not release-ready - feel free to peek at the features, but don't rely on its API.
 
-Check out the examples folder to see it in action.
+Check out the examples folder to see it in action, or head to the [Getting Started](https://capacitorset.github.io/Glovebox/) docs for an overview of the features.
 
 Note that this project is distributed under a **non-commercial license** (specifically, the [Commons Clause](https://commonsclause.com/) on top of Apache 2.0). For commercial usage please contact the author: capacitorset@gmail.com.
 
