@@ -52,14 +52,14 @@ int decrypt(bit_t dst) {
 
 bit_t make_bit() {
 	LweSample *cptr = new_gate_bootstrapping_ciphertext(weak_params.params);
-	auto ptr = gsl::shared_ptr_unsynchronized<LweSample>(cptr);
-	return gsl::span<1>(ptr, 1);
+	auto ptr = gb::shared_ptr_unsynchronized<LweSample>(cptr);
+	return bit_t(ptr, 1);
 }
 
 bitvec_t make_bitvec(int N) {
 	LweSample *cptr = new_gate_bootstrapping_ciphertext_array(N, weak_params.params);
-	auto ptr = gsl::shared_ptr_unsynchronized<LweSample>(cptr);
-	return gsl::span<>(ptr, N);
+	auto ptr = gb::shared_ptr_unsynchronized<LweSample>(cptr);
+	return bitvec_t(ptr, N);
 }
 
 #if GB_SERVER

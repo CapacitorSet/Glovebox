@@ -32,11 +32,11 @@ class StructHelper {
 		return ret;
 	}
 
-	template <uint8_t size> fixed_bitvec_t<size> make_bitvec() {
+	template <uint8_t size> gb::bitvec<size> make_bitvec() {
 		assert_fits(size);
 		auto ret = data.subspan<size>(offset);
 		offset += size;
-		return fixed_bitvec_t<size>(ret);
+		return gb::bitvec<size>(ret);
 	}
 
   private:

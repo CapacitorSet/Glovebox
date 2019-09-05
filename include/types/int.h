@@ -27,7 +27,7 @@ template <uint8_t Size> class Int {
 
   public:
 	static const int _wordSize = Size;
-	fixed_bitvec_t<Size> data;
+	gb::bitvec<Size> data;
 
 	// Create an Int, allocate memory, but do not initialize it
 	Int() : data(make_bitvec<Size>()){};

@@ -76,27 +76,14 @@ using bit_t = gb::bitvec<1>;
 bit_t make_bit();
 bitvec_t make_bitvec(int N);
 
-// Todo: replace with bitvec<N>?
-template <uint8_t size> class fixed_bitvec_t : public gb::bitvec<size> {
-  public:
-	explicit fixed_bitvec_t(gb::bitvec<size> span) : gb::bitvec<size>(span){};
-	// Checks at runtime that this conversion is possible.
-	// This operator is explicit so that we can do semmingly-unsafe conversions
-	// anyway
-	explicit fixed_bitvec_t(gb::bitvec<> span) : gb::bitvec<size>(span) {
-		assert(span.size() == size);
-	};
-};
-template <uint8_t size> fixed_bitvec_t<size> make_bitvec() {
-	// Can this be rewritten in terms of make_bitvec, subspan?
+template <uint8_t size> gb::bitvec<size> make_bitvec() {
 #if PLAINTEXT
 	auto cptr = reinterpret_cast<bool *>(malloc(size));
 #else
 	LweSample *cptr = new_gate_bootstrapping_ciphertext_array(size, weak_params.params);
 #endif
 	auto ptr = gb::shared_ptr_unsynchronized<unsafe_bit_t>(cptr);
-	auto span = gb::bitvec<size>(ptr, size);
-	return fixed_bitvec_t<size>(span);
+	return gb::bitvec<size>(ptr, size);
 }
 
 void _unsafe_constant(bit_t dst, bool src);
