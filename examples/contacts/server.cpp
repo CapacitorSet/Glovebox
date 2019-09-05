@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
 		for (const auto &contact : contacts) {
 			PhoneNumber contactNo(contact.phoneNumber);
 			bit_t matches = equals(contactNo.data, userNumber.data);
-			_or(isKnown, isKnown, matches);
+			isKnown |= matches;
 		}
 		return serialize(isKnown);
 	});

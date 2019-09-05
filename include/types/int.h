@@ -53,6 +53,10 @@ template <uint8_t Size> class Int {
 		for (int i = 0; i < Size; i++)
 			::write(data[i], (src >> i) & 1);
 	}
+	void operator=(native_type src) {
+		write(src);
+	}
+
 
 	std::string serialize() const {
 		char header[1];
@@ -99,7 +103,7 @@ template <uint8_t Size> class Int {
 		for (int i = truncate_from + Size; i < src.size(); i++) {
 			bit_t is_overflowing = make_bit();
 			_xor(is_overflowing, sign_bit, src[i]);
-			_or(overflow, overflow, is_overflowing);
+			overflow |= is_overflowing;
 		}
 	}
 };
@@ -118,6 +122,10 @@ class Int8 : public Int<8> {
 	Int8(int8_t src, StructHelper &helper) : Int(src, helper){};
 	// Inizialize from a char*
 	Int8(const std::string &packet) : Int(packet){};
+
+	void operator=(native_type src) {
+		write(src);
+	}
 
 	void add(bit_t overflow, Int8 a, Int8 b);
 	// Add and do not be notified if overflow happens
@@ -145,6 +153,10 @@ class Int16 : public Int<16> {
 	Int16(int16_t src, StructHelper &helper) : Int(src, helper){};
 	// Inizialize from a char*
 	Int16(const std::string &packet) : Int(packet){};
+
+	void operator=(native_type src) {
+		write(src);
+	}
 
 	void add(bit_t overflow, Int16 a, Int16 b);
 	// Add and do not be notified if overflow happens

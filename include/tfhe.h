@@ -69,7 +69,7 @@ ServerKey read_server_key(char const *filename);
 ServerKey read_server_key(FILE *);
 void free_server_key(ServerKey);
 
-#include <bitvec.h>
+#include <bitvec_decl.h>
 using bitvec_t = gb::bitvec<>;
 using bit_t = gb::bitvec<1>;
 
@@ -86,13 +86,48 @@ template <uint8_t size> gb::bitvec<size> make_bitvec() {
 	return gb::bitvec<size>(ptr, size);
 }
 
+void _not(bit_t dst, bit_t a);
+void _and(bit_t dst, bit_t a, bit_t b);
+void _andyn(bit_t dst, bit_t a, bit_t b);
+void _andny(bit_t dst, bit_t a, bit_t b);
+void _nand(bit_t dst, bit_t a, bit_t b);
+void _or(bit_t dst, bit_t a, bit_t b);
+void _oryn(bit_t dst, bit_t a, bit_t b);
+void _orny(bit_t dst, bit_t a, bit_t b);
+void _nor(bit_t dst, bit_t a, bit_t b);
+void _xor(bit_t dst, bit_t a, bit_t b);
+void _xnor(bit_t dst, bit_t a, bit_t b);
+void _mux(bit_t dst, bit_t cond, bit_t a, bit_t b);
+void _copy(bit_t dst, bit_t src);
+
+void _not(bitvec_t dst, bitvec_t a);
+void _and(bitvec_t dst, bitvec_t a, bitvec_t b);
+void _andyn(bitvec_t dst, bitvec_t a, bitvec_t b);
+void _andny(bitvec_t dst, bitvec_t a, bitvec_t b);
+void _nand(bitvec_t dst, bitvec_t a, bitvec_t b);
+void _or(bitvec_t dst, bitvec_t a, bitvec_t b);
+void _oryn(bitvec_t dst, bitvec_t a, bitvec_t b);
+void _orny(bitvec_t dst, bitvec_t a, bitvec_t b);
+void _nor(bitvec_t dst, bitvec_t a, bitvec_t b);
+void _xor(bitvec_t dst, bitvec_t a, bitvec_t b);
+void _xnor(bitvec_t dst, bitvec_t a, bitvec_t b);
+void _mux(bitvec_t dst, bit_t cond, bitvec_t a, bitvec_t b);
+void _copy(bitvec_t dst, bitvec_t src);
+
+void add(bitvec_t result, bitvec_t a, bitvec_t b);
+void mult(bitvec_t result, bitvec_t a, bitvec_t b);
+
+static void inline write(bit_t dst, bool src);
 void _unsafe_constant(bit_t dst, bool src);
+
+#include <bitvec.h>
+
 #if GB_SERVER
 static void inline constant(bit_t dst, bool src) {
 	_unsafe_constant(dst, src);
 }
 #else
-static void inline constant(bit_t, bool) {
+static void inline constant(bit_t&, bool) {
 	fprintf(stderr, "constant() was called in client mode - exiting.\n");
 	abort();
 }
@@ -107,22 +142,4 @@ static void inline write(bit_t dst, bool src) {
 	encrypt(dst, src);
 #endif
 }
-
-void _not(bit_t dst, bit_t a);
-void _and(bit_t dst, bit_t a, bit_t b);
-void _andyn(bit_t dst, bit_t a, bit_t b);
-void _andny(bit_t dst, bit_t a, bit_t b);
-void _nand(bit_t dst, bit_t a, bit_t b);
-void _or(bit_t dst, bit_t a, bit_t b);
-void _oryn(bit_t dst, bit_t a, bit_t b);
-void _orny(bit_t dst, bit_t a, bit_t b);
-void _nor(bit_t dst, bit_t a, bit_t b);
-void _xor(bit_t dst, bit_t a, bit_t b);
-void _xnor(bit_t dst, bit_t a, bit_t b);
-
-void _mux(bit_t dst, bit_t cond, bit_t a, bit_t b);
-void _copy(bit_t dst, bit_t src);
-
-void add(bitvec_t result, bitvec_t a, bitvec_t b);
-void mult(bitvec_t result, bitvec_t a, bitvec_t b);
 #endif // GLOVEBOX_TFHE_H

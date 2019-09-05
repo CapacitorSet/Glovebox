@@ -70,6 +70,12 @@ class Fixed : public smallest_Int<IntSize + FracSize> {
 	void constant(double src) {
 		BaseInt::constant(double_to_native(src));
 	}
+	void write(double src) {
+		BaseInt::write(double_to_native(src));
+	}
+	void operator=(double src) {
+		write(src);
+	}
 
 	void add(bit_t overflow, Fixed<IntSize, FracSize> a, Fixed<IntSize, FracSize> b) {
 		BaseInt::add(overflow, a, b);

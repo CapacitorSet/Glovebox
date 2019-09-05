@@ -72,7 +72,7 @@ bit_t any_of(const std::vector<T> src, const std::string &fnName, Args... args) 
 	bit_t ret = make_bit();
 	_unsafe_constant(ret, false);
 	for (const auto &result : results)
-		_or(ret, ret, result);
+		ret |= result;
 	return ret;
 }
 
@@ -84,7 +84,7 @@ bit_t all_of(const std::vector<T> src, const std::string &fnName, Args... args) 
 	bit_t ret = make_bit();
 	_unsafe_constant(ret, true);
 	for (const auto &result : results)
-		_and(ret, ret, result);
+		ret &= result;
 	return ret;
 }
 

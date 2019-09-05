@@ -19,22 +19,22 @@ template <class BaseClass> class Polynomial {
 		// todo: skip factors equal to zero if inited from vector<double>
 		auto result = BaseClass();
 		result.copy(factors[factors.size() - 1]);
-		constant(overflow, false);
+		overflow = false;
 
 		BaseClass old_result;
 		bit_t overflow_tmp = make_bit();
 		for (int i = factors.size() - 1; i-- > 0;) {
-			constant(overflow_tmp, false);
+			overflow_tmp = false;
 			// Prevents bugs if mul() reads its input after modifying the output
 			old_result.copy(result);
 			result.mul(overflow_tmp, old_result, x);
-			_or(overflow, overflow, overflow_tmp);
+			overflow |= overflow_tmp;
 
-			constant(overflow_tmp, false);
+			overflow_tmp = false;
 			// Same as above
 			old_result.copy(result);
 			result.add(overflow_tmp, old_result, factors[i]);
-			_or(overflow, overflow, overflow_tmp);
+			overflow |= overflow_tmp;
 		}
 		return result;
 	}

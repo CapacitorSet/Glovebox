@@ -1,9 +1,10 @@
 #include <cassert>
 #include <tfhe.h>
+#include <bitvec.h>
 
 void zero(bitvec_t src) {
-	for (auto bit : src)
-		write(bit, 0);
+	for (int i = 0; i < src.size(); i++)
+		src[i] = 0;
 }
 
 bit_t equals(bitvec_t a, bitvec_t b) {
@@ -13,7 +14,7 @@ bit_t equals(bitvec_t a, bitvec_t b) {
 	bit_t tmp = make_bit();
 	for (int i = 0; i < a.size(); i++) {
 		_xnor(tmp, a[i], b[i]);
-		_and(ret, ret, tmp);
+		ret &= tmp;
 	}
 	return ret;
 }
@@ -30,7 +31,7 @@ bit_t is_nonzero(bitvec_t src) {
 	bit_t ret = make_bit();
 	_copy(ret, src[0]);
 	for (int i = 1; i < src.size(); i++)
-		_or(ret, ret, src[i]);
+		ret |= src[i];
 	return ret;
 }
 
