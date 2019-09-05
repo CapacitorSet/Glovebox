@@ -28,7 +28,7 @@ template <class T, uint16_t Length, uint16_t WordSize = T::_wordSize> class Arra
 	static constexpr uint32_t Bitlength = WordSize * Length;
 
   public:
-	bitspan_t data;
+	bitvec_t data;
 
 	/*
 	static void getN_thBit(bits_t ret, uint8_t N, uint8_t wordsize,
@@ -38,7 +38,7 @@ template <class T, uint16_t Length, uint16_t WordSize = T::_wordSize> class Arra
 
 	static const int typeID = ARRAY_TYPE_ID;
 
-	explicit Array(bool initialize_memory = true) : data(make_bitspan(Bitlength)) {
+	explicit Array(bool initialize_memory = true) : data(make_bitvec(Bitlength)) {
 		if (initialize_memory)
 			zero(data);
 	}
@@ -140,7 +140,7 @@ template <class T, uint16_t Length, uint16_t WordSize = T::_wordSize> class Arra
 	}
 
   protected:
-	void putBits(const bitspan_t &src, const bitspan_t &address, size_t dynamicOffset, bit_t mask) {
+	void putBits(const bitvec_t &src, const bitvec_t &address, size_t dynamicOffset, bit_t mask) {
 		// Writes out of bounds are a no-op. This is necessary for arrays to
 		// work with sizes other than powers of two. Bound checks should be done
 		// at the caller.
@@ -191,7 +191,7 @@ template <class T, uint16_t Length, uint16_t WordSize = T::_wordSize> class Arra
 		        dynamicOffset + (1 << (address.size() - 1)), upperMask);
 	}
 
-	void getBits(const bitspan_t &dst, const bitspan_t &address, size_t dynamicOffset,
+	void getBits(const bitvec_t &dst, const bitvec_t &address, size_t dynamicOffset,
 	             bit_t mask) const {
 		// Reads out of bounds are a no-op. This is necessary for arrays to
 		// work with sizes other than powers of two. Bound checks should be done

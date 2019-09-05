@@ -38,7 +38,7 @@ int main() {
 		PhoneNumber phoneNumber(contact.phoneNumber, client_params);
 		phoneNumbers.push_back(phoneNumber.serialize());
 	}
-	bitspan_t mask =
+	bitvec_t mask =
 	    filter(phoneNumbers, "isKnownContact", client_params);
 	for (int i = 0; i < 10; i++) {
 		std::cout << (decrypt(mask[i]) ? "Known: " : "Not known: ")

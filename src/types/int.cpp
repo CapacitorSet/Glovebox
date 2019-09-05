@@ -15,7 +15,7 @@ void Int8::add(Int8 a, Int8 b) {
 }
 
 void Int8::mul(bit_t overflow, Int8 a, Int8 b, uint8_t truncate_from) {
-	auto tmp = make_bitspan<16>();
+	auto tmp = make_bitvec<16>();
 	::mul8(tmp, a.data, b.data);
 	this->round(overflow, tmp, truncate_from);
 }
@@ -29,7 +29,7 @@ void Int8::div(Int8 a, Int8 b) {
 	::div8(data, a.data, b.data);
 }
 
-void Int8::round(bit_t overflow, const bitspan_t &src, uint8_t truncate_from) {
+void Int8::round(bit_t overflow, const bitvec_t &src, uint8_t truncate_from) {
 	round_helper(overflow, src, truncate_from);
 }
 
@@ -43,7 +43,7 @@ void Int16::add(Int16 a, Int16 b) {
 }
 
 void Int16::mul(bit_t overflow, Int16 a, Int16 b, uint8_t truncate_from) {
-	auto tmp = make_bitspan<32>();
+	auto tmp = make_bitvec<32>();
 	::mul16(tmp, a.data, b.data);
 	this->round(overflow, tmp, truncate_from);
 }
@@ -57,6 +57,6 @@ void Int16::div(Int16 a, Int16 b) {
 	::div16(data, a.data, b.data);
 }
 
-void Int16::round(bit_t overflow, const bitspan_t &src, uint8_t truncate_from) {
+void Int16::round(bit_t overflow, const bitvec_t &src, uint8_t truncate_from) {
 	round_helper(overflow, src, truncate_from);
 }

@@ -27,11 +27,11 @@ template <uint8_t Size> class Int {
 
   public:
 	static const int _wordSize = Size;
-	fixed_bitspan_t<Size> data;
+	fixed_bitvec_t<Size> data;
 
 	// Create an Int, allocate memory, but do not initialize it
-	Int() : data(make_bitspan<Size>()){};
-	Int(StructHelper &helper) : data(helper.make_bitspan<Size>()){};
+	Int() : data(make_bitvec<Size>()){};
+	Int(StructHelper &helper) : data(helper.make_bitvec<Size>()){};
 
 	// Initialize from a plaintext int
 	Int(native_type src) : Int() {
@@ -76,8 +76,8 @@ template <uint8_t Size> class Int {
 #endif
 
   protected:
-	// Copy a larger bitspan here. Deals with rounding and overflow calculation
-	void round_helper(bit_t overflow, const bitspan_t &src, uint8_t truncate_from) {
+	// Copy a larger bitvec here. Deals with rounding and overflow calculation
+	void round_helper(bit_t overflow, const bitvec_t &src, uint8_t truncate_from) {
 		_copy(data, src.subspan(truncate_from, Size));
 		bit_t sign_bit = src.last();
 
@@ -86,7 +86,7 @@ template <uint8_t Size> class Int {
 			// which does not round to 0.01 but to 0.10.
 			bit_t should_increment = make_bit();
 			_xor(should_increment, sign_bit, src[truncate_from - 1]);
-			bitspan_t tmp = make_bitspan(data.size());
+			bitvec_t tmp = make_bitvec(data.size());
 			increment_if(tmp, should_increment, data);
 			_copy(data, tmp);
 		}
@@ -128,7 +128,7 @@ class Int8 : public Int<8> {
 	void div(Int8 a, Int8 b);
 
   private:
-	void round(bit_t overflow, const bitspan_t &src, uint8_t truncate_from);
+	void round(bit_t overflow, const bitvec_t &src, uint8_t truncate_from);
 };
 
 class Int16 : public Int<16> {
@@ -155,7 +155,7 @@ class Int16 : public Int<16> {
 	void div(Int16 a, Int16 b);
 
   private:
-	void round(bit_t overflow, const bitspan_t &src, uint8_t truncate_from);
+	void round(bit_t overflow, const bitvec_t &src, uint8_t truncate_from);
 };
 
 // The smallest Int class with at least N bits

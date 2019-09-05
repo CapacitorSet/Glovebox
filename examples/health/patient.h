@@ -14,7 +14,7 @@ class Patient {
 	Q7_1 weight;
 	Int8 age;
 	bit_t isMale;
-	bitspan_t data;
+	bitvec_t data;
 	static constexpr int _wordSize = Int8::_wordSize + Q7_1::_wordSize + Int8::_wordSize + 1;
 	static constexpr char typeID = 123;
 

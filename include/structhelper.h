@@ -5,10 +5,10 @@ class StructHelper {
   public:
 	StructHelper(uint16_t length) {
 		this->length = length;
-		data = ::make_bitspan(length);
+		data = ::make_bitvec(length);
 	}
 
-	bitspan_t finalize() {
+	bitvec_t finalize() {
 		if (offset != length) {
 			fprintf(stderr,
 			        "StructHelper: called finalize() with %d bits out of %d. "
@@ -25,18 +25,18 @@ class StructHelper {
 		return data[offset++];
 	}
 
-	bitspan_t make_bitspan(uint8_t length) {
+	bitvec_t make_bitvec(uint8_t length) {
 		assert_fits(length);
 		auto ret = data.subspan(offset, length);
 		offset += length;
 		return ret;
 	}
 
-	template <uint8_t size> fixed_bitspan_t<size> make_bitspan() {
+	template <uint8_t size> fixed_bitvec_t<size> make_bitvec() {
 		assert_fits(size);
 		auto ret = data.subspan<size>(offset);
 		offset += size;
-		return fixed_bitspan_t<size>(ret);
+		return fixed_bitvec_t<size>(ret);
 	}
 
   private:
@@ -44,7 +44,7 @@ class StructHelper {
 	uint16_t length;
 	// This is private; users must access it via finalize() to enforce size
 	// checks
-	bitspan_t data;
+	bitvec_t data;
 
 	void assert_fits(uint8_t size) {
 		if ((length - offset) < size) {

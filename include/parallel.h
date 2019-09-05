@@ -15,10 +15,10 @@ extern std::vector<parallel_host_t> parallel_hosts;
 // Essentially the map stage in map-reduce.
 // Takes in a vector<T>, returns a "mask" (true = satisfies the filter).
 template <class T, class... Args>
-bitspan_t filter(const std::vector<T> src, const std::string &fnName, Args... args) {
+bitvec_t filter(const std::vector<T> src, const std::string &fnName, Args... args) {
 	size_t numHosts = parallel_hosts.size();
 	assert(numHosts != 0);
-	bitspan_t results = make_bitspan(src.size());
+	bitvec_t results = make_bitvec(src.size());
 
 	std::mutex m;
 	std::condition_variable cv;
@@ -66,7 +66,7 @@ bitspan_t filter(const std::vector<T> src, const std::string &fnName, Args... ar
 
 template <class T, class... Args>
 bit_t any_of(const std::vector<T> src, const std::string &fnName, Args... args) {
-	bitspan_t results = filter(src, fnName, args...);
+	bitvec_t results = filter(src, fnName, args...);
 
 	// Reduce the results
 	bit_t ret = make_bit();
@@ -78,7 +78,7 @@ bit_t any_of(const std::vector<T> src, const std::string &fnName, Args... args) 
 
 template <class T, class... Args>
 bit_t all_of(const std::vector<T> src, const std::string &fnName, Args... args) {
-	bitspan_t results = filter(src, fnName, args...);
+	bitvec_t results = filter(src, fnName, args...);
 
 	// Reduce the results
 	bit_t ret = make_bit();

@@ -3,12 +3,12 @@
 
 #include <tfhe.h>
 
-void serialize(std::ostream &output, bitspan_t src);
-void deserialize(std::istream &input, bitspan_t src);
+void serialize(std::ostream &output, bitvec_t src);
+void deserialize(std::istream &input, bitvec_t src);
 
 bit_t make_bit(const std::string &packet);
-bitspan_t make_bitspan(int N, const std::string &packet);
+bitvec_t make_bitvec(int N, const std::string &packet);
 
-std::string serialize(bitspan_t src);
+std::string serialize(bitvec_t src);
 
 #endif // GLOVEBOX_SERIALIZATION_H

@@ -56,7 +56,7 @@ bit_t make_bit() {
 	return gsl::span<1>(ptr, 1);
 }
 
-bitspan_t make_bitspan(int N) {
+bitvec_t make_bitvec(int N) {
 	LweSample *cptr = new_gate_bootstrapping_ciphertext_array(N, weak_params.params);
 	auto ptr = gsl::shared_ptr_unsynchronized<LweSample>(cptr);
 	return gsl::span<>(ptr, N);

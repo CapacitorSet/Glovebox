@@ -29,13 +29,13 @@ int decrypt(bit_t dst) {
 }
 
 bit_t make_bit() {
-	auto ptr = gsl::shared_ptr_unsynchronized<bool>(reinterpret_cast<bool *>(malloc(1)));
-	return gsl::span<1>(ptr, 1);
+	auto ptr = gb::shared_ptr_unsynchronized<bool>(reinterpret_cast<bool *>(malloc(1)));
+	return bit_t(ptr, 1);
 }
 
-bitspan_t make_bitspan(int N) {
-	auto ptr = gsl::shared_ptr_unsynchronized<bool>(reinterpret_cast<bool *>(malloc(N)));
-	return gsl::span<>(ptr, N);
+bitvec_t make_bitvec(int N) {
+	auto ptr = gb::shared_ptr_unsynchronized<bool>(reinterpret_cast<bool *>(malloc(N)));
+	return bitvec_t(ptr, N);
 }
 
 void encrypt(bit_t dst, bool src) {

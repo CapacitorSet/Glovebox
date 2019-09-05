@@ -20,6 +20,8 @@
 #include <gsl/gsl_assert> // for Expects
 #include <gsl/gsl_util>   // for narrow_cast, narrow
 
+using gsl::narrow_cast;
+
 #include <cstddef>  // for ptrdiff_t, size_t, nullptr_t
 #include <iterator> // for reverse_iterator, distance, random_access_...
 #include <memory>
@@ -39,7 +41,7 @@
 
 #endif // _MSC_VER
 
-namespace gsl {
+namespace gb {
 
 // shared_ptr without atomic overhead
 template <typename T>
@@ -48,7 +50,7 @@ using shared_ptr_unsynchronized = std::__shared_ptr<T, __gnu_cxx::_S_single>;
 // [views.constants], constants
 const std::ptrdiff_t dynamic_extent = -1;
 
-template <std::ptrdiff_t Extent = dynamic_extent> class span;
+template <std::ptrdiff_t Extent = dynamic_extent> class bitvec;
 
 // implementation details
 namespace details {
@@ -70,17 +72,17 @@ template <class Span, bool IsConst> class span_iterator {
 
 	span_iterator() = default;
 
-	span_iterator(const Span *span, typename Span::index_type idx) noexcept
-	    : span_(span), index_(idx) {}
+	span_iterator(const Span *bitvec, typename Span::index_type idx) noexcept
+	    : span_(bitvec), index_(idx) {}
 
 	friend span_iterator<Span, true>;
 	template <bool B, std::enable_if_t<!B && IsConst> * = nullptr>
 	span_iterator(const span_iterator<Span, B> &other) noexcept
 	    : span_iterator(other.span_, other.index_) {}
 
-	std::conditional_t<IsConst, const span<1>, span<1>> operator*() const {
+	std::conditional_t<IsConst, const bitvec<1>, bitvec<1>> operator*() const {
 		Expects(index_ != span_->size());
-		return std::conditional_t<IsConst, const span<1>, span<1>>(
+		return std::conditional_t<IsConst, const bitvec<1>, bitvec<1>>(
 		    (*span_)[index_]);
 	}
 
@@ -163,7 +165,7 @@ template <std::ptrdiff_t Ext> class extent_type {
   public:
 	using index_type = std::ptrdiff_t;
 
-	static_assert(Ext >= 0, "A fixed-size span must be >= 0 in size.");
+	static_assert(Ext >= 0, "A fixed-size bitvec must be >= 0 in size.");
 
 	extent_type() noexcept {}
 
@@ -197,14 +199,13 @@ template <> class extent_type<dynamic_extent> {
 template <std::ptrdiff_t Extent, std::ptrdiff_t Offset, std::ptrdiff_t Count>
 struct calculate_subspan_type {
 	using type =
-	    span<Count != dynamic_extent
+	    bitvec<Count != dynamic_extent
 	             ? Count
 	             : (Extent != dynamic_extent ? Extent - Offset : Extent)>;
 };
 } // namespace details
 
-// [span], class template span
-template <std::ptrdiff_t Extent> class span {
+template <std::ptrdiff_t Extent> class bitvec {
   public:
 	// constants and types
 	using element_type = unsafe_bit_t;
@@ -212,44 +213,44 @@ template <std::ptrdiff_t Extent> class span {
 	using index_type = std::ptrdiff_t;
 	using pointer = shared_ptr_unsynchronized<element_type>;
 
-	using iterator = details::span_iterator<span<Extent>, false>;
-	using const_iterator = details::span_iterator<span<Extent>, true>;
+	using iterator = details::span_iterator<bitvec<Extent>, false>;
+	using const_iterator = details::span_iterator<bitvec<Extent>, true>;
 	using reverse_iterator = std::reverse_iterator<iterator>;
 	using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
 	using size_type = index_type;
 
-	// [span.cons], span constructors, copy, assignment, and destructor
+	// [bitvec.cons], bitvec constructors, copy, assignment, and destructor
 	template <bool Dependent = false,
 	          // "Dependent" is needed to make "std::enable_if_t<Dependent ||
 	          // Extent <= 0>" SFINAE, since "std::enable_if_t<Extent <= 0>" is
 	          // ill-formed when Extent is greater than 0.
 	          class = std::enable_if_t<(Dependent || Extent <= 0)>>
-	span() noexcept : storage_(nullptr, details::extent_type<0>()) {}
+	bitvec() noexcept : storage_(nullptr, details::extent_type<0>()) {}
 
-	span(pointer ptr, index_type count) : storage_(ptr, count) {}
+	bitvec(pointer ptr, index_type count) : storage_(ptr, count) {}
 
-	span(const span &other) noexcept = default;
+	bitvec(const bitvec &other) noexcept = default;
 
 	template <std::ptrdiff_t OtherExtent,
 	          class = std::enable_if_t<OtherExtent == Extent ||
 	                                   Extent == dynamic_extent>>
-	span(const span<OtherExtent> &other)
+	bitvec(const bitvec<OtherExtent> &other)
 	    : storage_(other.data(),
 	               details::extent_type<OtherExtent>(other.size())) {}
 
-	~span() noexcept = default;
-	span &operator=(const span &other) noexcept = default;
+	~bitvec() noexcept = default;
+	bitvec &operator=(const bitvec &other) noexcept = default;
 
-	// [span.sub], span subviews
-	template <std::ptrdiff_t Count> span<Count> first() const {
+	// [bitvec.sub], bitvec subviews
+	template <std::ptrdiff_t Count> bitvec<Count> first() const {
 		Expects(Count >= 0 && Count <= size());
 		return {data(), Count};
 	}
 
 	template <std::ptrdiff_t Count = 1>
 	GSL_SUPPRESS(bounds .1) // NO-FORMAT: attribute
-	span<Count> last() const {
+	bitvec<Count> last() const {
 		Expects(Count >= 0 && size() - Count >= 0);
 		return {data_plus(size() - Count), Count};
 	}
@@ -267,7 +268,7 @@ template <std::ptrdiff_t Extent> class span {
 	}
 
 	template <std::ptrdiff_t Count>
-	span<Count> subspan(std::ptrdiff_t offset) const {
+	bitvec<Count> subspan(std::ptrdiff_t offset) const {
 		Expects((offset >= 0 && size() - offset >= 0) &&
 		        (Count == dynamic_extent ||
 		         (Count >= 0 && offset + Count <= size())));
@@ -276,29 +277,29 @@ template <std::ptrdiff_t Extent> class span {
 		        Count == dynamic_extent ? size() - offset : Count};
 	}
 
-	span<dynamic_extent> first(index_type count) const {
+	bitvec<dynamic_extent> first(index_type count) const {
 		Expects(count >= 0 && count <= size());
 		return {data(), count};
 	}
 
-	span<dynamic_extent> last(index_type count) const {
+	bitvec<dynamic_extent> last(index_type count) const {
 		return make_subspan(size() - count, dynamic_extent,
 		                    subspan_selector<Extent>{});
 	}
 
-	span<dynamic_extent> subspan(index_type offset,
+	bitvec<dynamic_extent> subspan(index_type offset,
 	                             index_type count = dynamic_extent) const {
 		return make_subspan(offset, count, subspan_selector<Extent>{});
 	}
 
-	// [span.obs], span observers
+	// [bitvec.obs], bitvec observers
 	index_type size() const noexcept { return storage_.size(); }
 	index_type size_bytes() const noexcept {
 		return size() * narrow_cast<index_type>(sizeof(element_type));
 	}
 	bool empty() const noexcept { return size() == 0; }
 
-	span<1> operator[](index_type idx) const { return {data_plus(idx), 1}; }
+	bitvec<1> operator[](index_type idx) const { return {data_plus(idx), 1}; }
 
 	pointer at(index_type idx) const {
 		Expects(CheckRange(idx, idx < storage_.size()));
@@ -308,7 +309,7 @@ template <std::ptrdiff_t Extent> class span {
 	pointer data() const noexcept { return storage_.data(); }
 	element_type *cptr() const noexcept { return storage_.data().get(); }
 
-	// [span.iter], span iterator support
+	// [bitvec.iter], bitvec iterator support
 	iterator begin() const noexcept { return {this, 0}; }
 	iterator end() const noexcept { return {this, size()}; }
 
@@ -342,7 +343,7 @@ template <std::ptrdiff_t Extent> class span {
 		// =>
 		// static_cast<size_t>(idx) < static_cast<size_t>(size)
 		//
-		// because size >=0 by span construction, and negative idx will
+		// because size >=0 by bitvec construction, and negative idx will
 		// wrap around to a value always greater than size when casted.
 
 		// check if we have enough space to wrap around
@@ -388,19 +389,19 @@ template <std::ptrdiff_t Extent> class span {
 
 	// The rest is needed to remove unnecessary null check
 	// in subspans and constructors from arrays
-	span(KnownNotNull ptr, index_type count) : storage_(ptr, count) {}
+	bitvec(KnownNotNull ptr, index_type count) : storage_(ptr, count) {}
 
 	template <std::ptrdiff_t CallerExtent> class subspan_selector {};
 
 	template <std::ptrdiff_t CallerExtent>
-	span<dynamic_extent> make_subspan(index_type offset, index_type count,
+	bitvec<dynamic_extent> make_subspan(index_type offset, index_type count,
 	                                  subspan_selector<CallerExtent>) const {
-		const span<dynamic_extent> tmp(*this);
+		const bitvec<dynamic_extent> tmp(*this);
 		return tmp.subspan(offset, count);
 	}
 
 	GSL_SUPPRESS(bounds .1) // NO-FORMAT: attribute
-	span<dynamic_extent> make_subspan(index_type offset, index_type count,
+	bitvec<dynamic_extent> make_subspan(index_type offset, index_type count,
 	                                  subspan_selector<dynamic_extent>) const {
 		Expects(offset >= 0 && size() - offset >= 0);
 
@@ -424,7 +425,7 @@ template <std::ptrdiff_t Extent> class span {
 	}
 };
 
-} // namespace gsl
+} // namespace gb
 
 #ifdef _MSC_VER
 #pragma warning(pop)
