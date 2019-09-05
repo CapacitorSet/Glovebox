@@ -17,7 +17,7 @@ template <uint16_t Length> class String : public Array<Int8, Length> {
 		assert(len <= Length);
 		for (size_t i = 0; i < len; i++)
 			for (int j = 0; j < 8; j++)
-				write(this->data[i * 8 + j], (src[i] >> j) & 1);
+				this->data[i * 8 + j] = (src[i] >> j) & 1;
 	}
 
 	String(const std::string &packet) : Array<Int8, Length>() {

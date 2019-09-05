@@ -51,7 +51,7 @@ template <uint8_t Size> class Int {
 
 	void write(native_type src) {
 		for (int i = 0; i < Size; i++)
-			::write(data[i], (src >> i) & 1);
+			data[i] = (src >> i) & 1;
 	}
 	void operator=(native_type src) {
 		write(src);

@@ -22,10 +22,10 @@ class Patient {
 
 	Patient(double _height, double _weight, int8_t _age, bool _isMale)
 	    : Patient(StructHelper(_wordSize)) {
-		this->resized_height.encrypt(scaleHeight(_height));
-		this->weight.encrypt(_weight);
-		this->age.encrypt(_age);
-		encrypt(this->isMale, _isMale);
+		this->resized_height = scaleHeight(_height);
+		this->weight = _weight;
+		this->age = _age;
+		this->isMale = _isMale;
 	}
 
 	double getHeight() {
