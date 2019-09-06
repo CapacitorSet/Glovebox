@@ -35,3 +35,19 @@ TEST_F(PrimitivesTest, IsZero) {
 		RC_ASSERT((num.toInt() == 0) == (decrypt(isZero)));
 	});
 }
+
+TEST_F(PrimitivesTest, MemImportExport) {
+	::rc::detail::checkGTest([=](std::vector<char> _src) {
+		char *src = _src.data();
+		size_t len = _src.size();
+
+		bitvec_t tmp = make_bitvec(len*8);
+		memimport(tmp, src, len);
+		char *out = new char[len];
+		memset(out, 0, len);
+		memexport(out, tmp, len);
+
+		RC_ASSERT(memcmp(out, src, len) == 0);
+		delete[] out;
+	});
+}

@@ -50,6 +50,23 @@ void _copy(bitvec_t dst, bitvec_t src) {
 	_memcpy(dst, src, dst.size());
 }
 
+void memimport(bitvec_t dst, const void *src, size_t len) {
+	for (size_t i = 0; i < len; i++) {
+		for (int j = 0; j < 8; j++)
+			dst[i * 8 + j] = (((char*)src)[i] >> j) & 1;
+	}
+}
+#if !GB_SERVER
+void memexport(void *dst, bitvec_t src, size_t len) {
+	for (size_t i = 0; i < len; i++) {
+		char out = 0;
+		for (int j = 0; j < 8; j++)
+			out |= decrypt(src[i * 8 + j]) << j;
+		((char*)dst)[i] = out;
+	}
+}
+#endif
+
 void increment_if(bitvec_t out, bit_t cond, bitvec_t src) {
 	const auto size = src.size();
 	// The code was generated with the help of verilog-to-glovebox, hence the

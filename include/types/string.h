@@ -15,9 +15,7 @@ template <uint16_t Length> class String : public Array<Int8, Length> {
 	String(const char *src, char) : Array<Int8, Length>(false) {
 		const auto len = strlen(src) + 1; // Count trailing NUL
 		assert(len <= Length);
-		for (size_t i = 0; i < len; i++)
-			for (int j = 0; j < 8; j++)
-				this->data[i * 8 + j] = (src[i] >> j) & 1;
+		memimport(this->data, src, len);
 	}
 
 	String(const std::string &packet) : Array<Int8, Length>() {
@@ -30,12 +28,7 @@ template <uint16_t Length> class String : public Array<Int8, Length> {
 	}
 
 	void toCStr(char *dst) const {
-		for (size_t i = 0; i < Length; i++) {
-			char out = 0;
-			for (int j = 0; j < 8; j++)
-				out |= decrypt(this->data[i * 8 + j]) << j;
-			dst[i] = out;
-		}
+		memexport(dst, this->data, Length);
 	}
 
 	std::string serialize() const {
