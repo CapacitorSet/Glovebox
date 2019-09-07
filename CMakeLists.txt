@@ -79,18 +79,21 @@ add_executable(example_fibonacci_client examples/fibonacci/client.cpp)
 target_link_libraries(example_fibonacci_client PRIVATE glovebox_client rpc pthread)
 add_executable(example_fibonacci_server examples/fibonacci/server.cpp)
 target_link_libraries(example_fibonacci_server PRIVATE glovebox_server rpc pthread)
+target_compile_definitions(example_fibonacci_server PUBLIC -DGB_SERVER=1)
 
 # Linear regression
 add_executable(example_linreg_client examples/linreg/client.cpp)
 target_link_libraries(example_linreg_client PRIVATE glovebox_client rpc pthread)
 add_executable(example_linreg_server examples/linreg/server.cpp)
 target_link_libraries(example_linreg_server PRIVATE glovebox_server rpc pthread)
+target_compile_definitions(example_linreg_server PUBLIC -DGB_SERVER=1)
 
 # Contacts
 add_executable(example_contacts_client examples/contacts/client.cpp examples/contacts/contact.h)
 target_link_libraries(example_contacts_client PRIVATE glovebox_client rpc pthread)
 add_executable(example_contacts_server examples/contacts/server.cpp examples/contacts/contact.h)
 target_link_libraries(example_contacts_server PRIVATE glovebox_server rpc pthread)
+target_compile_definitions(example_contacts_server PUBLIC -DGB_SERVER=1)
 
 # Health data
 add_executable(example_health_client
@@ -101,6 +104,7 @@ add_executable(example_health_server
         examples/health/server.cpp
         examples/health/patient.h)
 target_link_libraries(example_health_server PRIVATE glovebox_server rpc pthread)
+target_compile_definitions(example_health_server PUBLIC -DGB_SERVER=1)
 
 if (TESTS_ENABLED)
     # http://www.kaizou.org/2014/11/gtest-cmake/
