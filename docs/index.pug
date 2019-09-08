@@ -114,7 +114,7 @@ h2 Primitives: back to bits
 
 p: em todo: document utilities for bitspans (memcpy etc)
 
-p The fundamental data type is #[code bit_t], which represents an encrypted bit. Its building blocks are logic gates (NOT, AND, OR... + MUX), and map directly to TFHE operations on #[code LweSample]s. A useful construct is #[code bitspan_t], which looks like a dynamic array of #[code bit_t] (but it's not resizable); all other datatypes are abstractions on top of bits and bitspans. For this reason, you can access the underlying bitspan for such datatypes with #[code .data()] (least significant bit first).
+p The fundamental data type is #[code bit_t], which represents an encrypted bit. Its building blocks are logic gates (NOT, AND, OR... + MUX), and map directly to TFHE operations on #[code LweSample]s. A useful construct is #[code bitspan_t], which looks like a dynamic array of #[code bit_t] (but it's not resizable); all other datatypes are abstractions on top of bits and bitspans. For this reason, you can access the underlying bitspan for such datatypes with #[code .data] (least significant bit first).
 
 td: pre: code.hljs
 	:highlight(lang="c++")
