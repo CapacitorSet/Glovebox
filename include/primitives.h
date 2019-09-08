@@ -8,8 +8,13 @@ void zero(bitvec_t src);
 bit_t is_zero(bitvec_t src);
 bit_t is_nonzero(bitvec_t src);
 bit_t is_negative(bitvec_t src);
+bit_t is_positive(bitvec_t src);
 
 bit_t equals(bitvec_t a, bitvec_t b);
+// {is_lesser, is_equal, is_greater}
+gb::bitvec<3> compare(bitvec_t a, bitvec_t b);
+
+void sign_extend(bitvec_t dst, size_t dst_size, bitvec_t src, size_t src_size);
 
 // No bounds checking is done!
 void _memcpy(bitvec_t dst, bitvec_t src, size_t size);

@@ -105,16 +105,11 @@ class Fixed : public smallest_Int<IntSize + FracSize> {
 // Sign-extend a fixed into a larger one
 template <uint8_t IntNew, uint8_t FracNew, uint8_t IntOld, uint8_t FracOld>
 Fixed<IntNew, FracNew> fixed_extend(Fixed<IntOld, FracOld> src) {
-	static_assert(IntNew >= IntOld);
-	static_assert(FracNew == FracOld, "not yet implemented");
 	Fixed<IntNew, FracNew> ret;
-	bit_t sign = src.data.last();
-	for (int i = 0; i < ret.data.size(); i++) {
-		if (i < src.data.size())
-			_copy(ret.data[i], src.data[i]);
-		else
-			_copy(ret.data[i], sign);
-	}
+	// todo
+	static_assert(IntNew >= IntOld, "Not yet implemented");
+	static_assert(FracNew == FracOld, "Not yet implemented");
+	sign_extend(ret.data, ret.data.size(), src.data, src.data.size());
 	return ret;
 }
 
