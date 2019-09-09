@@ -1,7 +1,7 @@
 Glovebox
 =========
 
-A high-level wrapper around [libtfhe](https://github.com/tfhe/tfhe/). This is extremely **experimental**, alpha, and by all means not release-ready - feel free to peek at the features, but don't rely on its API.
+A library for writing applications with homomorphic encryption, and a [TFHE](https://github.com/tfhe/tfhe/) frontend. This is extremely **experimental**, alpha, and by all means not release-ready - feel free to peek at the features, but don't rely on its API.
 
 Check out the examples folder to see it in action, or head to the [Getting Started](https://capacitorset.github.io/Glovebox/) docs for an overview of the features.
 
