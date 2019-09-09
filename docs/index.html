@@ -54,7 +54,7 @@ srv.bind(<span class="hljs-string">"add"</span>, [](<span class="hljs-built_in">
 	result.add(first, second);
 	<span class="hljs-keyword">return</span> result.serialize();
 });
-</code></pre><h2>Primitives: back to bits</h2><p><em>todo: document utilities for bitspans (memcpy etc)</em></p><p>The fundamental data type is <code>bit_t</code>, which represents an encrypted bit. Its building blocks are logic gates (NOT, AND, OR... + MUX), and map directly to TFHE operations on <code>LweSample</code>s. A useful construct is <code>bitspan_t</code>, which looks like a dynamic array of <code>bit_t</code> (but it's not resizable); all other datatypes are abstractions on top of bits and bitspans. For this reason, you can access the underlying bitspan for such datatypes with <code>.data</code> (least significant bit first).</p><td><pre><code class="hljs"><span class="hljs-comment">// Allocate a bit; it will be deallocated automatically when it goes out of scope</span>
+</code></pre><h2>Primitives: back to bits</h2><p><em>todo: document utilities for bitvecs (memcpy etc)</em></p><p>The fundamental data type is <code>bit_t</code>, which represents an encrypted bit. Its building blocks are logic gates (NOT, AND, OR... + MUX), and map directly to TFHE operations on <code>LweSample</code>s. A useful construct is <code>bitvec_t</code>, which looks like a dynamic array of <code>bit_t</code> (but it's not resizable); all other datatypes are abstractions on top of bits and bitvecs. For this reason, you can access the underlying bitvec for such datatypes with <code>.data</code> (least significant bit first).</p><td><pre><code class="hljs"><span class="hljs-comment">// Allocate a bit; it will be deallocated automatically when it goes out of scope</span>
 <span class="hljs-keyword">bit_t</span> foo = make_bit(), bar = make_bit(), baz = make_bit();
 <span class="hljs-keyword">bit_t</span> output = make_bit();
 _and(output, foo, bar); <span class="hljs-comment">// output = foo AND bar</span>
@@ -62,9 +62,9 @@ _oryn(output, foo, bar); <span class="hljs-comment">// output = foo OR NOT bar</
 _nand(output, foo, bar);
 _mux(output, foo, bar, baz); <span class="hljs-comment">// output = foo ? bar : baz</span>
 
-<span class="hljs-comment">// The size of bitspans is fixed and determined at initialization.</span>
+<span class="hljs-comment">// The size of bitvecs is fixed and determined at initialization.</span>
 <span class="hljs-comment">// They are also deallocated automatically when going out of scope.</span>
-<span class="hljs-keyword">bitspan_t</span> test = make_bitspan(<span class="hljs-number">3</span>);
+<span class="hljs-keyword">bitvec_t</span> test = make_bitvec(<span class="hljs-number">3</span>);
 _and(test[<span class="hljs-number">0</span>], test[<span class="hljs-number">1</span>], test[<span class="hljs-number">2</span>]);
 
 Int&lt;<span class="hljs-number">8</span>&gt; test_int = <span class="hljs-number">9</span>; <span class="hljs-comment">// Binary: 00001001</span>
