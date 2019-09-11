@@ -15,6 +15,7 @@ bit_t equals(bitvec_t a, bitvec_t b);
 gb::bitvec<3> compare(bitvec_t a, bitvec_t b);
 
 void sign_extend(bitvec_t dst, size_t dst_size, bitvec_t src, size_t src_size);
+void abs(bitvec_t dst);
 
 // No bounds checking is done!
 void _memcpy(bitvec_t dst, bitvec_t src, size_t size);

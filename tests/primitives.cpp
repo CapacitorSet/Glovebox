@@ -62,6 +62,16 @@ TEST_F(PrimitivesTest, Compare) {
 	});
 }
 
+TEST_F(PrimitivesTest, Abs) {
+	::rc::detail::checkGTest([=](int16_t plaintext_a) {
+		Int16 a(plaintext_a);
+
+		abs(a.data);
+
+		RC_ASSERT(abs(plaintext_a) == a.toInt());
+	});
+}
+
 TEST_F(PrimitivesTest, MemImportExport) {
 	::rc::detail::checkGTest([=](std::vector<char> _src) {
 		char *src = _src.data();

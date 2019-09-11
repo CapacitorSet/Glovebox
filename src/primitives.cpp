@@ -1,6 +1,5 @@
-#include <bitvec.h>
+#include <primitives.h>
 #include <cassert>
-#include <tfhe.h>
 
 void zero(bitvec_t src) {
 	for (int i = 0; i < src.size(); i++)
@@ -76,6 +75,14 @@ void sign_extend(bitvec_t dst, size_t dst_size, bitvec_t src, size_t src_size) {
 			_copy(dst[i], src[i]);
 		else
 			_copy(dst[i], sign);
+}
+void abs(bitvec_t dst) {
+	bit_t sign = make_bit();
+	_copy(sign, dst.last());
+	// Complement and increment, if sign = 1
+	for (size_t i = 0; i < dst.size(); i++)
+		dst[i] ^= sign;
+	increment_if(dst, sign);
 }
 
 // No bounds checking is done!
