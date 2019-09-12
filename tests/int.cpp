@@ -1,4 +1,5 @@
 #include "FHEContext.cpp"
+#include <types/int.h>
 #include "gtest/gtest.h"
 #include <rapidcheck/gtest.h>
 

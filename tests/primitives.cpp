@@ -1,4 +1,6 @@
 #include "FHEContext.cpp"
+#include <primitives.h>
+#include <types/int.h>
 #include "gtest/gtest.h"
 #include <rapidcheck/gtest.h>
 

@@ -5,7 +5,7 @@
 #include "type_ids.h"
 #include <cassert>
 #include <flow_control.h>
-#include <tfhe.h>
+#include <types/fixed.h>
 
 // Computes ceil(log_2(value)), constexpr
 static constexpr uint8_t ceillog2(uint64_t value) {
