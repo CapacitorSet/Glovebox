@@ -39,7 +39,7 @@ template <class T, uint16_t Length> class Array {
 	static const int typeID = ARRAY_TYPE_ID;
 
 	explicit Array(bool initialize_memory = true, uint16_t wordSize = T::_wordSize)
-		: wordSize(wordSize), data(make_bitvec(Length * wordSize)) {
+	    : wordSize(wordSize), data(make_bitvec(Length * wordSize)) {
 		if (initialize_memory)
 			zero(data);
 	}
@@ -67,21 +67,17 @@ template <class T, uint16_t Length> class Array {
 		getBits(dst.data, address.data, 0, mask);
 	}
 
-	/*
 	maskable_function_t m_get(T dst, uint64_t address) {
-	    assert(address < this->length);
-	    return dst._m_fromBytes(
-	            this->data.subspan(address * this->wordSize, this->wordSize));
+		assert(address < Length);
+		return [=](bit_t mask) -> void {
+			for (uint16_t i = 0; i < wordSize; i++)
+				_mux(dst.data[i], mask, data[address * wordSize + i], dst.data[i]);
+		};
 	}
-	*/
 
-	/*
 	maskable_function_t m_get(T dst, encrypted_address_type address) {
-	    return [=] (bit_t mask) -> void {
-	        getBits(dst.data, address.data, 0, mask);
-	    };
+		return [=](bit_t mask) -> void { getBits(dst.data, address.data, 0, mask); };
 	}
-	*/
 
 	void put(T src, native_address_type address) {
 		assert(address < Length);
@@ -96,14 +92,17 @@ template <class T, uint16_t Length> class Array {
 		putBits(src.data, address.data, 0, mask);
 	}
 
-	/*
+	maskable_function_t m_put(T src, native_address_type address) {
+		assert(address < Length);
+		return [=](bit_t mask) -> void {
+			for (uint16_t i = 0; i < wordSize; i++)
+				_mux(data[address * wordSize + i], mask, src.data[i], data[address * wordSize + i]);
+		};
+	};
+
 	maskable_function_t m_put(T src, Int8 address) {
-	    // Todo: check that there are enough address bits
-	    return [=] (bit_t mask) -> void {
-	        putBits(src.data, address.data, 0, mask);
-	    };
+		return [=](bit_t mask) -> void { putBits(src.data, address.data, 0, mask); };
 	}
-	*/
 
 	std::string serialize() const {
 		char header[3] = {T::typeID};
@@ -128,7 +127,8 @@ template <class T, uint16_t Length> class Array {
 
 	// Create a new array with the result of calling f
 	template <class TNew>
-	Array<TNew, Length> map(std::function<TNew(T)> f, uint16_t newWordSize = TNew::_wordSize) const {
+	Array<TNew, Length> map(std::function<TNew(T)> f,
+	                        uint16_t newWordSize = TNew::_wordSize) const {
 		Array<TNew, Length> ret(newWordSize);
 		for (native_address_type i = 0; i < Length; i++) {
 			T item;
@@ -251,14 +251,14 @@ template <class T, uint16_t Length> class Array {
 #define RETURN_TYPE smallest_Int<ceillog2(Length * wordSize)>
 template <class T, uint16_t Length, uint16_t wordSize>
 std::enable_if_t<T::typeID == INT_TYPE_ID, RETURN_TYPE> sum(Array<T, Length, wordSize> &arr) {
-	printf("Sum of %s\n", typeid(T).name());
-	RETURN_TYPE ret = 0;
-	for (uint16_t i = 0; i < Length; i++) {
-		T item;
-		arr.get(item, i);
-		ret.add(ret, item);
-	}
-	return ret;
+    printf("Sum of %s\n", typeid(T).name());
+    RETURN_TYPE ret = 0;
+    for (uint16_t i = 0; i < Length; i++) {
+        T item;
+        arr.get(item, i);
+        ret.add(ret, item);
+    }
+    return ret;
 }
 #undef RETURN_TYPE
 
@@ -268,15 +268,15 @@ std::enable_if_t<T::typeID == INT_TYPE_ID, RETURN_TYPE> sum(Array<T, Length, wor
 template <class T, uint16_t Length, uint16_t wordSize,
           class = std::enable_if_t<T::typeID == FIXED_TYPE_ID>>
 RETURN_TYPE sum(Array<T, Length, wordSize> &arr) {
-	RETURN_TYPE ret(0);
-	bit_t overflow = make_bit();
-	for (uint16_t i = 0; i < Length; i++) {
-		T item;
-		arr.get(item, i);
-		auto upcast_item = fixed_extend<NEW_INT_SIZE, T::frac_size>(item);
-		ret.add(overflow, ret, upcast_item);
-	}
-	return ret;
+    RETURN_TYPE ret(0);
+    bit_t overflow = make_bit();
+    for (uint16_t i = 0; i < Length; i++) {
+        T item;
+        arr.get(item, i);
+        auto upcast_item = fixed_extend<NEW_INT_SIZE, T::frac_size>(item);
+        ret.add(overflow, ret, upcast_item);
+    }
+    return ret;
 }
 #undef RETURN_TYPE
 */
