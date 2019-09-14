@@ -11,11 +11,11 @@ TEST_F(ArrayTest, ReadWritePlaintext) {
 	::rc::detail::checkGTest([=](int8_t plaintext_num, uint8_t _index) {
 		uint8_t index = _index % 8;
 		// No need for init, uninitialized regions won't be read
-		auto arr = Array<Int8, 8>(false);
-		auto elem = Int8(plaintext_num);
+		Array<Int8, 8> arr(false);
+		Int8 elem(plaintext_num);
 		arr.put(elem, index);
 
-		auto out = Int8();
+		Int8 out;
 		arr.get(out, index);
 		RC_ASSERT(out.toInt() == plaintext_num);
 	});
@@ -25,11 +25,11 @@ TEST_F(ArrayTest, ReadWritePlaintext) {
 TEST_F(ArrayTest, ReadWriteEncrypted) {
 	::rc::detail::checkGTest([=](int8_t plaintext_num, uint8_t index) {
 		Int8 index_int = Int8(index % 8);
-		auto arr = Array<Int8, 8>(true);
-		auto elem = Int8(plaintext_num);
+		Array<Int8, 8> arr;
+		Int8 elem(plaintext_num);
 		arr.put(elem, index_int);
 
-		auto out = Int8(0); // Initialize memory so ubsan doesn't complain
+		Int8 out;
 		arr.get(out, index_int);
 		RC_ASSERT(out.toInt() == plaintext_num);
 	});
@@ -37,14 +37,14 @@ TEST_F(ArrayTest, ReadWriteEncrypted) {
 
 TEST_F(ArrayTest, Serialization) {
 	::rc::detail::checkGTest([=](int8_t plaintext_num) {
-		auto input_arr = Array<Int8, 1>(true);
-		auto elem = Int8(plaintext_num);
+		Array<Int8, 1> input_arr;
+		Int8 elem(plaintext_num);
 		input_arr.put(elem, 0);
 
 		auto tmp = input_arr.serialize();
 
-		auto output_arr = Array<Int8, 1>(tmp);
-		auto out = Int8();
+		Array<Int8, 1> output_arr(tmp);
+		Int8 out;
 		output_arr.get(out, 0);
 		RC_ASSERT(out.toInt() == plaintext_num);
 	});
